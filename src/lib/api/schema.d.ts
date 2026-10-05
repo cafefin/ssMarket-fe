@@ -4,6 +4,38 @@
  */
 
 export interface paths {
+    "/banks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["BanksController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CategoriesController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/me": {
         parameters: {
             query?: never;
@@ -17,7 +49,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        patch: operations["UsersController_updateMe"];
         trace?: never;
     };
     "/auth/refresh": {
@@ -52,6 +84,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListingsController_search"];
+        put?: never;
+        post: operations["ListingsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/listings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListingsController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["ListingsController_update"];
+        trace?: never;
+    };
+    "/listings/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ListingsController_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/listings/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ListingsController_close"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["MyListingsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/listings/{listingId}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ListingImagesController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/listings/{listingId}/images/{imageId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["ListingImagesController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -72,6 +216,22 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        BankResponseDto: {
+            /** @example 970436 */
+            bin: string;
+            /** @example VCB */
+            code: string;
+            /** @example Vietcombank */
+            shortName: string;
+            name: string;
+        };
+        CategoryResponseDto: {
+            id: number;
+            /** @example thuc-pham-tuoi */
+            slug: string;
+            /** @example Thực phẩm tươi */
+            name: string;
+        };
         /** @enum {string} */
         UserRole: "user" | "admin";
         UserResponseDto: {
@@ -82,6 +242,133 @@ export interface components {
             name: string;
             avatarUrl: string | null;
             role: components["schemas"]["UserRole"];
+            deliveryLocation: string | null;
+            bankBin: string | null;
+            bankAccountNumber: string | null;
+            bankAccountName: string | null;
+        };
+        UpdateProfileDto: {
+            deliveryLocation?: string | null;
+            /** @example 970436 */
+            bankBin?: string | null;
+            bankAccountNumber?: string | null;
+            bankAccountName?: string | null;
+        };
+        /** @enum {string} */
+        ListingMode: "in_stock" | "preorder";
+        ListingItemInputDto: {
+            /** @example Cam sành */
+            name: string;
+            /**
+             * @example kg
+             * @enum {string}
+             */
+            unit: "cái" | "kg" | "hộp" | "túi" | "chai" | "bó" | "combo";
+            /**
+             * @description Integer VND
+             * @example 35000
+             */
+            unitPrice: number;
+            /**
+             * @description Decimal string, up to 3 fraction digits. Required for in-stock listings, null for pre-order.
+             * @example 2.5
+             */
+            stockQuantity?: string | null;
+        };
+        ListingInputDto: {
+            mode: components["schemas"]["ListingMode"];
+            /** @example Hoa quả tuần 41 */
+            title: string;
+            /** @example 2 */
+            categoryId: number;
+            /** @default  */
+            description: string;
+            acceptsPrepaidQr: boolean;
+            acceptsPayOnDelivery: boolean;
+            /**
+             * Format: date-time
+             * @description Pre-order only
+             */
+            orderDeadline?: string | null;
+            /**
+             * Format: date
+             * @description Pre-order only, YYYY-MM-DD
+             */
+            deliveryDate?: string | null;
+            items: components["schemas"]["ListingItemInputDto"][];
+        };
+        /** @enum {string} */
+        ListingStatus: "draft" | "open" | "closed";
+        ListingSellerDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            avatarUrl: string | null;
+        };
+        ListingItemDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            unit: string;
+            /** @description Integer VND */
+            unitPrice: number;
+            /** @description Remaining stock; null means unlimited */
+            stockQuantity: number | null;
+        };
+        ListingImageDto: {
+            /** Format: uuid */
+            id: string;
+            url: string;
+            thumbnailUrl: string;
+        };
+        ListingDetailDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            description: string;
+            mode: components["schemas"]["ListingMode"];
+            status: components["schemas"]["ListingStatus"];
+            /** @description True while buyers can see the listing */
+            isOpen: boolean;
+            category: components["schemas"]["CategoryResponseDto"];
+            seller: components["schemas"]["ListingSellerDto"];
+            acceptsPrepaidQr: boolean;
+            acceptsPayOnDelivery: boolean;
+            /** Format: date-time */
+            orderDeadline: string | null;
+            /** Format: date */
+            deliveryDate: string | null;
+            /** Format: date-time */
+            publishedAt: string | null;
+            items: components["schemas"]["ListingItemDto"][];
+            images: components["schemas"]["ListingImageDto"][];
+        };
+        ListingSummaryDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            mode: components["schemas"]["ListingMode"];
+            category: components["schemas"]["CategoryResponseDto"];
+            seller: components["schemas"]["ListingSellerDto"];
+            thumbnailUrl: string | null;
+            /** @description Lowest unit price among the items, integer VND */
+            minUnitPrice: number;
+            /**
+             * @description Unit of the cheapest item
+             * @example kg
+             */
+            minPriceUnit: string;
+            /** Format: date-time */
+            orderDeadline: string | null;
+            /** Format: date */
+            deliveryDate: string | null;
+            /** Format: date-time */
+            publishedAt: string;
+        };
+        ListingPageDto: {
+            items: components["schemas"]["ListingSummaryDto"][];
+            /** @description Pass as `cursor` to get the next page; null on the last page */
+            nextCursor: string | null;
         };
     };
     responses: never;
@@ -92,6 +379,44 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    BanksController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BankResponseDto"][];
+                };
+            };
+        };
+    };
+    CategoriesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryResponseDto"][];
+                };
+            };
+        };
+    };
     UsersController_me: {
         parameters: {
             query?: never;
@@ -100,6 +425,36 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
+            /** @description Missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UsersController_updateMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -153,6 +508,214 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Session ended */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ListingsController_search: {
+        parameters: {
+            query?: {
+                /** @description Keywords, with or without diacritics */
+                q?: string;
+                /** @description Category slug */
+                category?: string;
+                mode?: components["schemas"]["ListingMode"];
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingPageDto"];
+                };
+            };
+        };
+    };
+    ListingsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListingInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingDetailDto"];
+                };
+            };
+        };
+    };
+    ListingsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingDetailDto"];
+                };
+            };
+        };
+    };
+    ListingsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListingInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingDetailDto"];
+                };
+            };
+        };
+    };
+    ListingsController_publish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingDetailDto"];
+                };
+            };
+        };
+    };
+    ListingsController_close: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingDetailDto"];
+                };
+            };
+        };
+    };
+    MyListingsController_list: {
+        parameters: {
+            query?: {
+                status?: "draft" | "open" | "closed";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingDetailDto"][];
+                };
+            };
+        };
+    };
+    ListingImagesController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingImageDto"];
+                };
+            };
+        };
+    };
+    ListingImagesController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listingId: string;
+                imageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Image removed */
             204: {
                 headers: {
                     [name: string]: unknown;

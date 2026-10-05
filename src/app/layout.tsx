@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/lib/query/query-provider";
 import "./globals.css";
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="vi" className={`${inter.variable} ${geistMono.variable}`}>
       <body>
         <QueryProvider>{children}</QueryProvider>
+        <Toaster position="top-center" />
       </body>
     </html>
   );

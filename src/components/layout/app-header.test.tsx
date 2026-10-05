@@ -4,12 +4,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryProvider } from "@/lib/query/query-provider";
 import { AppHeader } from "./app-header";
 
-const { api, replace } = vi.hoisted(() => ({
+const { api, router, location } = vi.hoisted(() => ({
   api: { GET: vi.fn(), POST: vi.fn() },
-  replace: vi.fn(),
+  router: { push: vi.fn(), replace: vi.fn() },
+  location: { pathname: "/", search: "" },
 }));
 vi.mock("@/lib/api/client", () => ({ api }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => router,
+  usePathname: () => location.pathname,
+  useSearchParams: () => new URLSearchParams(location.search),
+}));
 
 const user = {
   id: "1",
@@ -27,44 +32,118 @@ function renderHeader() {
   );
 }
 
+const searchBox = () => screen.getByRole("searchbox", { name: "Tìm kiếm bài đăng" });
+const openMenu = async () =>
+  userEvent.click(
+    await screen.findByRole("button", { name: "Tài khoản của Nguyen Van A" }),
+  );
+
 describe("AppHeader", () => {
   beforeEach(() => {
-    api.GET.mockReset().mockResolvedValue({
-      data: user,
-      response: new Response(),
-    });
-    api.POST.mockReset().mockResolvedValue({
+    vi.resetAllMocks();
+    location.pathname = "/";
+    location.search = "";
+    api.GET.mockResolvedValue({ data: user, response: new Response() });
+    api.POST.mockResolvedValue({
       response: new Response(null, { status: 204 }),
     });
-    replace.mockReset();
   });
 
-  it("shows the product name and the signed-in user", async () => {
+  it("links the wordmark home and offers the sell action", () => {
     renderHeader();
 
-    expect(screen.getByLabelText("ssMarket")).toBeInTheDocument();
-    expect(await screen.findByText("Nguyen Van A")).toBeInTheDocument();
-    expect(screen.getByText("NA")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "ssMarket" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+    expect(screen.getByRole("link", { name: "Đăng bán" })).toHaveAttribute(
+      "href",
+      "/sell/new",
+    );
   });
 
-  it("signs out through the API and returns to the login page", async () => {
-    renderHeader();
-    await screen.findByText("Nguyen Van A");
+  describe("search", () => {
+    it("shows the query from the URL", () => {
+      location.search = "q=hoa+quả";
 
-    await userEvent.click(screen.getByRole("button", { name: "Đăng xuất" }));
+      renderHeader();
 
-    expect(api.POST).toHaveBeenCalledWith("/auth/logout");
-    await waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
+      expect(searchBox()).toHaveValue("hoa quả");
+    });
+
+    it("goes to the home page with the trimmed query", async () => {
+      location.pathname = "/sell";
+      renderHeader();
+
+      await userEvent.type(searchBox(), "  loa cũ {Enter}");
+
+      expect(router.push).toHaveBeenCalledWith("/?q=loa+c%C5%A9");
+    });
+
+    it("keeps the other filters when searching on the home page", async () => {
+      location.search = "category=dien-tu&mode=in_stock";
+      renderHeader();
+
+      await userEvent.type(searchBox(), "loa{Enter}");
+
+      expect(router.push).toHaveBeenCalledWith(
+        "/?category=dien-tu&mode=in_stock&q=loa",
+      );
+    });
+
+    it("clears the query when the box is emptied", async () => {
+      location.search = "q=loa&mode=preorder";
+      renderHeader();
+
+      await userEvent.clear(searchBox());
+      await userEvent.type(searchBox(), "{Enter}");
+
+      expect(router.push).toHaveBeenCalledWith("/?mode=preorder");
+    });
   });
 
-  it("still offers sign-out while the user is loading", () => {
-    api.GET.mockReturnValue(new Promise(() => undefined));
+  describe("user menu", () => {
+    it("is hidden until the user is loaded", () => {
+      api.GET.mockReturnValue(new Promise(() => undefined));
 
-    renderHeader();
+      renderHeader();
 
-    expect(
-      screen.getByRole("button", { name: "Đăng xuất" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Nguyen Van A")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /Tài khoản/ }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows who is signed in and where they can go", async () => {
+      renderHeader();
+
+      await openMenu();
+
+      expect(await screen.findByText("an@example.com")).toBeInTheDocument();
+      await userEvent.click(screen.getByRole("menuitem", { name: "Hồ sơ" }));
+      expect(router.push).toHaveBeenCalledWith("/profile");
+    });
+
+    it("links to the seller's listings", async () => {
+      renderHeader();
+
+      await openMenu();
+      await userEvent.click(
+        await screen.findByRole("menuitem", { name: "Bài đăng của tôi" }),
+      );
+
+      expect(router.push).toHaveBeenCalledWith("/sell");
+    });
+
+    it("signs out through the API and returns to the login page", async () => {
+      renderHeader();
+
+      await openMenu();
+      await userEvent.click(
+        await screen.findByRole("menuitem", { name: "Đăng xuất" }),
+      );
+
+      expect(api.POST).toHaveBeenCalledWith("/auth/logout");
+      await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/login"));
+    });
   });
 });
