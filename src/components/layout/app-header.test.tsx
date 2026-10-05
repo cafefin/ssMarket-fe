@@ -42,7 +42,7 @@ describe("AppHeader", () => {
   it("shows the product name and the signed-in user", async () => {
     renderHeader();
 
-    expect(screen.getByText("ssMarket")).toBeInTheDocument();
+    expect(screen.getByLabelText("ssMarket")).toBeInTheDocument();
     expect(await screen.findByText("Nguyen Van A")).toBeInTheDocument();
     expect(screen.getByText("NA")).toBeInTheDocument();
   });

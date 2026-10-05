@@ -1,3 +1,4 @@
+import { Wordmark } from "@/components/brand/wordmark";
 import { buttonVariants } from "@/components/ui/button";
 
 const GENERIC_ERROR = "Đăng nhập không thành công. Vui lòng thử lại.";
@@ -19,7 +20,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="flex min-h-dvh items-center justify-center bg-surface-soft px-4">
       <section className="w-full max-w-sm rounded-lg border border-border bg-card p-8 text-center">
-        <h1 className="text-[28px] leading-tight font-semibold">ssMarket</h1>
+        <h1>
+          <Wordmark className="text-[28px] leading-tight" />
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Sàn mua bán nội bộ dành cho nhân viên.
         </p>
@@ -27,7 +30,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         {errorMessage && (
           <p
             role="alert"
-            className="mt-6 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+            className="mt-6 rounded-md border border-error/40 bg-error-soft px-4 py-3 text-sm text-error-deep"
           >
             {errorMessage}
           </p>

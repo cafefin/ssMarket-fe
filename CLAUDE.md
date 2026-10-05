@@ -27,10 +27,12 @@ src/
 │   └── (app)/            everything that requires a session
 ├── components/
 │   ├── ui/               shadcn/ui primitives (Base UI); change only to apply design tokens
+│   ├── brand/            wordmark
 │   └── layout/           header and other shell pieces
 └── lib/
     ├── api/              typed client, session refresh, query hooks
     ├── query/            TanStack Query provider
+    ├── theme/            contrast helpers and the palette contrast gate
     └── format/           pure formatting helpers
 ```
 
@@ -54,11 +56,23 @@ src/
 `DESIGN.md` is the source of truth. Its tokens are declared in
 `src/app/globals.css` and exposed as Tailwind theme classes.
 
-- Use theme classes (`bg-background`, `text-muted-foreground`, `border-border`,
-  `bg-brand`, `rounded-lg`). Never write hex colours in components.
+- Use theme classes (`bg-primary`, `text-muted-foreground`, `border-border`,
+  `rounded-lg`). Never write hex colours in components.
+- Blue (`primary`) is for actions: main buttons, links, focus rings, selected
+  states. Green (`positive`) means something good happened or is available:
+  in stock, paid, delivered. Do not use green for decoration.
+- The design token `accent` in `DESIGN.md` is `positive` in CSS, because
+  shadcn/ui uses `accent` for neutral hover surfaces.
+- White text goes only on `bg-primary` and `bg-primary-deep`. Coloured text
+  uses the `-deep` variant (`text-positive-deep`, `text-warn-deep`,
+  `text-error-deep`); the base colours are for icons, borders, dots and
+  backgrounds with dark text.
+- `src/lib/theme/contrast.test.ts` fails when a text/background pair drops
+  below WCAG AA. Add new pairs there when you introduce them.
 - Buttons are always pills (`rounded-full`); cards use `rounded-lg` (12px).
-- `bg-brand` (mint green) is for accent calls to action and active states only.
-- Inter for UI text, Geist Mono for code. No third typeface.
+- Inter for UI text, Geist Mono for codes people copy. No third typeface.
+- Use the `Wordmark` component for the product name. Never add the SmartOSC
+  logo file to this repository.
 - To style a link as a button, use `buttonVariants(...)` on an `<a>`.
 - Every screen must work from 360px wide.
 

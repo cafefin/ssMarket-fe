@@ -4,7 +4,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Values come from DESIGN.md. Change a token there first, then here. */
+/* Values come from DESIGN.md. Change a token there first, then here.
+   src/lib/theme/contrast.test.ts fails if a text/background pair drops below AA. */
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
@@ -12,22 +13,33 @@
   --card-foreground: #0a0a0a;
   --popover: #ffffff;
   --popover-foreground: #0a0a0a;
-  --primary: #0a0a0a;
+  --primary: #2b62b2;
   --primary-foreground: #ffffff;
+  --primary-deep: #234f91;
+  --primary-soft: #eaf0f9;
   --secondary: #f7f7f7;
   --secondary-foreground: #0a0a0a;
   --muted: #f7f7f7;
   --muted-foreground: #5a5a5c;
   --accent: #f7f7f7;
   --accent-foreground: #0a0a0a;
-  --destructive: #d45656;
+  --destructive: #b93c3c;
   --border: #e5e5e5;
   --input: #e5e5e5;
-  --ring: #00d4a4;
+  --ring: #2b62b2;
 
-  --brand: #00d4a4;
-  --brand-deep: #00b48a;
-  --brand-soft: #7cebcb;
+  /* The design token "accent" (SmartOSC green). Named "positive" here because
+     shadcn/ui already uses "accent" for neutral hover surfaces. */
+  --positive: #4caf4d;
+  --positive-deep: #27702b;
+  --positive-soft: #e8f5e9;
+  --warn: #c37d0d;
+  --warn-deep: #8a5a0a;
+  --warn-soft: #fff6e5;
+  --error: #d45656;
+  --error-deep: #b93c3c;
+  --error-soft: #fdecec;
+
   --surface: #f7f7f7;
   --surface-soft: #fafafa;
   --hairline-soft: #ededed;
@@ -61,9 +73,17 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-brand: var(--brand);
-  --color-brand-deep: var(--brand-deep);
-  --color-brand-soft: var(--brand-soft);
+  --color-primary-deep: var(--primary-deep);
+  --color-primary-soft: var(--primary-soft);
+  --color-positive: var(--positive);
+  --color-positive-deep: var(--positive-deep);
+  --color-positive-soft: var(--positive-soft);
+  --color-warn: var(--warn);
+  --color-warn-deep: var(--warn-deep);
+  --color-warn-soft: var(--warn-soft);
+  --color-error: var(--error);
+  --color-error-deep: var(--error-deep);
+  --color-error-soft: var(--error-soft);
   --color-surface: var(--surface);
   --color-surface-soft: var(--surface-soft);
   --color-hairline-soft: var(--hairline-soft);

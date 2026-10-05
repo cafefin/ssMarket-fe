@@ -2,6 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { Wordmark } from "@/components/brand/wordmark";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api/client";
@@ -23,7 +24,7 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-10 border-b border-hairline-soft bg-background">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-8">
-        <span className="text-lg font-semibold">ssMarket</span>
+        <Wordmark className="text-lg" />
 
         <div className="flex items-center gap-3">
           {user && (
