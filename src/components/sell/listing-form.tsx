@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ApiError, userMessage } from "@/lib/api/api-error";
 import { api } from "@/lib/api/client";
 import { useCategories } from "@/lib/api/use-categories";
+import { MY_LISTINGS_QUERY_KEY } from "@/lib/api/use-my-listings";
 import {
   type ListingDetail,
   LISTINGS_QUERY_KEY,
@@ -28,8 +29,6 @@ import {
 import { submitListing } from "@/lib/listings/submit-listing";
 import { ImagesField } from "./images-field";
 import { ItemsField } from "./items-field";
-
-export const MY_LISTINGS_QUERY_KEY = ["my-listings"] as const;
 
 interface ListingFormProps {
   mode: ListingMode;

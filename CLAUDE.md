@@ -25,16 +25,28 @@ src/
 │   ├── globals.css       design tokens
 │   ├── login/            public
 │   └── (app)/            everything that requires a session
+│       ├── page.tsx              browse and search
+│       ├── listings/[id]/        detail and edit
+│       ├── sell/                 my listings, new listing
+│       └── profile/
 ├── components/
 │   ├── ui/               shadcn/ui primitives (Base UI); change only to apply design tokens
 │   ├── brand/            wordmark
-│   └── layout/           header and other shell pieces
+│   ├── layout/           header, search box, user menu
+│   ├── form/             Field wrapper and shared control styles
+│   ├── listings/         card, filters, detail view, gallery, item table
+│   ├── sell/             mode step, listing form, my listings
+│   └── profile/
 └── lib/
-    ├── api/              typed client, session refresh, query hooks
+    ├── api/              typed client, session refresh, query hooks, ApiError
+    ├── listings/         URL filters, form schema, draft store, save sequence
     ├── query/            TanStack Query provider
     ├── theme/            contrast helpers and the palette contrast gate
-    └── format/           pure formatting helpers
+    └── format/           money, dates, initials
 ```
+
+Pages under `app/` stay thin: they render one component from `components/`,
+which holds the behaviour and has the tests.
 
 ## Talking to the backend
 
@@ -50,6 +62,42 @@ src/
   add retry logic elsewhere.
 - Links that start the sign-in flow must be plain `<a href="/api/auth/google">`,
   not `next/link`.
+
+## Errors
+
+- Hooks throw `ApiError` (built with `toApiError`), which carries the
+  backend's `code`.
+- Show `userMessage(error)` to people. Backend messages are English text for
+  developers and must never be rendered. Add new codes to the map in
+  `api-error.ts`.
+
+## State
+
+- **Server data**: TanStack Query hooks in `src/lib/api/`. After a write,
+  invalidate `["listings"]`, `["my-listings"]` and `["listing", id]`.
+- **Browse filters**: the URL query string, through
+  `parseListingFilters` / `listingsHref`. Filters are links, so a search can
+  be shared and the back button works.
+- **Unfinished new listing**: the Zustand store in `sell-draft-store.ts`
+  (sessionStorage). It exists so typed values survive the detour to the
+  profile page. Do not put server data in Zustand.
+
+## Forms
+
+- React Hook Form with a Zod schema. The schema mirrors the backend rules and
+  gives Vietnamese messages; the backend stays the authority.
+- Wrap controls in `Field`, which wires the label, hint and error message.
+- Use a native `<select>` with `selectClassName`. When its options load after
+  the first render, re-apply the value (see `profile-form.tsx`), or the
+  browser silently falls back to the first option.
+- Prices and quantities are typed as text and parsed with `parsePrice` /
+  `parseQuantity`, so "35.000" and "2,5" work.
+
+## Images
+
+Listing images come from `/api/media/...` behind the session cookie, so use a
+plain `<img>` (the Next.js image optimizer cannot fetch them). The backend
+already serves a 400px thumbnail and a 1600px full size.
 
 ## Design system
 

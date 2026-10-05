@@ -3,7 +3,7 @@
 Web app for ssMarket, an internal marketplace where company employees buy and
 sell personal items. The API lives in a separate repository, `ssMarket-be`.
 
-**Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · shadcn/ui · TanStack Query · Vitest · Docker · GitHub Actions
+**Stack:** Next.js (App Router) · TypeScript · Tailwind CSS · shadcn/ui · TanStack Query · React Hook Form · Zod · Zustand · Vitest · Docker · GitHub Actions
 
 ## Getting started
 
@@ -23,6 +23,15 @@ Open http://localhost:3000.
 pnpm test        # run tests
 pnpm test:cov    # fails under 80% coverage
 ```
+
+## Features
+
+- Browse and search listings, with category and mode filters kept in the URL.
+- Post a listing in two steps: choose in-stock or pre-order, then fill in a
+  form that only shows the fields for that mode. Up to five photos.
+- Manage your own listings: drafts, open and closed.
+- Seller profile with delivery location and bank details.
+- A colour palette checked for WCAG AA contrast by a test.
 
 ## Architecture
 
