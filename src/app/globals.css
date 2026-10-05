@@ -1,0 +1,92 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Values come from DESIGN.md. Change a token there first, then here. */
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #0a0a0a;
+  --primary-foreground: #ffffff;
+  --secondary: #f7f7f7;
+  --secondary-foreground: #0a0a0a;
+  --muted: #f7f7f7;
+  --muted-foreground: #5a5a5c;
+  --accent: #f7f7f7;
+  --accent-foreground: #0a0a0a;
+  --destructive: #d45656;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #00d4a4;
+
+  --brand: #00d4a4;
+  --brand-deep: #00b48a;
+  --brand-soft: #7cebcb;
+  --surface: #f7f7f7;
+  --surface-soft: #fafafa;
+  --hairline-soft: #ededed;
+  --charcoal: #1c1c1e;
+  --slate: #3a3a3c;
+  --stone: #888888;
+}
+
+@theme inline {
+  --font-sans:
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), "SF Mono", Menlo, Consolas, monospace;
+  --font-heading: var(--font-sans);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-soft: var(--brand-soft);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-soft);
+  --color-hairline-soft: var(--hairline-soft);
+  --color-charcoal: var(--charcoal);
+  --color-slate: var(--slate);
+  --color-stone: var(--stone);
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
