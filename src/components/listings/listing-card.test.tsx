@@ -34,6 +34,22 @@ describe("ListingCard", () => {
     expect(link).toHaveTextContent("Nguyen Van A");
   });
 
+  it("keeps the seller's initials out of the link's name", () => {
+    render(<ListingCard listing={listing()} />);
+
+    const link = screen.getByRole("link");
+    expect(link).toHaveAccessibleName(/Nguyen Van A/);
+    expect(link).not.toHaveAccessibleName(/NA Nguyen/);
+  });
+
+  it("says Đặt trước for a pre-order without a closing time", () => {
+    render(
+      <ListingCard listing={listing({ mode: "preorder", orderDeadline: null })} />,
+    );
+
+    expect(screen.getByText("Đặt trước")).toBeInTheDocument();
+  });
+
   it("marks an in-stock listing in green and shows its photo", () => {
     const { container } = render(<ListingCard listing={listing()} />);
 

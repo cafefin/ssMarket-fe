@@ -38,12 +38,12 @@ function Choice({
         "inline-flex shrink-0 items-center rounded-full text-sm font-medium whitespace-nowrap",
         FOCUS,
         variant === "segment"
-          ? cn("h-8 px-3.5", active ? "bg-foreground text-background" : "text-foreground")
+          ? cn("h-8 px-3.5", active ? "bg-foreground text-background" : "text-foreground hover:bg-surface")
           : cn(
               "h-9 border px-3.5",
               active
                 ? "border-primary-soft bg-primary-soft text-primary-deep"
-                : "border-border bg-background text-foreground",
+                : "border-border bg-background text-foreground hover:bg-surface",
             ),
       )}
     >
@@ -66,7 +66,7 @@ export function ListingFilters({
   return (
     // top-16 matches the header's fixed height (h-16).
     <div className="sticky top-16 z-10 -mx-4 border-b border-border bg-background px-4 sm:-mx-8 sm:px-8">
-      <div className="flex items-center gap-2 overflow-x-auto px-0.5 py-2.5 [scrollbar-width:none]">
+      <div className="flex items-center gap-2 overflow-x-auto px-1 py-2.5 [scrollbar-width:none]">
         <div
           role="group"
           aria-label="Hình thức bán"

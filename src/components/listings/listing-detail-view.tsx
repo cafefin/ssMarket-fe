@@ -115,7 +115,7 @@ export function ListingDetailView({ id }: { id: string }) {
             {listing.title}
           </h1>
           <div className="flex items-center gap-3">
-            <Avatar size="lg">
+            <Avatar aria-hidden="true" size="lg">
               {listing.seller.avatarUrl && (
                 <AvatarImage src={listing.seller.avatarUrl} alt="" />
               )}
@@ -133,7 +133,7 @@ export function ListingDetailView({ id }: { id: string }) {
         {listing.mode === "preorder" &&
           listing.orderDeadline &&
           listing.deliveryDate && (
-            <dl className="grid grid-cols-2 gap-4 rounded-md bg-deadline-soft p-4 text-sm">
+            <dl className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2 rounded-md bg-deadline-soft p-4 text-sm">
               <div>
                 <dt className="text-deadline-deep">Chốt đơn</dt>
                 <dd className="font-heading text-[22px] leading-tight font-bold text-deadline-deep">

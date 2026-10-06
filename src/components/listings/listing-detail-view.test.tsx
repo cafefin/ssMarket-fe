@@ -143,6 +143,7 @@ describe("ListingDetailView", () => {
 
     const label = await screen.findByText("Chốt đơn");
     expect(label.closest("dl")).toHaveClass("bg-deadline-soft");
+    expect(label.closest("dl")).toHaveClass("grid-cols-1");
     // Weekday and date, or "hôm nay" if the suite runs on that day.
     expect(label.nextElementSibling).toHaveTextContent(
       /^\d{2}:\d{2} (hôm nay|.+, \d{1,2}\/10)$/,

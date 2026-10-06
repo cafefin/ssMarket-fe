@@ -102,7 +102,7 @@ export function ListingCard({
           </span>
         </p>
         <p className="mt-1 flex items-center gap-2 text-[13px] text-muted-foreground">
-          <Avatar size="sm" className="size-7">
+          <Avatar aria-hidden="true" className="size-7">
             {listing.seller.avatarUrl && (
               <AvatarImage src={listing.seller.avatarUrl} alt="" />
             )}
