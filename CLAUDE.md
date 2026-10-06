@@ -30,6 +30,8 @@ src/
 │       ├── listings/[id]/        detail and edit
 │       ├── sell/                 my listings, new listing, received orders, summary
 │       ├── orders/               my orders, order page
+│       ├── sellers/[id]/        a seller's public page
+│       ├── admin/categories/    category management (admins only)
 │       └── profile/
 ├── components/
 │   ├── ui/               shadcn/ui primitives (Base UI); change only to apply design tokens
@@ -39,6 +41,8 @@ src/
 │   ├── listings/         card, filters, closing-soon carousel, detail view, gallery, item table
 │   ├── sell/             mode step, listing form, my listings
 │   ├── orders/           order panel, order page, editor, QR block, actions, lists, summary
+│   ├── sellers/            seller page
+│   ├── admin/              admin screens
 │   └── profile/
 └── lib/
     ├── api/              typed client, session refresh, query hooks, ApiError
@@ -79,6 +83,9 @@ which holds the behaviour and has the tests.
 
 - **Server data**: TanStack Query hooks in `src/lib/api/`. After a write,
   invalidate `["listings"]`, `["my-listings"]` and `["listing", id]`.
+- **Closing soon and seller page**: the carousel uses `useClosingSoon`
+  (`GET /listings?sort=deadline`) and the seller page uses `useSellerListings`,
+  both under the `["listings"]` key.
 - **Browse filters**: the URL query string, through
   `parseListingFilters` / `listingsHref`. Filters are links, so a search can
   be shared and the back button works.
@@ -127,6 +134,16 @@ already serves a 400px thumbnail and a 1600px full size.
 - When editing a listing, send each existing item's `id`; the backend then
   updates it in place and existing orders stay valid.
 
+## Admin screens
+
+- `role` on the current user (`useCurrentUser`) decides what an admin sees:
+  the user menu shows "Quản lý danh mục" and `/admin/*` pages render; anyone
+  else is sent to `/`. The backend enforces the same rule; the frontend check
+  only avoids showing a screen that would fail.
+- After a category change, invalidate `["admin-categories"]`,
+  `["categories"]` and `["listings"]` (`use-admin-categories.ts` does this).
+- Category names come from the API. Never hard-code a category list.
+
 ## Design system
 
 `DESIGN.md` is the source of truth. Its tokens are declared in
@@ -155,6 +172,8 @@ already serves a 400px thumbnail and a 1600px full size.
   up, `MobileTabBar` below. Add a destination there, not in either component.
 - Fixed and sticky chrome (header, tab bar) is `z-20`; things that stick under
   the header are `z-10`. `main` reserves `pb-24` below `md` for the tab bar.
+- An in-stock card shows `còn N <unit>` when the API sends `stockQuantity`, and
+  `Hết hàng` in muted text when it is 0.
 - `ListingCard` is a row (photo left) below 560px and stacked above; pass
   `layout="stacked"` where it must always be stacked, as in the carousel.
 - `font-heading` (Bricolage Grotesque) for h1, h2, prices and the wordmark;
@@ -188,6 +207,8 @@ already serves a 400px thumbnail and a 1600px full size.
 - Tests sign in through the backend's development sign-in and create their
   own uniquely named people and listings (`e2e/support/people.ts`); they never
   depend on existing data or on each other.
+- `start-backend.sh` sets `ADMIN_EMAILS=e2e-admin@dev.invalid`, and
+  `signInAsAdmin` signs in as that fixed admin.
 - Find elements the way a person does: by role and visible Vietnamese text.
 - Add a scenario here when a flow crosses both apps or two people. Rules of a
   single component belong in Vitest.
