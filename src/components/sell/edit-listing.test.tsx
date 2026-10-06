@@ -9,6 +9,10 @@ const { listingState, meState } = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/api/use-listings", () => ({ useListing: () => listingState }));
 vi.mock("@/lib/api/use-current-user", () => ({ useCurrentUser: () => meState }));
+const { location } = vi.hoisted(() => ({ location: { search: "" } }));
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(location.search),
+}));
 vi.mock("@/components/sell/listing-form", () => ({
   ListingForm: ({ mode, initialValues }: { mode: string; initialValues: { title: string } }) => (
     <p>
@@ -31,6 +35,8 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   orderDeadline: "2026-10-09T10:00:00.000Z",
   deliveryDate: "2026-10-12",
   publishedAt: null,
+  orderCount: 0,
+  reopenedFromId: null,
   items: [
     { id: "i1", name: "Cam sành", unit: "kg", unitPrice: 35000, stockQuantity: null },
   ],
@@ -60,6 +66,17 @@ describe("EditListing", () => {
 
     expect(screen.getByRole("heading", { name: "Sửa bài đăng" })).toBeInTheDocument();
     expect(screen.getByText("form:preorder:Hoa quả tuần 41")).toBeInTheDocument();
+  });
+
+  it("reminds the seller to check a reopened round before publishing", () => {
+    location.search = "reopened=1";
+
+    render(<EditListing id="l1" />);
+
+    expect(
+      screen.getByText(/Kiểm tra hạn chốt, ngày giao và giá/),
+    ).toBeInTheDocument();
+    location.search = "";
   });
 
   it.each([

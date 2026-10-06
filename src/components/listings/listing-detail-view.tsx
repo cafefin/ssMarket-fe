@@ -132,6 +132,14 @@ export function ListingDetailView({ id }: { id: string }) {
                   {formatDate(listing.deliveryDate)}
                 </dd>
               </div>
+              {listing.orderCount > 0 && (
+                <div className="col-span-2">
+                  <dt className="sr-only">Số người đã đặt</dt>
+                  <dd className="font-medium text-positive-deep">
+                    {listing.orderCount} người đã đặt
+                  </dd>
+                </div>
+              )}
             </dl>
           )}
 
@@ -162,10 +170,10 @@ export function ListingDetailView({ id }: { id: string }) {
             )}
             {listing.status !== "draft" && (
               <Link
-                href={`/sell/orders?listing=${listing.id}`}
+                href={`/sell/listings/${listing.id}`}
                 className={buttonVariants({ variant: "outline" })}
               >
-                Đơn hàng của bài này
+                Bảng tổng hợp đơn hàng
               </Link>
             )}
           </div>

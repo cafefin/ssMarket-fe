@@ -40,6 +40,11 @@ export function ListingCard({ listing }: { listing: ListingSummary }) {
               Chốt đơn {formatDateTime(listing.orderDeadline)}
             </span>
           )}
+          {listing.mode === "preorder" && listing.orderCount > 0 && (
+            <span className="text-[13px] font-medium text-positive-deep">
+              {listing.orderCount} người đã đặt
+            </span>
+          )}
         </div>
       </div>
     </Link>

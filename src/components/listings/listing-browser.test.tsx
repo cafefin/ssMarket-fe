@@ -30,6 +30,7 @@ const summary = (id: string, title: string) => ({
   orderDeadline: null,
   deliveryDate: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
+  orderCount: 0,
 });
 
 type Page = { items: ReturnType<typeof summary>[]; nextCursor: string | null };

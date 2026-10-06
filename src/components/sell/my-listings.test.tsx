@@ -5,14 +5,16 @@ import type { ListingDetail } from "@/lib/api/use-listings";
 import { QueryProvider } from "@/lib/query/query-provider";
 import { MyListings } from "./my-listings";
 
-const { api, toast, location } = vi.hoisted(() => ({
+const { api, toast, location, router } = vi.hoisted(() => ({
   api: { GET: vi.fn(), POST: vi.fn() },
   toast: { success: vi.fn(), error: vi.fn() },
   location: { search: "" },
+  router: { push: vi.fn() },
 }));
 vi.mock("@/lib/api/client", () => ({ api }));
 vi.mock("sonner", () => ({ toast }));
 vi.mock("next/navigation", () => ({
+  useRouter: () => router,
   useSearchParams: () => new URLSearchParams(location.search),
 }));
 
@@ -30,6 +32,8 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   orderDeadline: null,
   deliveryDate: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
+  orderCount: 0,
+  reopenedFromId: null,
   items: [
     { id: "i1", name: "Loa", unit: "cái", unitPrice: 500000, stockQuantity: 1 },
     { id: "i2", name: "Dây sạc", unit: "cái", unitPrice: 20000, stockQuantity: 3 },
@@ -157,6 +161,51 @@ describe("MyListings", () => {
     expect(within(item).getByRole("link", { name: "Xem" })).toBeInTheDocument();
     expect(within(item).queryByRole("link", { name: "Sửa" })).not.toBeInTheDocument();
     expect(within(item).queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("reopens a finished pre-order round and goes to the new draft", async () => {
+    location.search = "tab=closed";
+    api.GET.mockResolvedValue(
+      ok([listing({ mode: "preorder", status: "closed", isOpen: false })]),
+    );
+    api.POST.mockResolvedValue(ok(listing({ id: "l2", status: "draft" })));
+    renderPage();
+    const item = await row("Loa bluetooth cũ");
+
+    await userEvent.click(within(item).getByRole("button", { name: "Mở lại" }));
+
+    await waitFor(() =>
+      expect(router.push).toHaveBeenCalledWith("/listings/l2/edit?reopened=1"),
+    );
+    expect(api.POST).toHaveBeenCalledWith("/listings/{id}/reopen", {
+      params: { path: { id: "l1" } },
+    });
+  });
+
+  it("offers reopening for an expired pre-order that was never closed", async () => {
+    api.GET.mockResolvedValue(
+      ok([
+        listing({
+          mode: "preorder",
+          isOpen: false,
+          orderDeadline: "2026-10-01T10:00:00.000Z",
+        }),
+      ]),
+    );
+    renderPage();
+
+    const item = await row("Loa bluetooth cũ");
+    expect(within(item).getByRole("button", { name: "Mở lại" })).toBeInTheDocument();
+  });
+
+  it("links each published listing to its order summary", async () => {
+    renderPage();
+
+    const item = await row("Loa bluetooth cũ");
+    expect(within(item).getByRole("link", { name: "Tổng hợp" })).toHaveAttribute(
+      "href",
+      "/sell/listings/l1",
+    );
   });
 
   it("closes a listing only after confirmation", async () => {

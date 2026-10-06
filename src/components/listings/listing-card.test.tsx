@@ -15,6 +15,7 @@ const listing = (overrides: Partial<ListingSummary> = {}): ListingSummary => ({
   orderDeadline: null,
   deliveryDate: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
+  orderCount: 0,
   ...overrides,
 });
 
@@ -61,6 +62,21 @@ describe("ListingCard", () => {
     );
     expect(screen.getByText(/^Chốt đơn \d{2}:\d{2} \d{2}\/10\/2026$/)).toBeInTheDocument();
     expect(screen.getByRole("link")).toHaveTextContent("từ 35.000 đ/kg");
+  });
+
+  it("shows how many people ordered a pre-order, but not zero and not for in-stock", () => {
+    const { rerender } = render(
+      <ListingCard
+        listing={listing({ mode: "preorder", orderCount: 7 })}
+      />,
+    );
+    expect(screen.getByText("7 người đã đặt")).toBeInTheDocument();
+
+    rerender(<ListingCard listing={listing({ mode: "preorder", orderCount: 0 })} />);
+    expect(screen.queryByText(/người đã đặt/)).not.toBeInTheDocument();
+
+    rerender(<ListingCard listing={listing({ mode: "in_stock", orderCount: 3 })} />);
+    expect(screen.queryByText(/người đã đặt/)).not.toBeInTheDocument();
   });
 
   it("shows a placeholder when there is no photo", () => {

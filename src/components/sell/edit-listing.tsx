@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ListingForm } from "@/components/sell/listing-form";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,6 +50,7 @@ function Unavailable({ message }: { message: string }) {
 export function EditListing({ id }: { id: string }) {
   const { data: listing, isPending, isError } = useListing(id);
   const { data: me } = useCurrentUser();
+  const reopened = useSearchParams().get("reopened") === "1";
 
   if (isPending || !me) {
     if (isError) {
@@ -73,6 +75,12 @@ export function EditListing({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-[28px] leading-tight font-semibold">Sửa bài đăng</h1>
+      {reopened && listing.status === "draft" && (
+        <p className="rounded-md border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn-deep">
+          Đây là bản sao của đợt trước. Kiểm tra hạn chốt, ngày giao và giá
+          trước khi đăng.
+        </p>
+      )}
       <ListingForm
         mode={listing.mode}
         initialValues={toFormValues(listing)}

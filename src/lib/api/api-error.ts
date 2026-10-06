@@ -49,6 +49,9 @@ const MESSAGES: Record<string, string> = {
   INVALID_ORDER_STATE:
     "Đơn hàng đã thay đổi trạng thái. Trang đã được cập nhật, hãy xem lại.",
   REQUEST_IN_PROGRESS: "Yêu cầu đang được xử lý, vui lòng chờ một chút.",
+  ORDER_NOT_EDITABLE:
+    "Đơn này không còn sửa được. Trang đã được cập nhật, hãy xem lại.",
+  SUMMARY_TOO_LARGE: "Bài đăng có quá nhiều đơn để hiển thị trong một bảng.",
   FORBIDDEN: "Bạn không có quyền thực hiện thao tác này.",
   NOT_FOUND: "Không tìm thấy nội dung bạn yêu cầu.",
   TOO_MANY_REQUESTS: "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",

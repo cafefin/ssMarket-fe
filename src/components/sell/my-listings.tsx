@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ModeBadge } from "@/components/listings/mode-badge";
@@ -24,6 +24,7 @@ import {
   useCloseListing,
   useMyListings,
   usePublishListing,
+  useReopenListing,
 } from "@/lib/api/use-my-listings";
 import { formatDateTime } from "@/lib/format/datetime";
 import { formatMoney } from "@/lib/format/money";
@@ -57,6 +58,18 @@ export function MyListings() {
   const listings = useMyListings(tab.status);
   const publish = usePublishListing();
   const close = useCloseListing();
+  const reopen = useReopenListing();
+  const router = useRouter();
+
+  async function reopenRound(id: string): Promise<void> {
+    try {
+      const draft = await reopen.mutateAsync(id);
+      // Straight to the form: the dates are only a suggestion to review.
+      router.push(`/listings/${draft.id}/edit?reopened=1`);
+    } catch (error) {
+      toast.error(userMessage(error));
+    }
+  }
   const [closing, setClosing] = useState<ListingDetail | null>(null);
 
   async function run(
@@ -166,10 +179,10 @@ export function MyListings() {
                   </Link>
                   {listing.status !== "draft" && (
                     <Link
-                      href={`/sell/orders?listing=${listing.id}`}
+                      href={`/sell/listings/${listing.id}`}
                       className={buttonVariants({ ...small, variant: "ghost" })}
                     >
-                      Đơn hàng
+                      Tổng hợp
                     </Link>
                   )}
                   {listing.status !== "closed" && (
@@ -189,6 +202,16 @@ export function MyListings() {
                       Đăng bán
                     </Button>
                   )}
+                  {listing.mode === "preorder" &&
+                    (listing.status === "closed" || expired) && (
+                      <Button
+                        {...small}
+                        disabled={reopen.isPending}
+                        onClick={() => void reopenRound(listing.id)}
+                      >
+                        Mở lại
+                      </Button>
+                    )}
                   {listing.status === "open" && (
                     <Button
                       {...small}

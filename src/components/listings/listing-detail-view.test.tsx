@@ -29,6 +29,8 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   orderDeadline: null,
   deliveryDate: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
+  orderCount: 0,
+  reopenedFromId: null,
   items: [
     { id: "i1", name: "Loa JBL Go 3", unit: "cái", unitPrice: 500000, stockQuantity: 2 },
     { id: "i2", name: "Dây sạc", unit: "cái", unitPrice: 20000, stockQuantity: 0 },
@@ -128,6 +130,21 @@ describe("ListingDetailView", () => {
     expect(screen.getByText("Trả tiền khi nhận hàng")).toBeInTheDocument();
   });
 
+  it("shows how many people have ordered a pre-order", async () => {
+    serve(
+      listing({
+        mode: "preorder",
+        orderDeadline: "2026-10-09T10:00:00.000Z",
+        deliveryDate: "2026-10-12",
+        orderCount: 12,
+      }),
+    );
+
+    renderView();
+
+    expect(await screen.findByText("12 người đã đặt")).toBeInTheDocument();
+  });
+
   it("lets the viewer switch between photos", async () => {
     serve(
       listing({
@@ -204,8 +221,8 @@ describe("ListingDetailView", () => {
 
     await screen.findByRole("link", { name: "Sửa bài đăng" });
     expect(
-      screen.getByRole("link", { name: "Đơn hàng của bài này" }),
-    ).toHaveAttribute("href", "/sell/orders?listing=l1");
+      screen.getByRole("link", { name: "Bảng tổng hợp đơn hàng" }),
+    ).toHaveAttribute("href", "/sell/listings/l1");
     expect(screen.queryByText(/order panel/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Chỉ bạn nhìn thấy/)).not.toBeInTheDocument();
   });

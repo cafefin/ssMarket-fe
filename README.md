@@ -22,6 +22,7 @@ Open http://localhost:3000.
 ```bash
 pnpm test        # run tests
 pnpm test:cov    # fails under 80% coverage
+pnpm e2e         # Playwright against the real backend (see CLAUDE.md)
 ```
 
 ## Features
@@ -30,6 +31,10 @@ pnpm test:cov    # fails under 80% coverage
 - Post a listing in two steps: choose in-stock or pre-order, then fill in a
   form that only shows the fields for that mode. Up to five photos.
 - Manage your own listings: drafts, open and closed.
+- Order from a listing, pay by a per-order VietQR code, follow the order's
+  payment and delivery state.
+- Sellers get a summary table per listing (totals, grouping by delivery
+  location, bulk actions, CSV export) and can reopen a finished pre-order.
 - Seller profile with delivery location and bank details.
 - A colour palette checked for WCAG AA contrast by a test.
 

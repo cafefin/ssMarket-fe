@@ -28,6 +28,8 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   orderDeadline: null,
   deliveryDate: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
+  orderCount: 0,
+  reopenedFromId: null,
   items: [
     { id: "loa", name: "Loa", unit: "cái", unitPrice: 500000, stockQuantity: 3 },
     { id: "cam", name: "Cam", unit: "kg", unitPrice: 35000, stockQuantity: 10 },

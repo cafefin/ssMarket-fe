@@ -54,3 +54,22 @@ function useListingAction(action: "publish" | "close") {
 
 export const usePublishListing = () => useListingAction("publish");
 export const useCloseListing = () => useListingAction("close");
+
+/** Copies a finished pre-order round into a new draft and returns it. */
+export function useReopenListing() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string): Promise<ListingDetail> => {
+      const { data, error, response } = await api.POST("/listings/{id}/reopen", {
+        params: { path: { id } },
+      });
+      if (!data) {
+        throw toApiError(error, response);
+      }
+      return data;
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: MY_LISTINGS_QUERY_KEY }),
+  });
+}

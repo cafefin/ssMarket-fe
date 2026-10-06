@@ -28,7 +28,7 @@ src/
 │   └── (app)/            everything that requires a session
 │       ├── page.tsx              browse and search
 │       ├── listings/[id]/        detail and edit
-│       ├── sell/                 my listings, new listing, received orders
+│       ├── sell/                 my listings, new listing, received orders, summary
 │       ├── orders/               my orders, order page
 │       └── profile/
 ├── components/
@@ -38,7 +38,7 @@ src/
 │   ├── form/             Field wrapper and shared control styles
 │   ├── listings/         card, filters, detail view, gallery, item table
 │   ├── sell/             mode step, listing form, my listings
-│   ├── orders/           order panel, order page, QR block, actions, lists
+│   ├── orders/           order panel, order page, editor, QR block, actions, lists, summary
 │   └── profile/
 └── lib/
     ├── api/              typed client, session refresh, query hooks, ApiError
@@ -117,6 +117,13 @@ already serves a 400px thumbnail and a 1600px full size.
   the page shows its real state.
 - Status is always shown as text badges (`OrderStatusBadges`), never by
   colour alone.
+- `SalesSummary` (`/sell/listings/[id]`) shows the seller's table. Figures and
+  the totals row come from the server; only the per-group subtotals are added
+  up in the browser. Bulk actions report how many orders changed and list the
+  ones that did not.
+- `editBlockedReason(order, now)` decides whether a buyer sees "Sửa đơn", an
+  explanation, or nothing. The editor shows already-ordered items at their
+  ordered price, as the server will charge them.
 - When editing a listing, send each existing item's `id`; the backend then
   updates it in place and existing orders stay valid.
 
