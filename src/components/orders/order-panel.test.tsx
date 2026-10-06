@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ListingDetail } from "@/lib/api/use-listings";
+import { type ListingDetail, useListing } from "@/lib/api/use-listings";
 import { QueryProvider } from "@/lib/query/query-provider";
 import { OrderPanel } from "./order-panel";
 
@@ -42,14 +42,25 @@ const fail = (status: number, code: string, details?: object) => ({
   response: new Response(null, { status }),
 });
 
+/** Stands in for the listing page, which owns the listing query. */
+function Host({ value }: { value: ListingDetail }) {
+  useListing(value.id);
+  return <OrderPanel listing={value} />;
+}
+
 async function renderPanel(
   value: ListingDetail = listing(),
   me: object = { id: "me", deliveryLocation: "Tầng 7" },
 ) {
-  api.GET.mockResolvedValue({ data: me, response: new Response() });
+  api.GET.mockImplementation((path: string) =>
+    Promise.resolve({
+      data: path === "/users/me" ? me : value,
+      response: new Response(),
+    }),
+  );
   render(
     <QueryProvider>
-      <OrderPanel listing={value} />
+      <Host value={value} />
     </QueryProvider>,
   );
   await waitFor(() => expect(api.GET).toHaveBeenCalled());
@@ -210,6 +221,9 @@ describe("OrderPanel", () => {
     );
     await renderPanel();
     await userEvent.type(quantity(/^Loa/), "2");
+    const listingFetches = () =>
+      api.GET.mock.calls.filter(([path]) => path === "/listings/{id}").length;
+    const before = listingFetches();
 
     await submit();
 
@@ -217,6 +231,8 @@ describe("OrderPanel", () => {
     expect(within(alert.parentElement as HTMLElement).getByText("Loa: còn 1")).toBeInTheDocument();
     expect(quantity(/^Loa/)).toHaveValue("2");
     expect(router.push).not.toHaveBeenCalled();
+    // The listing is fetched again so the stock on the page is current.
+    await waitFor(() => expect(listingFetches()).toBeGreaterThan(before));
   });
 
   it("points to the existing order on a pre-order already placed", async () => {

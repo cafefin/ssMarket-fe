@@ -14,6 +14,7 @@ pnpm test                 # unit and component tests
 pnpm test:cov             # tests with the 80% coverage gate
 pnpm lint && pnpm typecheck
 pnpm gen:api              # regenerate src/lib/api/schema.d.ts from the backend
+pnpm e2e                  # Playwright, real frontend + backend (see End-to-end tests)
 ```
 
 ## Structure
@@ -151,6 +152,23 @@ already serves a 400px thumbnail and a 1600px full size.
 - Mock `@/lib/api/client` in component tests; never call the network.
 - Coverage must stay at or above 80% for lines, branches, functions and
   statements. Add tests rather than exclusions.
+
+## End-to-end tests
+
+`pnpm e2e` runs Playwright against the real frontend and backend.
+
+- It needs the backend repository next to this one (`../ssMarket-be`, or set
+  `E2E_BACKEND_DIR`) with `docker compose up -d` running, and Chromium's
+  system libraries (`sudo npx playwright install-deps chromium`, once).
+- `e2e/support/start-backend.sh` recreates the database `ssmarket_e2e`, uses
+  Redis database 2 and ports 4100/3100, so a running `pnpm dev` and its data
+  are not touched.
+- Tests sign in through the backend's development sign-in and create their
+  own uniquely named people and listings (`e2e/support/people.ts`); they never
+  depend on existing data or on each other.
+- Find elements the way a person does: by role and visible Vietnamese text.
+- Add a scenario here when a flow crosses both apps or two people. Rules of a
+  single component belong in Vitest.
 
 ## Environment
 

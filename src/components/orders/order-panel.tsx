@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiError, userMessage } from "@/lib/api/api-error";
 import { useCurrentUser } from "@/lib/api/use-current-user";
-import type { ListingDetail } from "@/lib/api/use-listings";
+import { type ListingDetail, listingQueryKey } from "@/lib/api/use-listings";
 import { type PaymentMethod, usePlaceOrder } from "@/lib/api/use-orders";
 import { formatMoney } from "@/lib/format/money";
 import {
@@ -34,6 +35,7 @@ interface Shortage {
 export function OrderPanel({ listing }: { listing: ListingDetail }) {
   const router = useRouter();
   const { data: me } = useCurrentUser();
+  const queryClient = useQueryClient();
   const placeOrder = usePlaceOrder();
   // One key for the life of this form: a double click or a retried request
   // reaches the server with the same key and creates a single order.
@@ -105,6 +107,10 @@ export function OrderPanel({ listing }: { listing: ListingDetail }) {
     } catch (error) {
       if (error instanceof ApiError && error.code === "OUT_OF_STOCK") {
         setShortages((error.details.items as Shortage[] | undefined) ?? []);
+        // Someone else bought in the meantime: show the real stock again.
+        void queryClient.invalidateQueries({
+          queryKey: listingQueryKey(listing.id),
+        });
       } else if (error instanceof ApiError && error.code === "ALREADY_ORDERED") {
         setExistingOrderId(String(error.details.orderId ?? ""));
       } else {
