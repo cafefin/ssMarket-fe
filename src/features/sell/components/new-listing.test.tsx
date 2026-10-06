@@ -5,7 +5,7 @@ import { emptyListing } from "../lib/listing-schema";
 import { useSellDraftStore } from "../lib/sell-draft-store";
 import { NewListing } from "./new-listing";
 
-vi.mock("./listing-form", () => ({
+vi.mock("@/features/sell/components/listing-form", () => ({
   ListingForm: ({
     mode,
     initialValues,

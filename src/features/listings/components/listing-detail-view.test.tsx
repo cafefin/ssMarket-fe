@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,11 +8,6 @@ import { ListingDetailView } from "./listing-detail-view";
 
 const { api } = vi.hoisted(() => ({ api: { GET: vi.fn() } }));
 vi.mock("@/shared/api/client", () => ({ api }));
-vi.mock("@/features/orders/components/order-panel", () => ({
-  OrderPanel: ({ listing }: { listing: { id: string } }) => (
-    <p>order panel for {listing.id}</p>
-  ),
-}));
 
 const SELLER = { id: "seller-1", name: "Chị Lan", avatarUrl: null };
 
@@ -57,10 +53,10 @@ function serve(detail: ListingDetail | { status: number }, viewerId = "buyer-1")
   });
 }
 
-function renderView() {
+function renderView(props: Partial<ComponentProps<typeof ListingDetailView>> = {}) {
   render(
     <QueryProvider>
-      <ListingDetailView id="l1" />
+      <ListingDetailView id="l1" {...props} />
     </QueryProvider>,
   );
 }
@@ -210,12 +206,40 @@ describe("ListingDetailView", () => {
   it("offers ordering, not editing, to other people", async () => {
     serve(listing());
 
-    renderView();
+    renderView({
+      renderOrderPanel: (l) => <div data-testid="order-panel">{l.id}</div>,
+    });
 
-    expect(await screen.findByText("order panel for l1")).toBeInTheDocument();
+    expect(await screen.findByTestId("order-panel")).toHaveTextContent("l1");
     expect(
       screen.queryByRole("link", { name: "Sửa bài đăng" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("asks for the order panel only for a signed-in buyer of an open listing", async () => {
+    serve(listing());
+    const renderOrderPanel = vi.fn(() => <div data-testid="order-panel" />);
+
+    renderView({ renderOrderPanel });
+
+    expect(await screen.findByTestId("order-panel")).toBeInTheDocument();
+    expect(renderOrderPanel).toHaveBeenCalledWith(
+      expect.objectContaining({ id: expect.any(String) }),
+    );
+  });
+
+  it.each([
+    ["the seller", { isOpen: true }, SELLER.id],
+    ["a closed listing", { isOpen: false, status: "closed" as const }, "buyer-1"],
+  ])("never asks for the order panel for %s", async (_name, overrides, viewer) => {
+    serve(listing(overrides), viewer);
+    const renderOrderPanel = vi.fn(() => <div data-testid="order-panel" />);
+
+    renderView({ renderOrderPanel });
+
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.queryByTestId("order-panel")).not.toBeInTheDocument();
+    expect(renderOrderPanel).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -252,13 +276,15 @@ describe("ListingDetailView", () => {
   it("shows no note to the seller of a normal open listing", async () => {
     serve(listing(), SELLER.id);
 
-    renderView();
+    renderView({
+      renderOrderPanel: (l) => <div data-testid="order-panel">{l.id}</div>,
+    });
 
     await screen.findByRole("link", { name: "Sửa bài đăng" });
     expect(
       screen.getByRole("link", { name: "Bảng tổng hợp đơn hàng" }),
     ).toHaveAttribute("href", "/sell/listings/l1");
-    expect(screen.queryByText(/order panel/)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("order-panel")).not.toBeInTheDocument();
     expect(screen.queryByText(/Chỉ bạn nhìn thấy/)).not.toBeInTheDocument();
   });
 

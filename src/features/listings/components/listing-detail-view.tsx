@@ -1,7 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { OrderPanel } from "@/features/orders";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
@@ -51,7 +51,13 @@ function paymentMethods(listing: ListingDetail): string {
     .join(" · ");
 }
 
-export function ListingDetailView({ id }: { id: string }) {
+export function ListingDetailView({
+  id,
+  renderOrderPanel,
+}: {
+  id: string;
+  renderOrderPanel?: (listing: ListingDetail) => ReactNode;
+}) {
   const { data: listing, error, isPending, refetch } = useListing(id);
   const { data: me } = useCurrentUser();
 
@@ -200,7 +206,7 @@ export function ListingDetailView({ id }: { id: string }) {
             )}
           </div>
         ) : (
-          me && listing.isOpen && <OrderPanel listing={listing} />
+          me && listing.isOpen && renderOrderPanel?.(listing)
         )}
       </div>
     </article>
