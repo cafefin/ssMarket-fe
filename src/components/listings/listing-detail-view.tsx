@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { OrderPanel } from "@/components/orders/order-panel";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiError } from "@/lib/api/api-error";
 import { useCurrentUser } from "@/lib/api/use-current-user";
 import { type ListingDetail, useListing } from "@/lib/api/use-listings";
-import { formatDate, formatDateTime } from "@/lib/format/datetime";
+import { formatDate } from "@/lib/format/datetime";
+import { formatDeadline } from "@/lib/format/deadline";
+import { initials } from "@/lib/format/initials";
 import { ImageGallery } from "./image-gallery";
 import { ItemTable } from "./item-table";
 import { ModeBadge } from "./mode-badge";
@@ -101,33 +104,44 @@ export function ListingDetailView({ id }: { id: string }) {
           </p>
         )}
 
-        <header className="flex flex-col gap-2">
+        <header className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <ModeBadge mode={listing.mode} />
             <span className="text-sm text-muted-foreground">
               {listing.category.name}
             </span>
           </div>
-          <h1 className="text-[28px] leading-tight font-semibold">
+          <h1 className="text-[28px] leading-tight font-bold md:text-4xl">
             {listing.title}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Người bán: <span className="text-foreground">{listing.seller.name}</span>
-          </p>
+          <div className="flex items-center gap-3">
+            <Avatar size="lg">
+              {listing.seller.avatarUrl && (
+                <AvatarImage src={listing.seller.avatarUrl} alt="" />
+              )}
+              <AvatarFallback className="bg-primary-soft font-semibold text-primary-deep">
+                {initials(listing.seller.name)}
+              </AvatarFallback>
+            </Avatar>
+            <p className="text-sm text-muted-foreground">
+              Người bán:{" "}
+              <span className="text-foreground">{listing.seller.name}</span>
+            </p>
+          </div>
         </header>
 
         {listing.mode === "preorder" &&
           listing.orderDeadline &&
           listing.deliveryDate && (
-            <dl className="grid grid-cols-2 gap-4 rounded-lg bg-primary-soft p-4 text-sm">
+            <dl className="grid grid-cols-2 gap-4 rounded-md bg-deadline-soft p-4 text-sm">
               <div>
-                <dt className="text-muted-foreground">Chốt đơn</dt>
-                <dd className="font-semibold">
-                  {formatDateTime(listing.orderDeadline)}
+                <dt className="text-deadline-deep">Chốt đơn</dt>
+                <dd className="font-heading text-[22px] leading-tight font-bold text-deadline-deep">
+                  {formatDeadline(listing.orderDeadline)}
                 </dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Ngày giao</dt>
+                <dt className="text-deadline-deep">Ngày giao</dt>
                 <dd className="font-semibold">
                   {formatDate(listing.deliveryDate)}
                 </dd>
@@ -135,7 +149,7 @@ export function ListingDetailView({ id }: { id: string }) {
               {listing.orderCount > 0 && (
                 <div className="col-span-2">
                   <dt className="sr-only">Số người đã đặt</dt>
-                  <dd className="font-medium text-positive-deep">
+                  <dd className="font-medium text-deadline-deep">
                     {listing.orderCount} người đã đặt
                   </dd>
                 </div>

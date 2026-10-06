@@ -130,6 +130,26 @@ describe("ListingDetailView", () => {
     expect(screen.getByText("Trả tiền khi nhận hàng")).toBeInTheDocument();
   });
 
+  it("puts the closing time of a pre-order on an orange band", async () => {
+    serve(
+      listing({
+        mode: "preorder",
+        orderDeadline: "2026-10-09T10:00:00.000Z",
+        deliveryDate: "2026-10-12",
+      }),
+    );
+
+    renderView();
+
+    const label = await screen.findByText("Chốt đơn");
+    expect(label.closest("dl")).toHaveClass("bg-deadline-soft");
+    // Weekday and date, or "hôm nay" if the suite runs on that day.
+    expect(label.nextElementSibling).toHaveTextContent(
+      /^\d{2}:\d{2} (hôm nay|.+, \d{1,2}\/10)$/,
+    );
+    expect(label.nextElementSibling).toHaveClass("text-deadline-deep");
+  });
+
   it("shows how many people have ordered a pre-order", async () => {
     serve(
       listing({
