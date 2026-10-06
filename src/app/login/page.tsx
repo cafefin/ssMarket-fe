@@ -1,5 +1,5 @@
-import { Wordmark } from "@/components/brand/wordmark";
-import { buttonVariants } from "@/components/ui/button";
+import { Wordmark } from "@/shared/ui/atoms/wordmark";
+import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 
 const GENERIC_ERROR = "Đăng nhập không thành công. Vui lòng thử lại.";
 

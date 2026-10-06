@@ -6,7 +6,7 @@ import {
   type ListingFilters as Filters,
   listingsHref,
 } from "@/lib/listings/filters";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 const MODES = [
   { value: "in_stock", label: "Có sẵn" },

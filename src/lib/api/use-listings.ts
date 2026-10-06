@@ -2,9 +2,9 @@
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import type { ListingFilters } from "@/lib/listings/filters";
-import { toApiError } from "./api-error";
-import { api } from "./client";
-import type { components } from "./schema";
+import { toApiError } from "@/shared/api/api-error";
+import { api } from "@/shared/api/client";
+import type { components } from "@/shared/api/schema";
 
 export type ListingSummary = components["schemas"]["ListingSummaryDto"];
 export type ListingDetail = components["schemas"]["ListingDetailDto"];

@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { OrderPanel } from "@/components/orders/order-panel";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { buttonVariants } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ApiError } from "@/lib/api/api-error";
-import { useCurrentUser } from "@/lib/api/use-current-user";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
+import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
+import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
+import { ApiError } from "@/shared/api/api-error";
+import { useCurrentUser } from "@/shared/api/use-current-user";
 import { type ListingDetail, useListing } from "@/lib/api/use-listings";
-import { formatDate } from "@/lib/format/datetime";
-import { formatDeadline } from "@/lib/format/deadline";
-import { initials } from "@/lib/format/initials";
+import { formatDate } from "@/shared/lib/format/datetime";
+import { formatDeadline } from "@/shared/lib/format/deadline";
+import { initials } from "@/shared/lib/format/initials";
 import { ImageGallery } from "./image-gallery";
 import { ItemTable } from "./item-table";
 import { ModeBadge } from "./mode-badge";

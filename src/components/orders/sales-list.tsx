@@ -1,8 +1,8 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { selectClassName } from "@/components/form/field";
-import { Label } from "@/components/ui/label";
+import { selectClassName } from "@/shared/ui/molecules/field";
+import { Label } from "@/shared/ui/atoms/shadcn/label";
 import { useMyListings } from "@/lib/api/use-my-listings";
 import {
   type FulfillmentStatus,

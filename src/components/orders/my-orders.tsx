@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { useMyOrders } from "@/lib/api/use-orders";
 import { OrderList } from "./order-list";
 

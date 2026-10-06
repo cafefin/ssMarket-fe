@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
 import type { ListingSummary } from "@/lib/api/use-listings";
-import { closesToday, formatDeadline } from "@/lib/format/deadline";
-import { initials } from "@/lib/format/initials";
-import { formatMoney } from "@/lib/format/money";
-import { formatQuantity } from "@/lib/format/quantity";
-import { cn } from "@/lib/utils";
+import { closesToday, formatDeadline } from "@/shared/lib/format/deadline";
+import { initials } from "@/shared/lib/format/initials";
+import { formatMoney } from "@/shared/lib/format/money";
+import { formatQuantity } from "@/shared/lib/format/quantity";
+import { cn } from "@/shared/lib/utils";
 import { ImagePlaceholder } from "./image-placeholder";
 
 type CardLayout = "responsive" | "stacked";

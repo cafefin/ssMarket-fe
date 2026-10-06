@@ -3,7 +3,7 @@ import type {
   Order,
   PaymentStatus,
 } from "@/lib/api/use-orders";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 type Tone = "positive" | "info" | "warn" | "error";
 

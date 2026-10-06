@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ListingDetail } from "@/lib/api/use-listings";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { ImagePlaceholder } from "./image-placeholder";
 
 /** One large photo with thumbnails to switch between the others. */

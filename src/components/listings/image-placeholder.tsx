@@ -1,5 +1,5 @@
 import { ImageIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 /** Shown where a listing has no photo. */
 export function ImagePlaceholder({ className }: { className?: string }) {

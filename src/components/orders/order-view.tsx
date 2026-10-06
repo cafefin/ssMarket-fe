@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { buttonVariants } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ApiError } from "@/lib/api/api-error";
+import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
+import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
+import { ApiError } from "@/shared/api/api-error";
 import { type Order, useOrder } from "@/lib/api/use-orders";
-import { formatDate, formatDateTime } from "@/lib/format/datetime";
-import { formatMoney } from "@/lib/format/money";
+import { formatDate, formatDateTime } from "@/shared/lib/format/datetime";
+import { formatMoney } from "@/shared/lib/format/money";
 import { formatQuantity } from "@/lib/orders/order-math";
 import { OrderActions } from "./order-actions";
 import { editBlockedReason, OrderEditor } from "./order-editor";

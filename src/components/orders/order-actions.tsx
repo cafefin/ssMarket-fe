@@ -11,11 +11,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { userMessage } from "@/lib/api/api-error";
+} from "@/shared/ui/atoms/shadcn/alert-dialog";
+import { Button } from "@/shared/ui/atoms/shadcn/button";
+import { Label } from "@/shared/ui/atoms/shadcn/label";
+import { Textarea } from "@/shared/ui/atoms/shadcn/textarea";
+import { userMessage } from "@/shared/api/api-error";
 import {
   type Order,
   type OrderAction,

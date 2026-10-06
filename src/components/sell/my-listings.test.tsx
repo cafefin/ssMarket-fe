@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ListingDetail } from "@/lib/api/use-listings";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { MyListings } from "./my-listings";
 
 const { api, toast, location, router } = vi.hoisted(() => ({
@@ -11,7 +11,7 @@ const { api, toast, location, router } = vi.hoisted(() => ({
   location: { search: "" },
   router: { push: vi.fn() },
 }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("sonner", () => ({ toast }));
 vi.mock("next/navigation", () => ({
   useRouter: () => router,

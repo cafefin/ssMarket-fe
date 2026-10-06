@@ -5,18 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ApiError, userMessage } from "@/lib/api/api-error";
-import { useCurrentUser } from "@/lib/api/use-current-user";
+import { Button } from "@/shared/ui/atoms/shadcn/button";
+import { Input } from "@/shared/ui/atoms/shadcn/input";
+import { Label } from "@/shared/ui/atoms/shadcn/label";
+import { ApiError, userMessage } from "@/shared/api/api-error";
+import { useCurrentUser } from "@/shared/api/use-current-user";
 import {
   type ListingDetail,
   LISTINGS_QUERY_KEY,
   listingQueryKey,
 } from "@/lib/api/use-listings";
 import { type PaymentMethod, usePlaceOrder } from "@/lib/api/use-orders";
-import { formatMoney } from "@/lib/format/money";
+import { formatMoney } from "@/shared/lib/format/money";
 import {
   formatQuantity,
   lineTotal,

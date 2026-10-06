@@ -1,11 +1,11 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { SellerProfile } from "./seller-profile";
 
 const { api } = vi.hoisted(() => ({ api: { GET: vi.fn() } }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 
 const summary = (id: string, title: string) => ({
   id,

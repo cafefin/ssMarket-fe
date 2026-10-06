@@ -14,10 +14,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { userMessage } from "@/lib/api/api-error";
+} from "@/shared/ui/atoms/shadcn/alert-dialog";
+import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
+import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
+import { userMessage } from "@/shared/api/api-error";
 import type { ListingDetail } from "@/lib/api/use-listings";
 import {
   type ListingStatus,
@@ -26,9 +26,9 @@ import {
   usePublishListing,
   useReopenListing,
 } from "@/lib/api/use-my-listings";
-import { formatDateTime } from "@/lib/format/datetime";
-import { formatMoney } from "@/lib/format/money";
-import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/shared/lib/format/datetime";
+import { formatMoney } from "@/shared/lib/format/money";
+import { cn } from "@/shared/lib/utils";
 
 const TABS: { status: ListingStatus; label: string; empty: string }[] = [
   { status: "open", label: "Đang mở", empty: "Bạn chưa có bài đăng nào đang mở." },

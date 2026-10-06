@@ -1,9 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toApiError } from "./api-error";
-import { api } from "./client";
-import type { components } from "./schema";
+import { toApiError } from "@/shared/api/api-error";
+import { api } from "@/shared/api/client";
+import type { components } from "@/shared/api/schema";
 import {
   type ListingDetail,
   LISTINGS_QUERY_KEY,

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { components } from "@/lib/api/schema";
+import type { components } from "@/shared/api/schema";
 
 export type ListingMode = components["schemas"]["ListingMode"];
 export type ListingInputBody = components["schemas"]["ListingInputDto"];

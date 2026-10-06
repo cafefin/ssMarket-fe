@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Order } from "@/lib/api/use-orders";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { editBlockedReason } from "./order-editor";
 import { OrderView } from "./order-view";
 
@@ -10,7 +10,7 @@ const { api, toast } = vi.hoisted(() => ({
   api: { GET: vi.fn(), POST: vi.fn(), PATCH: vi.fn() },
   toast: { success: vi.fn(), error: vi.fn() },
 }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("sonner", () => ({ toast }));
 
 const FUTURE = "2099-01-01T10:00:00.000Z";

@@ -1,10 +1,10 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { useCurrentUser } from "./use-current-user";
 
 const { api } = vi.hoisted(() => ({ api: { GET: vi.fn() } }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 
 describe("useCurrentUser", () => {
   beforeEach(() => {

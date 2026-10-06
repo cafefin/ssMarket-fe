@@ -6,9 +6,9 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { toApiError } from "./api-error";
-import { api } from "./client";
-import type { components } from "./schema";
+import { toApiError } from "@/shared/api/api-error";
+import { api } from "@/shared/api/client";
+import type { components } from "@/shared/api/schema";
 import { LISTINGS_QUERY_KEY, listingQueryKey } from "./use-listings";
 
 export type Order = components["schemas"]["OrderDetailDto"];

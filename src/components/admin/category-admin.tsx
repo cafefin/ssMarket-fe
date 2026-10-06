@@ -6,19 +6,19 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Field } from "@/components/form/field";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { userMessage } from "@/lib/api/api-error";
-import { cn } from "@/lib/utils";
+import { Field } from "@/shared/ui/molecules/field";
+import { Button } from "@/shared/ui/atoms/shadcn/button";
+import { Input } from "@/shared/ui/atoms/shadcn/input";
+import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
+import { userMessage } from "@/shared/api/api-error";
+import { cn } from "@/shared/lib/utils";
 import {
   type AdminCategory,
   useAdminCategories,
   useCreateCategory,
   useUpdateCategory,
 } from "@/lib/api/use-admin-categories";
-import { useCurrentUser } from "@/lib/api/use-current-user";
+import { useCurrentUser } from "@/shared/api/use-current-user";
 
 const nameSchema = z
   .string()

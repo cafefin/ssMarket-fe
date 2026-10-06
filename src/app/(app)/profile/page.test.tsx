@@ -5,7 +5,7 @@ import ProfilePage from "./page";
 const { state } = vi.hoisted(() => ({
   state: { data: undefined as unknown, isError: false },
 }));
-vi.mock("@/lib/api/use-current-user", () => ({
+vi.mock("@/shared/api/use-current-user", () => ({
   useCurrentUser: () => state,
 }));
 vi.mock("@/components/profile/profile-form", () => ({

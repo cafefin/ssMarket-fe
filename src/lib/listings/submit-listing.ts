@@ -1,5 +1,5 @@
-import { type ApiError, toApiError } from "@/lib/api/api-error";
-import type { api as apiClient } from "@/lib/api/client";
+import { type ApiError, toApiError } from "@/shared/api/api-error";
+import type { api as apiClient } from "@/shared/api/client";
 import type { ListingInputBody } from "./listing-schema";
 
 type Api = typeof apiClient;

@@ -2,11 +2,11 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ListingDetail } from "@/lib/api/use-listings";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { ListingDetailView } from "./listing-detail-view";
 
 const { api } = vi.hoisted(() => ({ api: { GET: vi.fn() } }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("@/components/orders/order-panel", () => ({
   OrderPanel: ({ listing }: { listing: { id: string } }) => (
     <p>order panel for {listing.id}</p>

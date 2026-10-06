@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/shared/ui/atoms/shadcn/label";
 
 interface FieldProps {
   /** Must match the id of the control passed as children. */

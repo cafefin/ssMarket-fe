@@ -1,11 +1,11 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { ClosingSoonShelf } from "./closing-soon-shelf";
 
 const { api } = vi.hoisted(() => ({ api: { GET: vi.fn() } }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 
 const preorder = (id: string, title: string, orderDeadline: string | null) => ({
   id,

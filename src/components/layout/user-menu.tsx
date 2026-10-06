@@ -2,16 +2,16 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { api, type CurrentUser } from "@/lib/api/client";
-import { initials } from "@/lib/format/initials";
+} from "@/shared/ui/atoms/shadcn/dropdown-menu";
+import { api, type CurrentUser } from "@/shared/api/client";
+import { initials } from "@/shared/lib/format/initials";
 
 export function UserMenu({ user }: { user: CurrentUser }) {
   const router = useRouter();

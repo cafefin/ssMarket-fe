@@ -1,5 +1,5 @@
 import type { ListingMode } from "@/lib/api/use-listings";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 const MODES: Record<ListingMode, { label: string; className: string }> = {
   // Green: the goods exist now. Orange: order before a closing time.

@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { CategoryAdmin } from "./category-admin";
 
 const { api, router, toast } = vi.hoisted(() => ({
@@ -9,7 +9,7 @@ const { api, router, toast } = vi.hoisted(() => ({
   router: { replace: vi.fn() },
   toast: { success: vi.fn(), error: vi.fn() },
 }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("sonner", () => ({ toast }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 

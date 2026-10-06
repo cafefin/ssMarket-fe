@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
+import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { useCategories } from "@/lib/api/use-categories";
 import { useListings } from "@/lib/api/use-listings";
 import { parseListingFilters } from "@/lib/listings/filters";

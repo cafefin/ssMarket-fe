@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { ListingCard } from "@/components/listings/listing-card";
 import { LISTING_GRID } from "@/components/listings/listing-browser";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ApiError, userMessage } from "@/lib/api/api-error";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
+import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
+import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
+import { ApiError, userMessage } from "@/shared/api/api-error";
 import { useSellerListings } from "@/lib/api/use-listings";
-import { usePublicUser } from "@/lib/api/use-public-user";
-import { initials } from "@/lib/format/initials";
+import { usePublicUser } from "@/shared/api/use-public-user";
+import { initials } from "@/shared/lib/format/initials";
 
 const WRAPPER = "mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-8";
 

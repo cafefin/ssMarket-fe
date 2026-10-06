@@ -2,12 +2,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CURRENT_USER_QUERY_KEY } from "./use-current-user";
-import { publicUserQueryKey } from "./use-public-user";
+import { CURRENT_USER_QUERY_KEY } from "@/shared/api/use-current-user";
+import { publicUserQueryKey } from "@/shared/api/use-public-user";
 import { useUpdateProfile } from "./use-update-profile";
 
 const { api } = vi.hoisted(() => ({ api: { PATCH: vi.fn() } }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 
 describe("useUpdateProfile", () => {
   beforeEach(() => {

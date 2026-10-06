@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { AppHeader } from "./app-header";
 
 const { api, router, location } = vi.hoisted(() => ({
@@ -9,7 +9,7 @@ const { api, router, location } = vi.hoisted(() => ({
   router: { push: vi.fn(), replace: vi.fn() },
   location: { pathname: "/", search: "" },
 }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
   usePathname: () => location.pathname,

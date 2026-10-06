@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Geist_Mono, Inter } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { Toaster } from "@/shared/ui/atoms/shadcn/sonner";
+import { QueryProvider } from "@/shared/api/query-provider";
 import "./globals.css";
 
 const inter = Inter({

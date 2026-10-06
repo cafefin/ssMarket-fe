@@ -3,7 +3,7 @@
 import { SearchIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FormEvent } from "react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/shared/ui/atoms/shadcn/input";
 
 /**
  * The search box in the header. Submitting goes to the home page with `?q=`.

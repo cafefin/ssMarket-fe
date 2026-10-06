@@ -1,8 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { CurrentUser } from "@/lib/api/client";
-import { QueryProvider } from "@/lib/query/query-provider";
+import type { CurrentUser } from "@/shared/api/client";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { ProfileForm } from "./profile-form";
 import { safeNextPath } from "./profile-schema";
 
@@ -12,7 +12,7 @@ const { api, push, toast, search } = vi.hoisted(() => ({
   toast: { success: vi.fn(), error: vi.fn() },
   search: { value: "" },
 }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("sonner", () => ({ toast }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),

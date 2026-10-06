@@ -5,11 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Field, selectClassName } from "@/components/form/field";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { userMessage } from "@/lib/api/api-error";
-import type { CurrentUser } from "@/lib/api/client";
+import { Field, selectClassName } from "@/shared/ui/molecules/field";
+import { Button } from "@/shared/ui/atoms/shadcn/button";
+import { Input } from "@/shared/ui/atoms/shadcn/input";
+import { userMessage } from "@/shared/api/api-error";
+import type { CurrentUser } from "@/shared/api/client";
 import { useBanks } from "@/lib/api/use-banks";
 import { useUpdateProfile } from "@/lib/api/use-update-profile";
 import {

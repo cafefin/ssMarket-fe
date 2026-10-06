@@ -2,14 +2,14 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SalesSummary as Summary, SummaryRow } from "@/lib/api/use-orders";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { SalesSummary } from "./sales-summary";
 
 const { api, toast } = vi.hoisted(() => ({
   api: { GET: vi.fn(), POST: vi.fn() },
   toast: { success: vi.fn(), error: vi.fn() },
 }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("sonner", () => ({ toast }));
 
 const row = (overrides: Partial<SummaryRow>): SummaryRow => ({

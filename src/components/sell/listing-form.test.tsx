@@ -1,12 +1,12 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError } from "@/lib/api/api-error";
+import { ApiError } from "@/shared/api/api-error";
 import {
   emptyListing,
   type ListingFormValues,
 } from "@/lib/listings/listing-schema";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { ListingForm } from "./listing-form";
 
 const { api, router, toast, submitListing } = vi.hoisted(() => ({
@@ -15,7 +15,7 @@ const { api, router, toast, submitListing } = vi.hoisted(() => ({
   toast: { success: vi.fn(), error: vi.fn() },
   submitListing: vi.fn(),
 }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("sonner", () => ({ toast }));
 vi.mock("next/navigation", () => ({
   useRouter: () => router,

@@ -3,20 +3,20 @@
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { toast } from "sonner";
-import { selectClassName } from "@/components/form/field";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ApiError, userMessage } from "@/lib/api/api-error";
+import { selectClassName } from "@/shared/ui/molecules/field";
+import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
+import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
+import { ApiError, userMessage } from "@/shared/api/api-error";
 import {
   type BulkAction,
   type SummaryRow,
   useBulkOrders,
   useSummary,
 } from "@/lib/api/use-orders";
-import { formatDate, formatDateTime } from "@/lib/format/datetime";
-import { formatMoney } from "@/lib/format/money";
+import { formatDate, formatDateTime } from "@/shared/lib/format/datetime";
+import { formatMoney } from "@/shared/lib/format/money";
 import { formatQuantity } from "@/lib/orders/order-math";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { OrderStatusBadges } from "./status-badges";
 
 type Sort = "time" | "buyer" | "location";

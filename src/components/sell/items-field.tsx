@@ -7,9 +7,9 @@ import {
   type UseFormRegister,
   useFieldArray,
 } from "react-hook-form";
-import { Field, selectClassName } from "@/components/form/field";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Field, selectClassName } from "@/shared/ui/molecules/field";
+import { Button } from "@/shared/ui/atoms/shadcn/button";
+import { Input } from "@/shared/ui/atoms/shadcn/input";
 import {
   emptyItem,
   LISTING_UNITS,

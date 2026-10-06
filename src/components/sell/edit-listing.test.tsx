@@ -8,7 +8,7 @@ const { listingState, meState } = vi.hoisted(() => ({
   meState: { data: undefined as unknown },
 }));
 vi.mock("@/lib/api/use-listings", () => ({ useListing: () => listingState }));
-vi.mock("@/lib/api/use-current-user", () => ({ useCurrentUser: () => meState }));
+vi.mock("@/shared/api/use-current-user", () => ({ useCurrentUser: () => meState }));
 const { location } = vi.hoisted(() => ({ location: { search: "" } }));
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(location.search),

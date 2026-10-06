@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useQuery } from "@tanstack/react-query";
 import { type ListingDetail, LISTINGS_QUERY_KEY, useListing } from "@/lib/api/use-listings";
-import { QueryProvider } from "@/lib/query/query-provider";
+import { QueryProvider } from "@/shared/api/query-provider";
 import { OrderPanel } from "./order-panel";
 
 const { api, router, toast } = vi.hoisted(() => ({
@@ -11,7 +11,7 @@ const { api, router, toast } = vi.hoisted(() => ({
   router: { push: vi.fn() },
   toast: { success: vi.fn(), error: vi.fn() },
 }));
-vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("sonner", () => ({ toast }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 

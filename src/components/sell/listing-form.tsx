@@ -7,12 +7,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Field, selectClassName } from "@/components/form/field";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { ApiError, userMessage } from "@/lib/api/api-error";
-import { api } from "@/lib/api/client";
+import { Field, selectClassName } from "@/shared/ui/molecules/field";
+import { Button } from "@/shared/ui/atoms/shadcn/button";
+import { Input } from "@/shared/ui/atoms/shadcn/input";
+import { Textarea } from "@/shared/ui/atoms/shadcn/textarea";
+import { ApiError, userMessage } from "@/shared/api/api-error";
+import { api } from "@/shared/api/client";
 import { useCategories } from "@/lib/api/use-categories";
 import { MY_LISTINGS_QUERY_KEY } from "@/lib/api/use-my-listings";
 import {

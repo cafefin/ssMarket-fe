@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/shared/ui/atoms/shadcn/button";
+import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import type { Order } from "@/lib/api/use-orders";
-import { formatDateTime } from "@/lib/format/datetime";
-import { formatMoney } from "@/lib/format/money";
+import { formatDateTime } from "@/shared/lib/format/datetime";
+import { formatMoney } from "@/shared/lib/format/money";
 import { OrderActions } from "./order-actions";
 import { OrderStatusBadges } from "./status-badges";
 

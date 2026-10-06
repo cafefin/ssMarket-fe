@@ -3,7 +3,7 @@
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { isActive, NAV_ITEMS, type NavItem, PROFILE_ITEM } from "./nav-items";
 
 const TAB =

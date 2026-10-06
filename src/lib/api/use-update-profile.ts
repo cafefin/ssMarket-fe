@@ -1,11 +1,11 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toApiError } from "./api-error";
-import { api, type CurrentUser } from "./client";
-import type { components } from "./schema";
-import { CURRENT_USER_QUERY_KEY } from "./use-current-user";
-import { publicUserQueryKey } from "./use-public-user";
+import { toApiError } from "@/shared/api/api-error";
+import { api, type CurrentUser } from "@/shared/api/client";
+import type { components } from "@/shared/api/schema";
+import { CURRENT_USER_QUERY_KEY } from "@/shared/api/use-current-user";
+import { publicUserQueryKey } from "@/shared/api/use-public-user";
 
 export type ProfileUpdate = components["schemas"]["UpdateProfileDto"];
 

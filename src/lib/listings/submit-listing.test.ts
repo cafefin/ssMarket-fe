@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError } from "@/lib/api/api-error";
+import { ApiError } from "@/shared/api/api-error";
 import type { ListingInputBody } from "./listing-schema";
 import { submitListing } from "./submit-listing";
 

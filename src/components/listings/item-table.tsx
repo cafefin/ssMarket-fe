@@ -1,6 +1,6 @@
 import type { ListingItem, ListingMode } from "@/lib/api/use-listings";
-import { formatMoney } from "@/lib/format/money";
-import { formatQuantity } from "@/lib/format/quantity";
+import { formatMoney } from "@/shared/lib/format/money";
+import { formatQuantity } from "@/shared/lib/format/quantity";
 
 /** The items of a listing. Stock is shown only for in-stock listings. */
 export function ItemTable({

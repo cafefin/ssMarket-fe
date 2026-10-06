@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 /**
  * The ssMarket mark: a shopping bag with a smile. It is our own drawing and
