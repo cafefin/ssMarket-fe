@@ -68,6 +68,8 @@ describe("theme palette", () => {
     ["primary-deep", "primary-soft"],
     ["muted-foreground", "surface"],
     ["background", "foreground"],
+    ["primary-deep", "background"],
+    ["foreground", "surface"],
   ])("%s on %s meets WCAG AA for body text", (text, background) => {
     expect(tokens[text], `missing token --${text}`).toBeDefined();
     expect(tokens[background], `missing token --${background}`).toBeDefined();
