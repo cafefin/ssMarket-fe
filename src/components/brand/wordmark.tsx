@@ -10,7 +10,7 @@ export function Wordmark({ className }: { className?: string }) {
     <span
       role="img"
       aria-label="ssMarket"
-      className={cn("font-bold tracking-tight", className)}
+      className={cn("font-heading font-extrabold tracking-tight", className)}
     >
       <span aria-hidden="true" className="text-primary">
         ss
