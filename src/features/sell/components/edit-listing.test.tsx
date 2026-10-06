@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { type ListingDetail } from "@/features/listings";
+import type { ListingDetail } from "@/features/listings";
 import { EditListing, toFormValues } from "./edit-listing";
 
 const { listingState, meState } = vi.hoisted(() => ({

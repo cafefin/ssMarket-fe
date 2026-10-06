@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { type ListingDetail } from "@/features/listings";
+import type { ListingDetail } from "@/features/listings";
 import { QueryProvider } from "@/shared/api/query-provider";
 import { MyListings } from "./my-listings";
 
