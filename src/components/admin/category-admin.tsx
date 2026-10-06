@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { userMessage } from "@/lib/api/api-error";
+import { cn } from "@/lib/utils";
 import {
   type AdminCategory,
   useAdminCategories,
@@ -33,13 +34,17 @@ const nameEnSchema = z
 const addSchema = z.object({ name: nameSchema, nameEn: nameEnSchema });
 type AddValues = z.infer<typeof addSchema>;
 
+const SORT_MSG = "Thứ tự là số nguyên từ 0";
+
 const editSchema = z.object({
   name: nameSchema,
   nameEn: nameEnSchema,
-  sortOrder: z.coerce
-    .number("Thứ tự là số nguyên từ 0")
-    .int("Thứ tự là số nguyên từ 0")
-    .min(0, "Thứ tự là số nguyên từ 0"),
+  // An empty field would otherwise coerce to 0.
+  sortOrder: z.preprocess(
+    (value) =>
+      typeof value === "string" && value.trim() === "" ? undefined : value,
+    z.coerce.number(SORT_MSG).int(SORT_MSG).min(0, SORT_MSG),
+  ),
 });
 type EditInput = z.input<typeof editSchema>;
 type EditValues = z.output<typeof editSchema>;
@@ -74,7 +79,11 @@ function AddForm() {
       aria-label="Thêm danh mục"
     >
       <div className="flex-1">
-        <Field htmlFor="new-name" label="Tên danh mục" error={errors.name?.message}>
+        <Field
+          htmlFor="new-name"
+          label="Tên danh mục"
+          error={errors.name?.message}
+        >
           <Input id="new-name" {...register("name")} />
         </Field>
       </div>
@@ -96,11 +105,14 @@ function AddForm() {
 
 function CategoryRow({ category }: { category: AdminCategory }) {
   const [editing, setEditing] = useState(false);
+  const editButton = useRef<HTMLButtonElement>(null);
+  const wasEditing = useRef(false);
   const update = useUpdateCategory();
   const {
     register,
     handleSubmit,
     reset,
+    setFocus,
     formState: { errors },
   } = useForm<EditInput, unknown, EditValues>({
     resolver: zodResolver(editSchema),
@@ -110,6 +122,16 @@ function CategoryRow({ category }: { category: AdminCategory }) {
       sortOrder: category.sortOrder,
     },
   });
+
+  useEffect(() => {
+    if (editing) {
+      setFocus("name");
+    } else if (wasEditing.current) {
+      // Editing just ended: return focus to this row's "Sửa" button.
+      editButton.current?.focus();
+    }
+    wasEditing.current = editing;
+  }, [editing, setFocus]);
 
   const onSave = handleSubmit(async (values) => {
     try {
@@ -144,7 +166,11 @@ function CategoryRow({ category }: { category: AdminCategory }) {
     return (
       <tr className="border-b border-border align-top">
         <td className="p-2">
-          <Field htmlFor={`name-${category.id}`} label="Tên" error={errors.name?.message}>
+          <Field
+            htmlFor={`name-${category.id}`}
+            label="Tên"
+            error={errors.name?.message}
+          >
             <Input id={`name-${category.id}`} {...register("name")} />
           </Field>
         </td>
@@ -202,7 +228,10 @@ function CategoryRow({ category }: { category: AdminCategory }) {
       <td className="p-2">{category.nameEn}</td>
       <td className="p-2">{category.sortOrder}</td>
       <td
-        className={`p-2 ${category.isActive ? "text-positive-deep" : "text-muted-foreground"}`}
+        className={cn(
+          "p-2",
+          category.isActive ? "text-positive-deep" : "text-muted-foreground",
+        )}
       >
         {category.isActive ? "Đang hiện" : "Đang ẩn"}
       </td>
@@ -210,6 +239,7 @@ function CategoryRow({ category }: { category: AdminCategory }) {
         <div className="flex gap-2">
           <Button
             type="button"
+            ref={editButton}
             variant="outline"
             size="sm"
             aria-label={`Sửa ${category.name}`}
@@ -237,7 +267,12 @@ export function CategoryAdmin() {
   const router = useRouter();
   const { data: user } = useCurrentUser();
   const isAdmin = user?.role === "admin";
-  const { data: categories } = useAdminCategories(isAdmin);
+  const {
+    data: categories,
+    error,
+    isError,
+    refetch,
+  } = useAdminCategories(isAdmin);
 
   useEffect(() => {
     if (user && user.role !== "admin") {
@@ -255,7 +290,9 @@ export function CategoryAdmin() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-semibold">Quản lý danh mục</h1>
+        <h1 className="text-[28px] leading-tight font-semibold">
+          Quản lý danh mục
+        </h1>
         <p className="mt-1 text-muted-foreground">
           Danh mục ẩn không còn trong bộ lọc và form đăng bán; bài đăng cũ vẫn
           giữ nguyên.
@@ -267,27 +304,35 @@ export function CategoryAdmin() {
         <AddForm />
       </section>
 
-      {categories ? (
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead>
-            <tr className="border-b border-border text-muted-foreground">
-              <th className="p-2 font-medium">Tên</th>
-              <th className="p-2 font-medium">Tên tiếng Anh</th>
-              <th className="p-2 font-medium">Thứ tự</th>
-              <th className="p-2 font-medium">Trạng thái</th>
-              <th className="p-2">
-                <span className="sr-only">Thao tác</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map((category) => (
-              <CategoryRow key={category.id} category={category} />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {isError ? (
+        <div role="alert" className="flex flex-col items-start gap-3">
+          <p className="text-error-deep">{userMessage(error)}</p>
+          <Button variant="outline" onClick={() => void refetch()}>
+            Thử lại
+          </Button>
+        </div>
+      ) : categories ? (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-left text-sm">
+            <caption className="sr-only">Danh sách danh mục</caption>
+            <thead>
+              <tr className="border-b border-border text-muted-foreground">
+                <th className="p-2 font-medium">Tên</th>
+                <th className="p-2 font-medium">Tên tiếng Anh</th>
+                <th className="p-2 font-medium">Thứ tự</th>
+                <th className="p-2 font-medium">Trạng thái</th>
+                <th className="p-2">
+                  <span className="sr-only">Thao tác</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map((category) => (
+                <CategoryRow key={category.id} category={category} />
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
         <Skeleton className="h-48 w-full" />
       )}

@@ -14,8 +14,22 @@ vi.mock("sonner", () => ({ toast }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 const rows = [
-  { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food", sortOrder: 2, isActive: true },
-  { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", sortOrder: 4, isActive: false },
+  {
+    id: 2,
+    slug: "thuc-pham-tuoi",
+    name: "Thực phẩm tươi",
+    nameEn: "Fresh food",
+    sortOrder: 2,
+    isActive: true,
+  },
+  {
+    id: 4,
+    slug: "dien-tu",
+    name: "Điện tử",
+    nameEn: "Electronics",
+    sortOrder: 4,
+    isActive: false,
+  },
 ];
 
 function setup(role: "admin" | "user" = "admin") {
@@ -129,13 +143,17 @@ describe("CategoryAdmin", () => {
   it("shows an error when toggling fails", async () => {
     setup();
     api.PATCH.mockResolvedValue({
-      error: { code: "CATEGORY_NOT_FOUND", message: "x" },
+      error: { code: "NOT_FOUND", message: "x" },
       response: new Response(null, { status: 404 }),
     });
     const user = userEvent.setup();
     await screen.findByRole("table");
     await user.click(screen.getByRole("button", { name: "Ẩn Thực phẩm tươi" }));
-    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        "Không tìm thấy nội dung bạn yêu cầu.",
+      ),
+    );
   });
 
   it("edits a category in place", async () => {
@@ -199,9 +217,82 @@ describe("CategoryAdmin", () => {
     expect(screen.getByRole("button", { name: "Lưu" })).toBeInTheDocument();
   });
 
-  it("sends non-admins home", async () => {
+  it("rejects an empty sort order", async () => {
+    setup();
+    const user = userEvent.setup();
+    await screen.findByRole("table");
+    await user.click(screen.getByRole("button", { name: "Sửa Điện tử" }));
+    await user.clear(screen.getByLabelText("Thứ tự"));
+    await user.click(screen.getByRole("button", { name: "Lưu" }));
+    expect(
+      await screen.findByText("Thứ tự là số nguyên từ 0"),
+    ).toBeInTheDocument();
+    expect(api.PATCH).not.toHaveBeenCalled();
+  });
+
+  it("shows the error and retries when the list cannot load", async () => {
+    setup();
+    let fail = true;
+    api.GET.mockImplementation(async (path: string) => {
+      if (path === "/users/me") {
+        return { data: { id: "u1", name: "An", role: "admin" } };
+      }
+      return fail
+        ? {
+            error: { code: "FORBIDDEN", message: "x" },
+            response: new Response(null, { status: 403 }),
+          }
+        : { data: rows };
+    });
+    const user = userEvent.setup();
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(
+      "Bạn không có quyền thực hiện thao tác này.",
+    );
+    fail = false;
+    await user.click(screen.getByRole("button", { name: "Thử lại" }));
+    expect(await screen.findByRole("table")).toBeInTheDocument();
+  });
+
+  it("moves focus into the row when editing and back when done", async () => {
+    setup();
+    const user = userEvent.setup();
+    await screen.findByRole("table");
+    await user.click(screen.getByRole("button", { name: "Sửa Điện tử" }));
+    expect(screen.getByLabelText("Tên")).toHaveFocus();
+    await user.click(screen.getByRole("button", { name: "Hủy" }));
+    expect(screen.getByRole("button", { name: "Sửa Điện tử" })).toHaveFocus();
+
+    await user.click(screen.getByRole("button", { name: "Sửa Điện tử" }));
+    await user.click(screen.getByRole("button", { name: "Lưu" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Sửa Điện tử" })).toHaveFocus(),
+    );
+  });
+
+  it("has an accessible table caption", async () => {
+    setup();
+    expect(
+      await screen.findByRole("table", { name: "Danh sách danh mục" }),
+    ).toBeInTheDocument();
+  });
+
+  it("sends non-admins home without fetching admin data", async () => {
     setup("user");
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/"));
     expect(screen.queryByRole("table")).toBeNull();
+    expect(api.GET).not.toHaveBeenCalledWith("/admin/categories");
+  });
+
+  it("shows a skeleton and fetches no admin data while the user loads", () => {
+    api.GET.mockReturnValue(new Promise(() => {}));
+    render(
+      <QueryProvider>
+        <CategoryAdmin />
+      </QueryProvider>,
+    );
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(api.GET).not.toHaveBeenCalledWith("/admin/categories");
+    expect(router.replace).not.toHaveBeenCalled();
   });
 });
