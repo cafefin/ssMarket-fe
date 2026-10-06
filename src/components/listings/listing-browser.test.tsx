@@ -209,5 +209,41 @@ describe("ListingBrowser", () => {
         "/?category=dien-tu",
       );
     });
+
+    it("offer an 'all' choice that is active when nothing is filtered", async () => {
+      serve([{ items: [], nextCursor: null }]);
+
+      renderBrowser();
+
+      const all = await screen.findByRole("button", { name: "Tất cả" });
+      expect(all).toHaveAttribute("aria-pressed", "true");
+      expect(all).toHaveAttribute("href", "/");
+      expect(
+        screen.getByRole("button", { name: "Mọi loại hàng" }),
+      ).toHaveAttribute("aria-pressed", "true");
+    });
+
+    it("let the 'all' choices clear one filter and keep the other", async () => {
+      location.search = "category=dien-tu&mode=in_stock";
+      serve([{ items: [], nextCursor: null }]);
+
+      renderBrowser();
+
+      const all = await screen.findByRole("button", { name: "Tất cả" });
+      expect(all).toHaveAttribute("aria-pressed", "false");
+      expect(all).toHaveAttribute("href", "/?category=dien-tu");
+      expect(
+        screen.getByRole("button", { name: "Mọi loại hàng" }),
+      ).toHaveAttribute("href", "/?mode=in_stock");
+    });
+
+    it("stay under the header while the list scrolls", async () => {
+      serve([{ items: [], nextCursor: null }]);
+
+      renderBrowser();
+
+      const group = await screen.findByRole("group", { name: "Hình thức bán" });
+      expect(group.closest(".sticky")).toHaveClass("top-16");
+    });
   });
 });
