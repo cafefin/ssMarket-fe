@@ -7,7 +7,7 @@ const listing = (overrides: Partial<ListingSummary> = {}): ListingSummary => ({
   id: "abc",
   title: "Loa bluetooth cũ",
   mode: "in_stock",
-  category: { id: 4, slug: "dien-tu", name: "Điện tử" },
+  category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
   seller: { id: "u1", name: "Nguyen Van A", avatarUrl: null },
   thumbnailUrl: "/api/media/listings/abc/x_thumb.webp",
   minUnitPrice: 500000,
@@ -16,6 +16,7 @@ const listing = (overrides: Partial<ListingSummary> = {}): ListingSummary => ({
   deliveryDate: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
   orderCount: 0,
+  stockQuantity: null,
   ...overrides,
 });
 

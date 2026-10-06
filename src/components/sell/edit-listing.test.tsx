@@ -28,7 +28,7 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   mode: "preorder",
   status: "draft",
   isOpen: false,
-  category: { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi" },
+  category: { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food" },
   seller: { id: "me", name: "Tôi", avatarUrl: null },
   acceptsPrepaidQr: true,
   acceptsPayOnDelivery: false,

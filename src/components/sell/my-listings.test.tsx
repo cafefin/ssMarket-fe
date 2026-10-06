@@ -25,7 +25,7 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   mode: "in_stock",
   status: "open",
   isOpen: true,
-  category: { id: 4, slug: "dien-tu", name: "Điện tử" },
+  category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
   seller: { id: "me", name: "Tôi", avatarUrl: null },
   acceptsPrepaidQr: false,
   acceptsPayOnDelivery: true,

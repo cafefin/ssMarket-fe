@@ -53,6 +53,13 @@ describe("userMessage", () => {
     );
   });
 
+  it.each([
+    ["CATEGORY_EXISTS", "Đã có danh mục với tên này."],
+    ["CATEGORY_INACTIVE", "Danh mục này đã ngừng nhận bài đăng. Hãy chọn danh mục khác."],
+  ])("explains %s", (code, text) => {
+    expect(userMessage(new ApiError(400, code, "x"))).toBe(text);
+  });
+
   it("never shows a raw backend or runtime message", () => {
     expect(userMessage(new ApiError(500, "INTERNAL_SERVER_ERROR", "stack"))).toBe(
       "Đã có lỗi xảy ra. Vui lòng thử lại.",

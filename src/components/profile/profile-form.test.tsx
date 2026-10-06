@@ -30,6 +30,7 @@ const user = (overrides: Partial<CurrentUser> = {}): CurrentUser => ({
   name: "An",
   avatarUrl: null,
   role: "user",
+  locale: "vi",
   deliveryLocation: null,
   bankBin: null,
   bankAccountNumber: null,

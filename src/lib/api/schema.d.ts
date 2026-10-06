@@ -36,6 +36,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCategoriesController_list"];
+        put?: never;
+        post: operations["AdminCategoriesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AdminCategoriesController_update"];
+        trace?: never;
+    };
     "/users/me": {
         parameters: {
             query?: never;
@@ -50,6 +82,22 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["UsersController_updateMe"];
+        trace?: never;
+    };
+    "/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UsersController_publicProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/auth/refresh": {
@@ -423,9 +471,39 @@ export interface components {
             slug: string;
             /** @example Thực phẩm tươi */
             name: string;
+            /** @example Fresh food */
+            nameEn: string;
+        };
+        AdminCategoryDto: {
+            id: number;
+            /** @example thuc-pham-tuoi */
+            slug: string;
+            /** @example Thực phẩm tươi */
+            name: string;
+            /** @example Fresh food */
+            nameEn: string;
+            sortOrder: number;
+            /** @description False when hidden from browsing and selling */
+            isActive: boolean;
+        };
+        CreateCategoryDto: {
+            /** @example Sách */
+            name: string;
+            /** @example Books */
+            nameEn: string;
+            /** @description Defaults to the end of the list */
+            sortOrder?: number;
+        };
+        UpdateCategoryDto: {
+            name?: string;
+            nameEn?: string;
+            sortOrder?: number;
+            isActive?: boolean;
         };
         /** @enum {string} */
         UserRole: "user" | "admin";
+        /** @enum {string} */
+        UserLocale: "vi" | "en";
         UserResponseDto: {
             /** Format: uuid */
             id: string;
@@ -434,6 +512,7 @@ export interface components {
             name: string;
             avatarUrl: string | null;
             role: components["schemas"]["UserRole"];
+            locale: components["schemas"]["UserLocale"];
             deliveryLocation: string | null;
             bankBin: string | null;
             bankAccountNumber: string | null;
@@ -445,6 +524,14 @@ export interface components {
             bankBin?: string | null;
             bankAccountNumber?: string | null;
             bankAccountName?: string | null;
+            locale?: components["schemas"]["UserLocale"];
+        };
+        PublicUserDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            avatarUrl: string | null;
+            deliveryLocation: string | null;
         };
         /** @enum {string} */
         ListingMode: "in_stock" | "preorder";
@@ -547,6 +634,8 @@ export interface components {
             items: components["schemas"]["ListingItemDto"][];
             images: components["schemas"]["ListingImageDto"][];
         };
+        /** @enum {string} */
+        ListingSort: "recent" | "deadline";
         ListingSummaryDto: {
             /** Format: uuid */
             id: string;
@@ -564,6 +653,8 @@ export interface components {
             minPriceUnit: string;
             /** @description Orders that have not been cancelled */
             orderCount: number;
+            /** @description Remaining stock, only for an in-stock listing with exactly one item that has a stock limit; null otherwise */
+            stockQuantity: number | null;
             /** Format: date-time */
             orderDeadline: string | null;
             /** Format: date */
@@ -801,6 +892,101 @@ export interface operations {
             };
         };
     };
+    AdminCategoriesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCategoryDto"][];
+                };
+            };
+            /** @description The caller is not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminCategoriesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCategoryDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCategoryDto"];
+                };
+            };
+            /** @description The caller is not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description CATEGORY_EXISTS */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminCategoriesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCategoryDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCategoryDto"];
+                };
+            };
+            /** @description The caller is not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     UsersController_me: {
         parameters: {
             query?: never;
@@ -850,6 +1036,34 @@ export interface operations {
             };
             /** @description Missing or invalid access token */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UsersController_publicProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicUserDto"];
+                };
+            };
+            /** @description No such person */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -908,6 +1122,10 @@ export interface operations {
                 /** @description Category slug */
                 category?: string;
                 mode?: components["schemas"]["ListingMode"];
+                /** @description `deadline` returns only pre-orders, closing soonest first; it cannot be combined with `q` or `mode=in_stock` */
+                sort?: components["schemas"]["ListingSort"];
+                /** @description Only this seller */
+                seller?: string;
                 cursor?: string;
                 limit?: number;
             };
@@ -1401,7 +1619,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description The summary as a CSV file for Excel */
+            /** @description The summary as a CSV file for Excel, in the caller's language */
             200: {
                 headers: {
                     [name: string]: unknown;
