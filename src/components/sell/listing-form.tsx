@@ -34,7 +34,8 @@ interface ListingFormProps {
   mode: ListingMode;
   initialValues: ListingFormValues;
   /** Present when editing an existing listing. */
-  listing?: Pick<ListingDetail, "id" | "status" | "images">;
+  listing?: Pick<ListingDetail, "id" | "status" | "images"> &
+    Partial<Pick<ListingDetail, "category">>;
   /** Called on every change, so the create flow can keep a draft. */
   onValuesChange?: (values: ListingFormValues) => void;
   /** Called once the listing exists on the server. */
@@ -56,7 +57,8 @@ export function ListingForm({
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
-  const { data: categories = [] } = useCategories();
+  const { data: categories = [], isSuccess: categoriesLoaded } =
+    useCategories();
   const [addedImages, setAddedImages] = useState<File[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
   const [bankRequired, setBankRequired] = useState(false);
@@ -89,6 +91,15 @@ export function ListingForm({
   useEffect(() => {
     setValue("categoryId", getValues("categoryId"));
   }, [categories, getValues, setValue]);
+
+  // The backend lets a listing keep a category that has since been hidden, but
+  // the options only list active ones. Show it so the select keeps its value.
+  const hiddenCategory =
+    categoriesLoaded &&
+    listing?.category &&
+    !categories.some((category) => category.id === listing.category?.id)
+      ? listing.category
+      : null;
 
   const isOpen = listing?.status === "open";
   const existingImages = (listing?.images ?? []).filter(
@@ -182,6 +193,11 @@ export function ListingForm({
                 {category.name}
               </option>
             ))}
+            {hiddenCategory && (
+              <option value={String(hiddenCategory.id)}>
+                {hiddenCategory.name} (đã ẩn)
+              </option>
+            )}
           </select>
         </Field>
         <Field

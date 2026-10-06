@@ -343,6 +343,46 @@ describe("ListingForm", () => {
       expect(toast.success).toHaveBeenCalledWith("Đã lưu thay đổi");
     });
 
+    it("keeps a listing in a hidden category selectable as hidden", async () => {
+      await renderForm({
+        initialValues: { ...values, categoryId: "9" },
+        listing: {
+          id: "l1",
+          status: "open",
+          images: [],
+          category: { id: 9, slug: "sach", name: "Sách", nameEn: "Books" },
+        },
+      });
+
+      expect(field("Loại hàng")).toHaveValue("9");
+      expect(
+        screen.getByRole("option", { name: "Sách (đã ẩn)" }),
+      ).toBeInTheDocument();
+      await click("Lưu thay đổi");
+
+      await waitFor(() =>
+        expect(submitListing).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({ categoryId: 9 }),
+          }),
+        ),
+      );
+    });
+
+    it("adds no hidden option when the category is still offered", async () => {
+      await renderForm({
+        initialValues: values,
+        listing: {
+          id: "l1",
+          status: "open",
+          images: [],
+          category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
+        },
+      });
+
+      expect(screen.queryByText(/đã ẩn/)).not.toBeInTheDocument();
+    });
+
     it("keeps the selected category once the options load", async () => {
       await renderForm({
         initialValues: values,
