@@ -37,6 +37,22 @@ export function useListings(filters: ListingFilters) {
   });
 }
 
+/** Open pre-orders, closing soonest first, ordered by the server. */
+export function useClosingSoon(limit: number) {
+  return useQuery({
+    queryKey: [...LISTINGS_QUERY_KEY, "closing-soon", limit],
+    queryFn: async (): Promise<ListingSummary[]> => {
+      const { data, error, response } = await api.GET("/listings", {
+        params: { query: { sort: "deadline", limit } },
+      });
+      if (!data) {
+        throw toApiError(error, response);
+      }
+      return data.items;
+    },
+  });
+}
+
 export const listingQueryKey = (id: string) => ["listing", id] as const;
 
 export function useListing(id: string) {

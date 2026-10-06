@@ -2,34 +2,22 @@
 
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useListings } from "@/lib/api/use-listings";
-import type { ListingFilters } from "@/lib/listings/filters";
+import { useClosingSoon } from "@/lib/api/use-listings";
 import { ListingCard } from "./listing-card";
 
-// The same query the "Đặt trước" filter uses, so the two share one cache entry.
-const PREORDERS: ListingFilters = { q: "", category: null, mode: "preorder" };
 const MAX_ITEMS = 10;
 const MIN_SLIDE = 266; // one card (250px) plus the gap
 
 const ARROW =
   "flex size-10 items-center justify-center rounded-full border border-border bg-background text-primary outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-disabled:cursor-default aria-disabled:text-border";
 
-/**
- * Pre-orders that close soonest, in a row that scrolls sideways. The API has
- * no sort by closing time, so the first page is sorted here; that is exact as
- * long as the open pre-orders fit on one page.
- */
+/** Pre-orders that close soonest, in a row that scrolls sideways. The server orders them (GET /listings?sort=deadline). */
 export function ClosingSoonShelf() {
-  const { data } = useListings(PREORDERS);
+  const { data } = useClosingSoon(MAX_ITEMS);
   const row = useRef<HTMLUListElement>(null);
   const [edge, setEdge] = useState({ start: true, end: false });
 
-  const items = (data?.pages[0]?.items ?? [])
-    .filter((listing) => listing.orderDeadline)
-    .sort((a, b) =>
-      (a.orderDeadline ?? "").localeCompare(b.orderDeadline ?? ""),
-    )
-    .slice(0, MAX_ITEMS);
+  const items = data ?? [];
 
   const sync = useCallback((): void => {
     const el = row.current;

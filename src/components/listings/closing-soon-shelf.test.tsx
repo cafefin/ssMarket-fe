@@ -10,10 +10,12 @@ vi.mock("@/lib/api/client", () => ({ api }));
 const preorder = (id: string, title: string, orderDeadline: string | null) => ({
   id,
   title,
+  nameEn: title,
   mode: "preorder",
   category: { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi" },
   seller: { id: "u1", name: "An", avatarUrl: null },
   thumbnailUrl: null,
+  stockQuantity: null,
   minUnitPrice: 35000,
   minPriceUnit: "kg",
   orderDeadline,
@@ -48,9 +50,9 @@ describe("ClosingSoonShelf", () => {
 
   it("asks for open pre-orders and lists them soonest first", async () => {
     serve([
-      preorder("3", "Bưởi", "2026-10-13T10:00:00.000Z"),
       preorder("1", "Bánh mì", "2026-10-07T10:00:00.000Z"),
       preorder("2", "Cam sành", "2026-10-09T10:00:00.000Z"),
+      preorder("3", "Bưởi", "2026-10-13T10:00:00.000Z"),
     ]);
 
     renderShelf();
@@ -62,26 +64,21 @@ describe("ClosingSoonShelf", () => {
       "/listings/3",
     ]);
     expect(api.GET).toHaveBeenCalledWith("/listings", {
-      params: {
-        query: {
-          q: undefined,
-          category: undefined,
-          mode: "preorder",
-          cursor: undefined,
-        },
-      },
+      params: { query: { sort: "deadline", limit: 10 } },
     });
   });
 
-  it("leaves out pre-orders without a closing time", async () => {
+  it("keeps the server's order", async () => {
     serve([
-      preorder("1", "Bánh mì", "2026-10-07T10:00:00.000Z"),
-      preorder("2", "Không hạn", null),
+      preorder("b", "Sau", "2026-10-13T10:00:00.000Z"),
+      preorder("a", "Trước", "2026-10-07T10:00:00.000Z"),
     ]);
-
     renderShelf();
-
-    expect(within(await shelf()).getAllByRole("link")).toHaveLength(1);
+    const links = within(await shelf()).getAllByRole("link");
+    expect(links.map((l) => l.getAttribute("href"))).toEqual([
+      "/listings/b",
+      "/listings/a",
+    ]);
   });
 
   it("renders nothing when there is no pre-order", async () => {
@@ -153,7 +150,7 @@ describe("ClosingSoonShelf", () => {
 
   it("shows at most ten pre-orders", async () => {
     serve(
-      Array.from({ length: 12 }, (_, i) =>
+      Array.from({ length: 10 }, (_, i) =>
         preorder(String(i), `Món ${i}`, `2026-10-${10 + i}T10:00:00.000Z`),
       ),
     );
