@@ -44,6 +44,19 @@ describe("MobileTabBar", () => {
     ).not.toHaveAttribute("aria-current");
   });
 
+  it("marks the current tab by weight as well as colour", () => {
+    location.pathname = "/orders";
+
+    render(<MobileTabBar />);
+
+    expect(within(bar()).getByRole("link", { name: "Đơn mua" })).toHaveClass(
+      "font-semibold",
+    );
+    expect(
+      within(bar()).getByRole("link", { name: "Trang chủ" }),
+    ).not.toHaveClass("font-semibold");
+  });
+
   it("is only shown below the desktop breakpoint", () => {
     render(<MobileTabBar />);
 

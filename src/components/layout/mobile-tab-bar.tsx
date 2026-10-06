@@ -16,9 +16,15 @@ function Tab({ item, pathname }: { item: NavItem; pathname: string }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      className={cn(TAB, active ? "text-primary" : "text-muted-foreground")}
+      className={cn(
+        TAB,
+        active ? "font-semibold text-primary" : "text-muted-foreground",
+      )}
     >
-      <Icon aria-hidden="true" className="size-6" />
+      <Icon
+        aria-hidden="true"
+        className={cn("size-6", active && "stroke-[2.5]")}
+      />
       {item.label}
     </Link>
   );
