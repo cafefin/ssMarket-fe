@@ -7,7 +7,7 @@ import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { ApiError } from "@/shared/api/api-error";
 import { useCurrentUser } from "@/shared/api/use-current-user";
-import { type ListingDetail, useListing } from "@/lib/api/use-listings";
+import { type ListingDetail, useListing } from "../api/use-listings";
 import { formatDate } from "@/shared/lib/format/datetime";
 import { formatDeadline } from "@/shared/lib/format/deadline";
 import { initials } from "@/shared/lib/format/initials";

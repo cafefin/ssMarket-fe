@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ModeBadge } from "@/components/listings/mode-badge";
+import { ModeBadge, type ListingDetail, type ListingStatus, useCloseListing, useMyListings, usePublishListing, useReopenListing } from "@/features/listings";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,14 +18,6 @@ import {
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { userMessage } from "@/shared/api/api-error";
-import type { ListingDetail } from "@/lib/api/use-listings";
-import {
-  type ListingStatus,
-  useCloseListing,
-  useMyListings,
-  usePublishListing,
-  useReopenListing,
-} from "@/lib/api/use-my-listings";
 import { formatDateTime } from "@/shared/lib/format/datetime";
 import { formatMoney } from "@/shared/lib/format/money";
 import { cn } from "@/shared/lib/utils";

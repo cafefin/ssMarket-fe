@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
-import type { ListingSummary } from "@/lib/api/use-listings";
+import type { ListingSummary } from "../api/use-listings";
 import { closesToday, formatDeadline } from "@/shared/lib/format/deadline";
 import { initials } from "@/shared/lib/format/initials";
 import { formatMoney } from "@/shared/lib/format/money";

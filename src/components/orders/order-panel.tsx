@@ -10,11 +10,7 @@ import { Input } from "@/shared/ui/atoms/shadcn/input";
 import { Label } from "@/shared/ui/atoms/shadcn/label";
 import { ApiError, userMessage } from "@/shared/api/api-error";
 import { useCurrentUser } from "@/shared/api/use-current-user";
-import {
-  type ListingDetail,
-  LISTINGS_QUERY_KEY,
-  listingQueryKey,
-} from "@/lib/api/use-listings";
+import { type ListingDetail, LISTINGS_QUERY_KEY, listingQueryKey } from "@/features/listings";
 import { type PaymentMethod, usePlaceOrder } from "@/lib/api/use-orders";
 import { formatMoney } from "@/shared/lib/format/money";
 import {

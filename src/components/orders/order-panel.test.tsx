@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useQuery } from "@tanstack/react-query";
-import { type ListingDetail, LISTINGS_QUERY_KEY, useListing } from "@/lib/api/use-listings";
+import { type ListingDetail, LISTINGS_QUERY_KEY, useListing } from "@/features/listings";
 import { QueryProvider } from "@/shared/api/query-provider";
 import { OrderPanel } from "./order-panel";
 

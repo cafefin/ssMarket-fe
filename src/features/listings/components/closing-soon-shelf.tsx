@@ -2,7 +2,7 @@
 
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useClosingSoon } from "@/lib/api/use-listings";
+import { useClosingSoon } from "../api/use-listings";
 import { ListingCard } from "./listing-card";
 
 const MAX_ITEMS = 10;

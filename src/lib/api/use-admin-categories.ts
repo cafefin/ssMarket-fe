@@ -4,8 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toApiError } from "@/shared/api/api-error";
 import { api } from "@/shared/api/client";
 import type { components } from "@/shared/api/schema";
-import { CATEGORIES_QUERY_KEY } from "./use-categories";
-import { LISTINGS_QUERY_KEY } from "./use-listings";
+import { CATEGORIES_QUERY_KEY, LISTINGS_QUERY_KEY } from "@/features/listings";
 
 export type AdminCategory = components["schemas"]["AdminCategoryDto"];
 export type CategoryCreate = components["schemas"]["CreateCategoryDto"];

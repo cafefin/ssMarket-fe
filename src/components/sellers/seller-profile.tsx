@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ListingCard } from "@/components/listings/listing-card";
-import { LISTING_GRID } from "@/components/listings/listing-browser";
+import { ListingCard, LISTING_GRID, useSellerListings } from "@/features/listings";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { ApiError, userMessage } from "@/shared/api/api-error";
-import { useSellerListings } from "@/lib/api/use-listings";
 import { usePublicUser } from "@/shared/api/use-public-user";
 import { initials } from "@/shared/lib/format/initials";
 

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ListingBrowser } from "@/components/listings/listing-browser";
+import { ListingBrowser } from "@/features/listings";
 
 export default function HomePage() {
   return (

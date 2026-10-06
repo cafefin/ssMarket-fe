@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ListingDetail } from "@/lib/api/use-listings";
+import type { ListingDetail } from "../api/use-listings";
 import { QueryProvider } from "@/shared/api/query-provider";
 import { ListingDetailView } from "./listing-detail-view";
 

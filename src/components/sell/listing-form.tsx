@@ -13,13 +13,7 @@ import { Input } from "@/shared/ui/atoms/shadcn/input";
 import { Textarea } from "@/shared/ui/atoms/shadcn/textarea";
 import { ApiError, userMessage } from "@/shared/api/api-error";
 import { api } from "@/shared/api/client";
-import { useCategories } from "@/lib/api/use-categories";
-import { MY_LISTINGS_QUERY_KEY } from "@/lib/api/use-my-listings";
-import {
-  type ListingDetail,
-  LISTINGS_QUERY_KEY,
-  listingQueryKey,
-} from "@/lib/api/use-listings";
+import { useCategories, MY_LISTINGS_QUERY_KEY, type ListingDetail, LISTINGS_QUERY_KEY, listingQueryKey } from "@/features/listings";
 import {
   type ListingFormValues,
   type ListingMode,

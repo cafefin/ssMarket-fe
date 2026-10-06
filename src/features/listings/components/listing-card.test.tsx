@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ListingSummary } from "@/lib/api/use-listings";
+import type { ListingSummary } from "../api/use-listings";
 import { ListingCard } from "./listing-card";
 
 const listing = (overrides: Partial<ListingSummary> = {}): ListingSummary => ({

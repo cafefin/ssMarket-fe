@@ -9,7 +9,7 @@ import {
 import { toApiError } from "@/shared/api/api-error";
 import { api } from "@/shared/api/client";
 import type { components } from "@/shared/api/schema";
-import { LISTINGS_QUERY_KEY, listingQueryKey } from "./use-listings";
+import { LISTINGS_QUERY_KEY, listingQueryKey } from "@/features/listings";
 
 export type Order = components["schemas"]["OrderDetailDto"];
 export type OrderQr = components["schemas"]["OrderQrDto"];

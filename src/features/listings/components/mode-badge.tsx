@@ -1,4 +1,4 @@
-import type { ListingMode } from "@/lib/api/use-listings";
+import type { ListingMode } from "../api/use-listings";
 import { cn } from "@/shared/lib/utils";
 
 const MODES: Record<ListingMode, { label: string; className: string }> = {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ListingDetail } from "@/lib/api/use-listings";
+import type { ListingDetail } from "../api/use-listings";
 import { cn } from "@/shared/lib/utils";
 import { ImagePlaceholder } from "./image-placeholder";
 

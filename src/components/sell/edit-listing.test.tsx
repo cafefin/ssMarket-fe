@@ -1,13 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ListingDetail } from "@/lib/api/use-listings";
+import { type ListingDetail } from "@/features/listings";
 import { EditListing, toFormValues } from "./edit-listing";
 
 const { listingState, meState } = vi.hoisted(() => ({
   listingState: { data: undefined as unknown, isPending: false, isError: false },
   meState: { data: undefined as unknown },
 }));
-vi.mock("@/lib/api/use-listings", () => ({ useListing: () => listingState }));
+vi.mock("@/features/listings/api/use-listings", () => ({ useListing: () => listingState }));
 vi.mock("@/shared/api/use-current-user", () => ({ useCurrentUser: () => meState }));
 const { location } = vi.hoisted(() => ({ location: { search: "" } }));
 vi.mock("next/navigation", () => ({

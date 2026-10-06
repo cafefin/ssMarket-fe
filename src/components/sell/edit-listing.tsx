@@ -6,7 +6,7 @@ import { ListingForm } from "@/components/sell/listing-form";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { useCurrentUser } from "@/shared/api/use-current-user";
-import { type ListingDetail, useListing } from "@/lib/api/use-listings";
+import { type ListingDetail, useListing } from "@/features/listings";
 import { toDateTimeLocal } from "@/shared/lib/format/datetime";
 import type { ListingFormValues } from "@/lib/listings/listing-schema";
 

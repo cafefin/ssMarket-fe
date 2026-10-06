@@ -2,7 +2,7 @@
 
 import { XIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { ListingDetail } from "@/lib/api/use-listings";
+import { type ListingDetail } from "@/features/listings";
 import { imageProblem, MAX_IMAGES } from "@/lib/listings/listing-schema";
 
 interface ImagesFieldProps {

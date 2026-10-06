@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import type { Category } from "@/lib/api/use-categories";
+import type { Category } from "../api/use-categories";
 import {
   type ListingFilters as Filters,
   listingsHref,
-} from "@/lib/listings/filters";
+} from "../lib/filters";
 import { cn } from "@/shared/lib/utils";
 
 const MODES = [

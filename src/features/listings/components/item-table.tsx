@@ -1,4 +1,4 @@
-import type { ListingItem, ListingMode } from "@/lib/api/use-listings";
+import type { ListingItem, ListingMode } from "../api/use-listings";
 import { formatMoney } from "@/shared/lib/format/money";
 import { formatQuantity } from "@/shared/lib/format/quantity";
 

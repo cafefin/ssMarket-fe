@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { selectClassName } from "@/shared/ui/molecules/field";
 import { Label } from "@/shared/ui/atoms/shadcn/label";
-import { useMyListings } from "@/lib/api/use-my-listings";
+import { useMyListings } from "@/features/listings";
 import {
   type FulfillmentStatus,
   type PaymentStatus,

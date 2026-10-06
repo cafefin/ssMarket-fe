@@ -7,7 +7,7 @@ import { Input } from "@/shared/ui/atoms/shadcn/input";
 import { Label } from "@/shared/ui/atoms/shadcn/label";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { userMessage } from "@/shared/api/api-error";
-import { useListing } from "@/lib/api/use-listings";
+import { useListing } from "@/features/listings";
 import { type Order, useEditOrder } from "@/lib/api/use-orders";
 import { formatMoney } from "@/shared/lib/format/money";
 import {
