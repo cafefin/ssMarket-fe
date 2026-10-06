@@ -135,24 +135,33 @@ already serves a 400px thumbnail and a 1600px full size.
 - Use theme classes (`bg-primary`, `text-muted-foreground`, `border-border`,
   `rounded-lg`). Never write hex colours in components.
 - Blue (`primary`) is for actions: main buttons, links, focus rings, selected
-  states. Green (`positive`) means something good happened or is available:
-  in stock, paid, delivered. Do not use green for decoration.
-- Orange (`deadline`) marks a pre-order and when it closes. Text uses `text-deadline-deep` on `bg-deadline-soft`; a pre-order closing today uses `bg-deadline` with `text-foreground`. Do not use orange for anything else.
+  states. The selected selling-mode segment is the exception: it is navy
+  (`bg-foreground`). Green (`positive`) means something good happened or is
+  available: in stock, paid, delivered. Do not use green for decoration.
+- Orange (`deadline`) marks a pre-order and when it closes. Text uses
+  `text-deadline-deep` on `bg-deadline-soft`; a pre-order closing today uses
+  `bg-deadline` with `text-foreground`. Do not use orange for anything else.
 - The design token `accent` in `DESIGN.md` is `positive` in CSS, because
   shadcn/ui uses `accent` for neutral hover surfaces.
-- White text goes only on `bg-primary` and `bg-primary-deep`. Coloured text
-  uses the `-deep` variant (`text-positive-deep`, `text-warn-deep`,
-  `text-error-deep`); the base colours are for icons, borders, dots and
-  backgrounds with dark text.
+- White text goes only on `bg-primary`, `bg-primary-deep` and `bg-foreground`
+  (the selected selling-mode segment). Coloured text uses the `-deep` variant
+  (`text-positive-deep`, `text-warn-deep`, `text-error-deep`); the base colours
+  are for icons, borders, dots and backgrounds with dark text.
 - `src/lib/theme/contrast.test.ts` fails when a text/background pair drops
   below WCAG AA. Add new pairs there when you introduce them.
 - Buttons are always pills (`rounded-full`); cards use `rounded-lg` (12px).
 - The header is `h-16` and sticky; anything that sticks under it uses
   `top-16`. Navigation lives in `nav-items.ts`: the header shows it from `md`
   up, `MobileTabBar` below. Add a destination there, not in either component.
+- Fixed and sticky chrome (header, tab bar) is `z-20`; things that stick under
+  the header are `z-10`. `main` reserves `pb-24` below `md` for the tab bar.
 - `ListingCard` is a row (photo left) below 560px and stacked above; pass
   `layout="stacked"` where it must always be stacked, as in the carousel.
-- `font-heading` (Bricolage Grotesque) for h1, h2, prices and the wordmark; Inter for other UI text; Geist Mono for codes people copy.
+- `font-heading` (Bricolage Grotesque) for h1, h2, prices and the wordmark;
+  Inter for other UI text; Geist Mono for codes people copy.
+- `h1` and `h2` get `font-heading` from the base layer, and shadcn's
+  `AlertDialogTitle` uses `font-heading` too, so changing `--font-heading`
+  restyles dialogs.
 - Use the `Wordmark` component for the product name. Never add the SmartOSC
   logo file to this repository.
 - To style a link as a button, use `buttonVariants(...)` on an `<a>`.

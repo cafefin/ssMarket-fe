@@ -276,11 +276,14 @@ pre-order fruit for the week. The interface therefore has two jobs. It must
 make listings quick to scan, and it must make the state of an order obvious at
 a glance.
 
-The visual language is quiet. Almost everything is white, near-black and light
+The visual language is quiet. Almost everything is white, navy and light
 grey. Three colours carry meaning, and each has one job:
 
-- **Blue means "you can act here".** Primary buttons, links, focus rings,
-  selected filters and tabs.
+- **Blue means "you can act here".** Primary buttons, links, focus rings and
+  selected states. Selected category chips are soft blue with deep-blue text;
+  the selected selling-mode segment is navy with white text; the current
+  navigation item is soft blue in the header and blue with a heavier weight in
+  the tab bar.
 - **Green means "this is good".** In stock, paid, delivered, saved.
 - **Orange means "this closes at a set time".** Pre-order badges, the
   closing time on a card, the "Sắp chốt đơn" row. A pre-order that closes
@@ -385,9 +388,9 @@ introduce one.
 
 | Token | Size | Weight | Use |
 |---|---|---|---|
-| `{typography.heading-1}` | 36px | 600 | Page titles on wide screens |
-| `{typography.heading-2}` | 28px | 600 | Page titles on phones, listing title |
-| `{typography.heading-3}` | 22px | 600 | Section titles |
+| `{typography.heading-1}` | 36px | 700 | Page titles on wide screens |
+| `{typography.heading-2}` | 28px | 700 | Page titles on phones, listing title |
+| `{typography.heading-3}` | 22px | 700 | Section titles |
 | `{typography.heading-4}` | 18px | 600 | Card titles, form section titles |
 | `{typography.body-md}` | 16px | 400 | Descriptions, form inputs |
 | `{typography.body-sm}` | 14px | 400 | Tables, metadata, navigation |
@@ -395,7 +398,7 @@ introduce one.
 | `{typography.caption-bold}` | 13px | 600 | Badges |
 | `{typography.micro-uppercase}` | 11px | 600 | Table column headers |
 | `{typography.button-md}` | 14px | 500 | Button labels |
-| `{typography.price}` | 16px | 600 | Prices on cards and in tables |
+| `{typography.price}` | 22px | 700 | Prices on cards and in tables; Bricolage Grotesque, condensed (75% width) |
 | `{typography.code-sm}` | 13px | 500 | Order codes, account numbers |
 
 Emphasis comes from weight, never from italics. Body text keeps a 1.5 line
@@ -446,14 +449,31 @@ toolbars.
 switches to a 2px `{colors.primary}` border. An invalid field uses an
 `{colors.error}` border with the message below it in `{colors.error-deep}`.
 
-**`app-header`**: a sticky white bar, 56px high, with a soft hairline below.
-Wordmark on the left, search in the middle on wide screens, the "Đăng bán"
-button and user menu on the right.
+**`app-header`**: a sticky white bar, 64px high, with a hairline below. The
+logo mark on the left (the wordmark joins it from 1024px), the navigation
+links from 768px, the search field, a round "+" link named "Đăng bán" from
+768px, and the account menu on the right.
 
-**`listing-card`**: a hairline card with the image on top (4:3, cropped to
-fill), then the title on at most two lines, the price line ("từ 35.000 đ/kg"),
-the seller name in `{colors.steel}` and a mode badge. The whole card is one
-link.
+**`mobile-tab-bar`**: the phone navigation, fixed to the bottom with five
+items and a raised round "Đăng bán" in the middle. The current tab is blue
+with a heavier weight and a thicker icon stroke. Hidden from 768px, where the
+header carries the links.
+
+**`listing-card`**: a hairline card. Below 560px it is a row with the photo on
+the left; from 560px the photo is on top (4:3, cropped to fill). It shows the
+title on at most two lines, the price line ("từ 35.000 đ/kg") and the seller
+name in `{colors.steel}`. The mode is shown in a foot strip: "Có sẵn" with a
+green dot on white, or "Chốt <time>" on soft orange (solid orange when it
+closes today), with "N người đã đặt" when there are orders. The whole card is
+one link.
+
+**`closing-soon-carousel`**: the "Sắp chốt đơn" band on the home page. A soft
+orange band with up to 10 pre-orders sorted by closing time, in a row that
+scrolls sideways. Arrow buttons appear from 560px; phones swipe.
+
+**`mode-segment`**: the "Hình thức bán" control above the grid. A segmented
+control with the choices "Tất cả", "Có sẵn" and "Đặt trước"; the selected one
+is navy with white text.
 
 **`image-placeholder`**: shown when a listing has no image. A
 `{colors.surface}` block with a centred icon in `{colors.stone}`.
@@ -515,11 +535,12 @@ Use the `Wordmark` component; do not retype the name with ad-hoc colours.
 
 | Width | Changes |
 |---|---|
-| below 480px | One-column grid. Header search moves to its own row below the header. Tables scroll horizontally with the first column fixed. |
-| 480 to 767px | Two-column grid. |
-| 768 to 1023px | Three-column grid. Forms may place related fields side by side. |
-| 1024px and up | Four-column grid. Header search sits inline. |
+| below 560px | One listing per row, photo on the left. The tab bar replaces the header navigation. Tables scroll horizontally with the first column fixed. |
+| 560 to 767px | Two-column grid of stacked cards; carousel arrows appear. |
+| 768 to 1023px | Three-column grid. Navigation links and the "+" sell link move into the header; the tab bar is hidden. Forms may place related fields side by side. |
+| 1024px and up | Four-column grid. The wordmark appears next to the logo mark. |
 
+- Search stays in the header row at every width.
 - The minimum supported width is 360px, with no horizontal page scroll.
 - Touch targets are at least 44px high on phones: buttons, chips, menu items
   and table row actions grow through padding.
