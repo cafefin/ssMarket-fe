@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryProvider } from "@/lib/query/query-provider";
@@ -10,9 +10,8 @@ vi.mock("@/lib/api/client", () => ({ api }));
 const summary = (id: string, title: string) => ({
   id,
   title,
-  nameEn: title,
   mode: "in_stock",
-  category: { id: 2, slug: "dien-tu", name: "Điện tử" },
+  category: { id: 2, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
   seller: { id: "u1", name: "Lê Thu Hà", avatarUrl: null },
   thumbnailUrl: null,
   stockQuantity: 3,
@@ -28,8 +27,9 @@ type Page = { items: ReturnType<typeof summary>[]; nextCursor: string | null };
 
 function serve(
   opts: {
-    user?: object | "missing";
+    user?: object | "missing" | "broken";
     pages?: Page[];
+    listingsFail?: boolean;
   } = {},
 ) {
   const user = opts.user ?? {
@@ -44,6 +44,13 @@ function serve(
   let call = 0;
   api.GET.mockImplementation((path: string) => {
     if (path === "/users/{id}") {
+      if (user === "broken") {
+        return Promise.resolve({
+          data: undefined,
+          error: { code: "INTERNAL" },
+          response: new Response(null, { status: 500 }),
+        });
+      }
       return Promise.resolve(
         user === "missing"
           ? {
@@ -53,6 +60,13 @@ function serve(
             }
           : { data: user, response: new Response() },
       );
+    }
+    if (opts.listingsFail && call++ === 0) {
+      return Promise.resolve({
+        data: undefined,
+        error: { code: "INTERNAL" },
+        response: new Response(null, { status: 500 }),
+      });
     }
     const page = pages[Math.min(call++, pages.length - 1)];
     return Promise.resolve({ data: page, response: new Response() });
@@ -119,6 +133,29 @@ describe("SellerProfile", () => {
     );
   });
 
+  it("does not claim the seller is missing when the request failed", async () => {
+    serve({ user: "broken" });
+    renderProfile();
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).not.toHaveTextContent("Không tìm thấy người bán này.");
+    expect(alert).toHaveTextContent("Đã có lỗi xảy ra. Vui lòng thử lại.");
+    expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
+  });
+
+  it("offers a retry when the listings fail to load", async () => {
+    serve({ listingsFail: true });
+    renderProfile();
+
+    expect(
+      await screen.findByText("Không tải được danh sách bài đăng."),
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Thử lại" }));
+
+    const grid = await screen.findByRole("region", { name: "Đang bán" });
+    expect(await within(grid).findAllByRole("link")).toHaveLength(2);
+  });
+
   it("loads the next page on demand", async () => {
     serve({
       pages: [
@@ -128,7 +165,9 @@ describe("SellerProfile", () => {
     });
     renderProfile();
 
-    await userEvent.click(await screen.findByRole("button", { name: "Xem thêm" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Xem thêm" }),
+    );
 
     expect(await screen.findAllByRole("link")).toHaveLength(2);
     expect(api.GET).toHaveBeenLastCalledWith("/listings", {

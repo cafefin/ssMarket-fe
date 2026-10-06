@@ -5,6 +5,7 @@ import { toApiError } from "./api-error";
 import { api, type CurrentUser } from "./client";
 import type { components } from "./schema";
 import { CURRENT_USER_QUERY_KEY } from "./use-current-user";
+import { publicUserQueryKey } from "./use-public-user";
 
 export type ProfileUpdate = components["schemas"]["UpdateProfileDto"];
 
@@ -21,6 +22,10 @@ export function useUpdateProfile() {
     },
     onSuccess: (user) => {
       queryClient.setQueryData(CURRENT_USER_QUERY_KEY, user);
+      // The seller's own public page shows the same data.
+      void queryClient.invalidateQueries({
+        queryKey: publicUserQueryKey(user.id),
+      });
     },
   });
 }

@@ -10,7 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiError, userMessage } from "@/lib/api/api-error";
 import { useCurrentUser } from "@/lib/api/use-current-user";
-import { type ListingDetail, listingQueryKey } from "@/lib/api/use-listings";
+import {
+  type ListingDetail,
+  LISTINGS_QUERY_KEY,
+  listingQueryKey,
+} from "@/lib/api/use-listings";
 import { type PaymentMethod, usePlaceOrder } from "@/lib/api/use-orders";
 import { formatMoney } from "@/lib/format/money";
 import {
@@ -111,6 +115,8 @@ export function OrderPanel({ listing }: { listing: ListingDetail }) {
         void queryClient.invalidateQueries({
           queryKey: listingQueryKey(listing.id),
         });
+        // Cards in lists show stock too.
+        void queryClient.invalidateQueries({ queryKey: LISTINGS_QUERY_KEY });
       } else if (error instanceof ApiError && error.code === "ALREADY_ORDERED") {
         setExistingOrderId(String(error.details.orderId ?? ""));
       } else {

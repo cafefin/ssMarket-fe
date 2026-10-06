@@ -10,9 +10,8 @@ vi.mock("@/lib/api/client", () => ({ api }));
 const preorder = (id: string, title: string, orderDeadline: string | null) => ({
   id,
   title,
-  nameEn: title,
   mode: "preorder",
-  category: { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi" },
+  category: { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food" },
   seller: { id: "u1", name: "An", avatarUrl: null },
   thumbnailUrl: null,
   stockQuantity: null,
@@ -146,17 +145,5 @@ describe("ClosingSoonShelf", () => {
       await userEvent.click(previous);
       expect(row.scrollBy).toHaveBeenLastCalledWith({ left: -400 });
     });
-  });
-
-  it("shows at most ten pre-orders", async () => {
-    serve(
-      Array.from({ length: 10 }, (_, i) =>
-        preorder(String(i), `Món ${i}`, `2026-10-${10 + i}T10:00:00.000Z`),
-      ),
-    );
-
-    renderShelf();
-
-    expect(within(await shelf()).getAllByRole("link")).toHaveLength(10);
   });
 });

@@ -7,9 +7,11 @@ import type { components } from "./schema";
 
 export type Category = components["schemas"]["CategoryResponseDto"];
 
+export const CATEGORIES_QUERY_KEY = ["categories"] as const;
+
 export function useCategories() {
   return useQuery({
-    queryKey: ["categories"],
+    queryKey: CATEGORIES_QUERY_KEY,
     // Reference data that only changes with a backend release.
     staleTime: Infinity,
     queryFn: async (): Promise<Category[]> => {

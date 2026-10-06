@@ -1,7 +1,8 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { type ListingDetail, useListing } from "@/lib/api/use-listings";
+import { useQuery } from "@tanstack/react-query";
+import { type ListingDetail, LISTINGS_QUERY_KEY, useListing } from "@/lib/api/use-listings";
 import { QueryProvider } from "@/lib/query/query-provider";
 import { OrderPanel } from "./order-panel";
 
@@ -47,6 +48,11 @@ const fail = (status: number, code: string, details?: object) => ({
 /** Stands in for the listing page, which owns the listing query. */
 function Host({ value }: { value: ListingDetail }) {
   useListing(value.id);
+  // Stands in for a browse list that is cached under ["listings"].
+  useQuery({
+    queryKey: [...LISTINGS_QUERY_KEY, "probe"],
+    queryFn: () => api.GET("/listings"),
+  });
   return <OrderPanel listing={value} />;
 }
 
@@ -229,6 +235,10 @@ describe("OrderPanel", () => {
       api.GET.mock.calls.filter(([path]) => path === "/listings/{id}").length;
     const before = listingFetches();
 
+    const listsFetches = () =>
+      api.GET.mock.calls.filter(([path]) => path === "/listings").length;
+    const listsBefore = listsFetches();
+
     await submit();
 
     const alert = await screen.findByText("Không còn đủ hàng:");
@@ -237,6 +247,8 @@ describe("OrderPanel", () => {
     expect(router.push).not.toHaveBeenCalled();
     // The listing is fetched again so the stock on the page is current.
     await waitFor(() => expect(listingFetches()).toBeGreaterThan(before));
+    // Listing cards show stock too, so cached lists are fetched again.
+    await waitFor(() => expect(listsFetches()).toBeGreaterThan(listsBefore));
   });
 
   it("points to the existing order on a pre-order already placed", async () => {

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toApiError } from "./api-error";
 import { api } from "./client";
 import type { components } from "./schema";
+import { CATEGORIES_QUERY_KEY } from "./use-categories";
 import { LISTINGS_QUERY_KEY } from "./use-listings";
 
 export type AdminCategory = components["schemas"]["AdminCategoryDto"];
@@ -31,7 +32,7 @@ function useInvalidateCategories() {
   return () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: ADMIN_CATEGORIES_QUERY_KEY }),
-      queryClient.invalidateQueries({ queryKey: ["categories"] }),
+      queryClient.invalidateQueries({ queryKey: CATEGORIES_QUERY_KEY }),
       queryClient.invalidateQueries({ queryKey: LISTINGS_QUERY_KEY }),
     ]);
 }

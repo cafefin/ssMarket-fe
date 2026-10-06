@@ -171,6 +171,7 @@ describe("ListingCard", () => {
     render(<ListingCard listing={listing({ stockQuantity: 0 })} />);
     const foot = screen.getByText("Hết hàng");
     expect(foot.closest("p")).not.toHaveClass("text-positive-deep");
+    expect(foot.closest("p")).toHaveClass("text-muted-foreground");
     expect(screen.queryByText("Có sẵn")).not.toBeInTheDocument();
   });
 

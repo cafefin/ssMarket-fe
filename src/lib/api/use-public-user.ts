@@ -7,9 +7,11 @@ import type { components } from "./schema";
 
 export type PublicUser = components["schemas"]["PublicUserDto"];
 
+export const publicUserQueryKey = (id: string) => ["user", id] as const;
+
 export function usePublicUser(id: string) {
   return useQuery({
-    queryKey: ["user", id],
+    queryKey: publicUserQueryKey(id),
     queryFn: async (): Promise<PublicUser> => {
       const { data, error, response } = await api.GET("/users/{id}", {
         params: { path: { id } },
