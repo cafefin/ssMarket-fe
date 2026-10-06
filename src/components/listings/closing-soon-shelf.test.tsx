@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryProvider } from "@/lib/query/query-provider";
 import { ClosingSoonShelf } from "./closing-soon-shelf";
 
@@ -93,7 +93,7 @@ describe("ClosingSoonShelf", () => {
     expect(screen.queryByRole("region")).not.toBeInTheDocument();
   });
 
-  it("slides with the arrow buttons and disables the one at the edge", async () => {
+  it("disables both arrows when every card fits", async () => {
     serve([preorder("1", "Bánh mì", "2026-10-07T10:00:00.000Z")]);
     renderShelf();
     const region = await shelf();
@@ -103,23 +103,63 @@ describe("ClosingSoonShelf", () => {
     const next = within(region).getByRole("button", {
       name: "Xem các món tiếp theo",
     });
-    const row = within(region).getByRole("list");
 
-    expect(previous).toBeDisabled();
+    expect(previous).toHaveAttribute("aria-disabled", "true");
+    expect(next).toHaveAttribute("aria-disabled", "true");
     await userEvent.click(next);
-    expect(row.scrollBy).toHaveBeenCalledWith({ left: 266 });
+    expect(within(region).getByRole("list").scrollBy).not.toHaveBeenCalled();
+  });
 
-    // The row has been scrolled to its end.
-    Object.defineProperties(row, {
-      scrollLeft: { value: 300, configurable: true },
-      clientWidth: { value: 500, configurable: true },
-      scrollWidth: { value: 800, configurable: true },
+  describe("when the row overflows", () => {
+    afterEach(() => {
+      Reflect.deleteProperty(HTMLElement.prototype, "scrollWidth");
+      Reflect.deleteProperty(HTMLElement.prototype, "clientWidth");
     });
-    fireEvent.scroll(row);
 
-    expect(previous).toBeEnabled();
-    expect(next).toBeDisabled();
-    await userEvent.click(previous);
-    expect(row.scrollBy).toHaveBeenLastCalledWith({ left: -400 });
+    it("slides with the arrows and disables the one at the edge", async () => {
+      Object.defineProperties(HTMLElement.prototype, {
+        scrollWidth: { get: () => 800, configurable: true },
+        clientWidth: { get: () => 500, configurable: true },
+      });
+      serve([preorder("1", "Bánh mì", "2026-10-07T10:00:00.000Z")]);
+      renderShelf();
+      const region = await shelf();
+      const previous = within(region).getByRole("button", {
+        name: "Xem các món trước",
+      });
+      const next = within(region).getByRole("button", {
+        name: "Xem các món tiếp theo",
+      });
+      const row = within(region).getByRole("list");
+
+      expect(previous).toHaveAttribute("aria-disabled", "true");
+      expect(next).not.toHaveAttribute("aria-disabled", "true");
+      await userEvent.click(next);
+      expect(row.scrollBy).toHaveBeenCalledWith({ left: 400 });
+
+      // The row has been scrolled to its end.
+      Object.defineProperty(row, "scrollLeft", {
+        value: 300,
+        configurable: true,
+      });
+      fireEvent.scroll(row);
+
+      expect(next).toHaveAttribute("aria-disabled", "true");
+      expect(previous).not.toHaveAttribute("aria-disabled", "true");
+      await userEvent.click(previous);
+      expect(row.scrollBy).toHaveBeenLastCalledWith({ left: -400 });
+    });
+  });
+
+  it("shows at most ten pre-orders", async () => {
+    serve(
+      Array.from({ length: 12 }, (_, i) =>
+        preorder(String(i), `Món ${i}`, `2026-10-${10 + i}T10:00:00.000Z`),
+      ),
+    );
+
+    renderShelf();
+
+    expect(within(await shelf()).getAllByRole("link")).toHaveLength(10);
   });
 });
