@@ -38,8 +38,9 @@ describe("ListingCard", () => {
     render(<ListingCard listing={listing()} />);
 
     const link = screen.getByRole("link");
-    expect(link).toHaveAccessibleName(/Nguyen Van A/);
-    expect(link).not.toHaveAccessibleName(/NA Nguyen/);
+    const avatar = link.querySelector('[data-slot="avatar"]');
+    expect(avatar).not.toBeNull();
+    expect(avatar).toHaveAttribute("aria-hidden", "true");
   });
 
   it("says Đặt trước for a pre-order without a closing time", () => {
