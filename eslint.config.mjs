@@ -32,8 +32,8 @@ const featureBoundaries = FEATURES.map((name) => ({
             message: "Use another feature only through its index: @/features/<name>.",
           },
           {
-            group: ["../../*", "../../**"],
-            message: "Leave a feature with @/features/<name> or @/shared/..., not ../../.",
+            regex: "^(\\.\\./)+(app|shared|features|" + FEATURES.join("|") + ")(/|$)",
+            message: "Leave a feature with @/features/<name> or @/shared/..., not a relative path.",
           },
           ...FEATURES.filter((other) => other !== name && !FEATURE_DEPS[name].includes(other)).map(
             (other) => ({
@@ -58,6 +58,14 @@ const sharedBoundary = {
             group: ["@/features", "@/features/**", "@/app", "@/app/**"],
             message: "shared/ knows nothing about features or app/.",
           },
+          {
+            regex: "^(\\.\\./)+features(/|$)",
+            message: "shared/ knows nothing about features.",
+          },
+          {
+            regex: "^(\\.\\./)+app(/|$)",
+            message: "shared/ knows nothing about app/.",
+          },
         ],
       },
     ],
@@ -73,6 +81,10 @@ const appBoundary = {
         patterns: [
           {
             group: ["@/features/*/**"],
+            message: "Use a feature through its index: @/features/<name>.",
+          },
+          {
+            regex: "^(\\.\\./)+features(/|$)",
             message: "Use a feature through its index: @/features/<name>.",
           },
         ],
