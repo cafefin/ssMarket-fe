@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/shared/api/client";
 import { QueryProvider } from "@/shared/api/query-provider";
 import { ProfileForm } from "./profile-form";
-import { safeNextPath } from "./profile-schema";
+import { safeNextPath } from "../lib/profile-schema";
 
 const { api, push, toast, search } = vi.hoisted(() => ({
   api: { GET: vi.fn(), PATCH: vi.fn() },

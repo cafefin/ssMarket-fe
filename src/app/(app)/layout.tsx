@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-import { AppHeader } from "@/components/layout/app-header";
-import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
+import { AppHeader, MobileTabBar } from "@/features/shell";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (

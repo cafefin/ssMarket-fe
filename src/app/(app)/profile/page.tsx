@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { ProfileForm } from "@/components/profile/profile-form";
+import { ProfileForm } from "@/features/profile";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { useCurrentUser } from "@/shared/api/use-current-user";
 

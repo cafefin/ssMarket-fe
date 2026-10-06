@@ -4,7 +4,7 @@ import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/lib/utils";
-import { isActive, NAV_ITEMS, type NavItem, PROFILE_ITEM } from "./nav-items";
+import { isActive, NAV_ITEMS, type NavItem, PROFILE_ITEM } from "../lib/nav-items";
 
 const TAB =
   "flex min-h-13 flex-col items-center justify-end gap-0.5 rounded-md text-xs font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50";

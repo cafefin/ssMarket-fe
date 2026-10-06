@@ -10,7 +10,7 @@ import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { useCurrentUser } from "@/shared/api/use-current-user";
 import { cn } from "@/shared/lib/utils";
 import { HeaderSearch } from "./header-search";
-import { isActive, NAV_ITEMS } from "./nav-items";
+import { isActive, NAV_ITEMS } from "../lib/nav-items";
 import { UserMenu } from "./user-menu";
 
 export function AppHeader() {

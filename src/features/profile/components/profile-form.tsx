@@ -10,14 +10,14 @@ import { Button } from "@/shared/ui/atoms/shadcn/button";
 import { Input } from "@/shared/ui/atoms/shadcn/input";
 import { userMessage } from "@/shared/api/api-error";
 import type { CurrentUser } from "@/shared/api/client";
-import { useBanks } from "@/lib/api/use-banks";
-import { useUpdateProfile } from "@/lib/api/use-update-profile";
+import { useBanks } from "../api/use-banks";
+import { useUpdateProfile } from "../api/use-update-profile";
 import {
   type ProfileFormValues,
   profileSchema,
   safeNextPath,
   toProfileUpdate,
-} from "./profile-schema";
+} from "../lib/profile-schema";
 
 export function ProfileForm({ user }: { user: CurrentUser }) {
   const router = useRouter();

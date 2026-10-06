@@ -1,6 +1,6 @@
 "use client";
 
-import { CategoryAdmin } from "@/components/admin/category-admin";
+import { CategoryAdmin } from "@/features/admin";
 
 export default function AdminCategoriesPage() {
   return (

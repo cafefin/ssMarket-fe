@@ -17,7 +17,7 @@ import {
   useAdminCategories,
   useCreateCategory,
   useUpdateCategory,
-} from "@/lib/api/use-admin-categories";
+} from "../api/use-admin-categories";
 import { useCurrentUser } from "@/shared/api/use-current-user";
 
 const nameSchema = z

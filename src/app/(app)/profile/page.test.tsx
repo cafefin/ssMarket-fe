@@ -8,7 +8,7 @@ const { state } = vi.hoisted(() => ({
 vi.mock("@/shared/api/use-current-user", () => ({
   useCurrentUser: () => state,
 }));
-vi.mock("@/components/profile/profile-form", () => ({
+vi.mock("@/features/profile/components/profile-form", () => ({
   ProfileForm: ({ user }: { user: { name: string } }) => (
     <p>form for {user.name}</p>
   ),
