@@ -33,10 +33,10 @@ src/
 │       └── profile/
 ├── components/
 │   ├── ui/               shadcn/ui primitives (Base UI); change only to apply design tokens
-│   ├── brand/            wordmark
-│   ├── layout/           header, search box, user menu
+│   ├── brand/            logo mark, wordmark
+│   ├── layout/           header, search box, user menu, navigation items, phone tab bar
 │   ├── form/             Field wrapper and shared control styles
-│   ├── listings/         card, filters, detail view, gallery, item table
+│   ├── listings/         card, filters, closing-soon carousel, detail view, gallery, item table
 │   ├── sell/             mode step, listing form, my listings
 │   ├── orders/           order panel, order page, editor, QR block, actions, lists, summary
 │   └── profile/
@@ -46,7 +46,7 @@ src/
     ├── orders/           order arithmetic shared with the backend's rules
     ├── query/            TanStack Query provider
     ├── theme/            contrast helpers and the palette contrast gate
-    └── format/           money, dates, initials
+    └── format/           money, dates, closing times, initials
 ```
 
 Pages under `app/` stay thin: they render one component from `components/`,
@@ -147,6 +147,11 @@ already serves a 400px thumbnail and a 1600px full size.
 - `src/lib/theme/contrast.test.ts` fails when a text/background pair drops
   below WCAG AA. Add new pairs there when you introduce them.
 - Buttons are always pills (`rounded-full`); cards use `rounded-lg` (12px).
+- The header is `h-16` and sticky; anything that sticks under it uses
+  `top-16`. Navigation lives in `nav-items.ts`: the header shows it from `md`
+  up, `MobileTabBar` below. Add a destination there, not in either component.
+- `ListingCard` is a row (photo left) below 560px and stacked above; pass
+  `layout="stacked"` where it must always be stacked, as in the carousel.
 - `font-heading` (Bricolage Grotesque) for h1, h2, prices and the wordmark; Inter for other UI text; Geist Mono for codes people copy.
 - Use the `Wordmark` component for the product name. Never add the SmartOSC
   logo file to this repository.
