@@ -70,6 +70,16 @@ describe("ListingDetailView", () => {
     vi.resetAllMocks();
   });
 
+  it("links to the seller's page", async () => {
+    serve(listing());
+
+    renderView();
+
+    expect(
+      await screen.findByRole("link", { name: "Xem trang người bán" }),
+    ).toHaveAttribute("href", "/sellers/seller-1");
+  });
+
   it("shows a loading state first", () => {
     api.GET.mockReturnValue(new Promise(() => undefined));
 

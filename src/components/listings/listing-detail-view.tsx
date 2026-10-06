@@ -123,10 +123,18 @@ export function ListingDetailView({ id }: { id: string }) {
                 {initials(listing.seller.name)}
               </AvatarFallback>
             </Avatar>
-            <p className="text-sm text-muted-foreground">
-              Người bán:{" "}
-              <span className="text-foreground">{listing.seller.name}</span>
-            </p>
+            <div className="flex flex-col">
+              <p className="text-sm text-muted-foreground">
+                Người bán:{" "}
+                <span className="text-foreground">{listing.seller.name}</span>
+              </p>
+              <Link
+                href={`/sellers/${listing.seller.id}`}
+                className="text-[13px] text-primary underline-offset-4 hover:underline"
+              >
+                Xem trang người bán
+              </Link>
+            </div>
           </div>
         </header>
 

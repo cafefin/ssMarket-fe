@@ -69,3 +69,23 @@ export function useListing(id: string) {
     },
   });
 }
+
+/** One seller's open listings, newest first. */
+export function useSellerListings(sellerId: string) {
+  return useInfiniteQuery({
+    queryKey: [...LISTINGS_QUERY_KEY, "seller", sellerId],
+    initialPageParam: null as string | null,
+    queryFn: async ({ pageParam }) => {
+      const { data, error, response } = await api.GET("/listings", {
+        params: {
+          query: { seller: sellerId, cursor: pageParam ?? undefined },
+        },
+      });
+      if (!data) {
+        throw toApiError(error, response);
+      }
+      return data;
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
+}
