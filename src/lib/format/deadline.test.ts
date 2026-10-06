@@ -37,9 +37,29 @@ describe("formatDeadline", () => {
   });
 });
 
+describe("formatDeadline month", () => {
+  it("does not zero-pad the month", () => {
+    expect(
+      formatDeadline(
+        "2027-03-05T10:00:00.000Z",
+        new Date("2027-03-01T03:00:00.000Z"),
+        ZONE,
+      ),
+    ).toBe("17:00 thứ Sáu, 5/3");
+  });
+});
+
 describe("closesToday", () => {
   it("is true only on the deadline's calendar day", () => {
     expect(closesToday(deadline, new Date("2026-10-09T01:00:00.000Z"), ZONE)).toBe(true);
     expect(closesToday(deadline, new Date("2026-10-08T16:00:00.000Z"), ZONE)).toBe(false);
+  });
+
+  it("is false for the same day of the month in another month", () => {
+    expect(closesToday("2026-10-09T10:00:00.000Z", new Date("2026-11-09T03:00:00.000Z"), ZONE)).toBe(false);
+  });
+
+  it("is false for the same day and month in another year", () => {
+    expect(closesToday("2026-10-09T10:00:00.000Z", new Date("2027-10-09T03:00:00.000Z"), ZONE)).toBe(false);
   });
 });

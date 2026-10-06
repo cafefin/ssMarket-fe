@@ -52,5 +52,5 @@ export function formatDeadline(
   if (closesToday(iso, now, timeZone)) {
     return `${time} hôm nay`;
   }
-  return `${time} ${WEEKDAYS[d.weekday]}, ${Number(d.day)}/${d.month}`;
+  return `${time} ${WEEKDAYS[d.weekday]}, ${Number(d.day)}/${Number(d.month)}`;
 }
