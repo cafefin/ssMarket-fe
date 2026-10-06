@@ -11,28 +11,38 @@ test("an admin adds a category that sellers can use, then hides it", async ({
   await admin.page.getByRole("button", { name: /^Tài khoản của/ }).click();
   await admin.page.getByRole("menuitem", { name: "Quản lý danh mục" }).click();
   await expect(admin.page).toHaveURL("/admin/categories");
-  await admin.page.getByLabel("Tên danh mục").fill(name);
-  await admin.page.getByLabel("Tên tiếng Anh", { exact: true }).first().fill("Books");
-  await admin.page.getByRole("button", { name: "Thêm", exact: true }).click();
+  const form = admin.page.locator('form[aria-label="Thêm danh mục"]');
+  await form.getByLabel("Tên danh mục").fill(name);
+  await form.getByLabel("Tên tiếng Anh").fill("Books");
+  await form.getByRole("button", { name: "Thêm", exact: true }).click();
   const row = admin.page.getByRole("row", { name: new RegExp(name) });
   await expect(row).toBeVisible();
 
-  const options = async () => {
+  const select = seller.page.getByLabel("Loại hàng");
+  // The first visit starts at the mode step; the form then keeps a draft, so
+  // the second visit opens the form directly.
+  const openForm = async (firstVisit: boolean) => {
     await seller.page.goto("/sell/new");
-    // A draft kept from the first visit skips the mode step.
     const mode = seller.page.getByRole("button", { name: /Hàng có sẵn/ });
-    await expect(mode.or(seller.page.getByLabel("Loại hàng"))).toBeVisible();
-    if (await mode.isVisible()) {
+    if (firstVisit) {
       await mode.click();
+    } else {
+      await expect(mode).toBeHidden();
     }
-    return seller.page.getByLabel("Loại hàng").locator("option", { hasText: name });
+    await expect(select).toBeVisible();
+    // Wait for the categories to load: the select starts empty, so a
+    // missing category proves nothing until a seeded one is there.
+    await expect(
+      select.locator("option", { hasText: "Điện tử" }),
+    ).toBeAttached();
+    return select.locator("option", { hasText: name });
   };
-  await expect(await options()).toHaveCount(1);
+  await expect(await openForm(true)).toHaveCount(1);
 
   await row.getByRole("button", { name: `Ẩn ${name}` }).click();
   await expect(row.getByRole("button", { name: `Hiện ${name}` })).toBeVisible();
 
-  await expect(await options()).toHaveCount(0);
+  await expect(await openForm(false)).toHaveCount(0);
 });
 
 test("a buyer reaches the seller page from a listing", async ({ browser }) => {
@@ -56,7 +66,16 @@ test("a buyer reaches the seller page from a listing", async ({ browser }) => {
 
   await buyer.page.getByRole("link", { name: "Xem trang người bán" }).click();
   await expect(buyer.page).toHaveURL(/\/sellers\/[0-9a-f-]{36}$/);
-  await expect(buyer.page.getByRole("heading", { level: 1, name: seller.name })).toBeVisible();
-  await expect(buyer.page.getByRole("heading", { name: "Đang bán" })).toBeVisible();
-  await expect(buyer.page.getByRole("link", { name: new RegExp(title) })).toBeVisible();
+  await expect(
+    buyer.page.getByRole("heading", { level: 1, name: seller.name }),
+  ).toBeVisible();
+  await expect(
+    buyer.page.getByRole("heading", { name: "Đang bán" }),
+  ).toBeVisible();
+  await expect(
+    buyer.page
+      .locator("h2", { hasText: "Đang bán" })
+      .locator("~ *")
+      .getByRole("link", { name: new RegExp(title) }),
+  ).toBeVisible();
 });
