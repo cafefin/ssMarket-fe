@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { MyListings } from "@/components/sell/my-listings";
+import { MyListings } from "@/features/sell";
 
 export default function MyListingsPage() {
   return (

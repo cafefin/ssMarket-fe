@@ -1,11 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { emptyListing } from "@/lib/listings/listing-schema";
-import { useSellDraftStore } from "@/lib/listings/sell-draft-store";
+import { emptyListing } from "../lib/listing-schema";
+import { useSellDraftStore } from "../lib/sell-draft-store";
 import { NewListing } from "./new-listing";
 
-vi.mock("@/components/sell/listing-form", () => ({
+vi.mock("./listing-form", () => ({
   ListingForm: ({
     mode,
     initialValues,

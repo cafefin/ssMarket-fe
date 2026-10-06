@@ -1,9 +1,9 @@
 "use client";
 
-import { ListingForm } from "@/components/sell/listing-form";
-import { ModeStep } from "@/components/sell/mode-step";
-import { emptyListing } from "@/lib/listings/listing-schema";
-import { useSellDraftStore } from "@/lib/listings/sell-draft-store";
+import { ListingForm } from "./listing-form";
+import { ModeStep } from "./mode-step";
+import { emptyListing } from "../lib/listing-schema";
+import { useSellDraftStore } from "../lib/sell-draft-store";
 
 /** "Đăng bán": choose the mode, then fill in the form for that mode. */
 export function NewListing() {

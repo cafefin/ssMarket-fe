@@ -16,7 +16,7 @@ import {
   type ListingFormValues,
   type ListingMode,
   MAX_ITEMS,
-} from "@/lib/listings/listing-schema";
+} from "../lib/listing-schema";
 
 interface ItemsFieldProps {
   mode: ListingMode;

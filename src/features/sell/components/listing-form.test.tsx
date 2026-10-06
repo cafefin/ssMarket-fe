@@ -5,7 +5,7 @@ import { ApiError } from "@/shared/api/api-error";
 import {
   emptyListing,
   type ListingFormValues,
-} from "@/lib/listings/listing-schema";
+} from "../lib/listing-schema";
 import { QueryProvider } from "@/shared/api/query-provider";
 import { ListingForm } from "./listing-form";
 
@@ -21,7 +21,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => router,
   usePathname: () => "/sell/new",
 }));
-vi.mock("@/lib/listings/submit-listing", () => ({ submitListing }));
+vi.mock("../lib/submit-listing", () => ({ submitListing }));
 
 const categories = [
   { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi" },

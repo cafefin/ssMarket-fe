@@ -1,4 +1,4 @@
-import { NewListing } from "@/components/sell/new-listing";
+import { NewListing } from "@/features/sell";
 
 export default function NewListingPage() {
   return (

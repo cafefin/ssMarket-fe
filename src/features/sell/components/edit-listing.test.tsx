@@ -13,7 +13,7 @@ const { location } = vi.hoisted(() => ({ location: { search: "" } }));
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(location.search),
 }));
-vi.mock("@/components/sell/listing-form", () => ({
+vi.mock("./listing-form", () => ({
   ListingForm: ({ mode, initialValues }: { mode: string; initialValues: { title: string } }) => (
     <p>
       form:{mode}:{initialValues.title}

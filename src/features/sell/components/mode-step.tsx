@@ -1,7 +1,7 @@
 "use client";
 
 import { ClockIcon, PackageIcon } from "lucide-react";
-import type { ListingMode } from "@/lib/listings/listing-schema";
+import type { ListingMode } from "../lib/listing-schema";
 
 const CHOICES = [
   {

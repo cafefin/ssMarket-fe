@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { Suspense } from "react";
-import { EditListing } from "@/components/sell/edit-listing";
+import { EditListing } from "@/features/sell";
 
 export default function EditListingPage() {
   const { id } = useParams<{ id: string }>();

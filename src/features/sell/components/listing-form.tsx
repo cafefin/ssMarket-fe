@@ -19,8 +19,8 @@ import {
   type ListingMode,
   listingSchema,
   toListingBody,
-} from "@/lib/listings/listing-schema";
-import { submitListing } from "@/lib/listings/submit-listing";
+} from "../lib/listing-schema";
+import { submitListing } from "../lib/submit-listing";
 import { ImagesField } from "./images-field";
 import { ItemsField } from "./items-field";
 
