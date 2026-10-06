@@ -45,7 +45,7 @@ export function HeaderSearch({ className }: { className?: string }) {
           maxLength={100}
           placeholder="Tìm loa, hoa quả, bàn phím…"
           aria-label="Tìm kiếm bài đăng"
-          className="bg-surface pl-9"
+          className="h-11 rounded-full bg-surface pl-9"
         />
       </div>
     </form>
