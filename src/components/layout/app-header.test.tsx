@@ -62,6 +62,17 @@ describe("AppHeader", () => {
     );
   });
 
+  it("shows the sell link from md up and the wordmark from lg up", () => {
+    renderHeader();
+
+    const sell = screen.getByRole("link", { name: "Đăng bán" });
+    expect(sell).toHaveClass("max-md:hidden");
+    expect(sell).not.toHaveClass("hidden");
+    expect(screen.getByRole("img", { name: "ssMarket" })).toHaveClass(
+      "lg:inline",
+    );
+  });
+
   it("shows the main navigation and marks the current section", () => {
     location.pathname = "/orders/123";
 

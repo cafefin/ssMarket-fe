@@ -20,14 +20,14 @@ export function AppHeader() {
   return (
     // h-16 is relied on by the sticky filter bar (top-16).
     <header className="sticky top-0 z-20 border-b border-border bg-background">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-8 md:gap-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-8 md:gap-4 lg:gap-6">
         <Link
           href="/"
           aria-label="ssMarket"
           className="flex shrink-0 items-center gap-2 rounded-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <LogoMark />
-          <Wordmark className="hidden text-[26px] leading-none md:inline" />
+          <Wordmark className="hidden text-[26px] leading-none lg:inline" />
         </Link>
 
         {/* Phones use the tab bar at the bottom instead. */}
@@ -66,7 +66,7 @@ export function AppHeader() {
             aria-label="Đăng bán"
             className={buttonVariants({
               size: "icon-lg",
-              className: "hidden size-11 md:inline-flex",
+              className: "size-11 max-md:hidden",
             })}
           >
             <PlusIcon aria-hidden="true" className="size-5" />
