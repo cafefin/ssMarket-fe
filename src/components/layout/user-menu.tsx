@@ -56,6 +56,14 @@ export function UserMenu({ user }: { user: CurrentUser }) {
         <DropdownMenuItem onClick={() => router.push("/sell/orders")}>
           Đơn nhận được
         </DropdownMenuItem>
+        {user.role === "admin" && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push("/admin/categories")}>
+              Quản lý danh mục
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => void handleLogout()}>
           Đăng xuất
