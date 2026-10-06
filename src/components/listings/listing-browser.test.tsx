@@ -12,6 +12,9 @@ vi.mock("@/lib/api/client", () => ({ api }));
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(location.search),
 }));
+vi.mock("./closing-soon-shelf", () => ({
+  ClosingSoonShelf: () => <div data-testid="closing-soon-shelf" />,
+}));
 
 const categories = [
   { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi" },
@@ -82,6 +85,31 @@ describe("ListingBrowser", () => {
     expect(screen.queryByLabelText("Đang tải bài đăng")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Xem thêm" })).not.toBeInTheDocument();
   });
+
+  it("opens with the closing-soon shelf and a heading for the full list", async () => {
+    serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
+
+    renderBrowser();
+
+    expect(screen.getByTestId("closing-soon-shelf")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Tất cả món đang bán" }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
+  });
+
+  it.each(["q=loa", "category=dien-tu", "mode=in_stock"])(
+    "hides the shelf when the list is narrowed by %s",
+    async (search) => {
+      location.search = search;
+      serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
+
+      renderBrowser();
+
+      expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
+      expect(screen.queryByTestId("closing-soon-shelf")).not.toBeInTheDocument();
+    },
+  );
 
   it("sends the filters from the URL to the API", async () => {
     location.search = "q=hoa+qua&category=thuc-pham-tuoi&mode=preorder";
