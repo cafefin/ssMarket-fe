@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ListingSummary } from "@/lib/api/use-listings";
 import { ListingCard } from "./listing-card";
 
@@ -20,6 +20,10 @@ const listing = (overrides: Partial<ListingSummary> = {}): ListingSummary => ({
 });
 
 describe("ListingCard", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("is one link to the listing with title, price and seller", () => {
     render(<ListingCard listing={listing()} />);
 
@@ -33,18 +37,18 @@ describe("ListingCard", () => {
   it("marks an in-stock listing in green and shows its photo", () => {
     const { container } = render(<ListingCard listing={listing()} />);
 
-    expect(screen.getByText("Có sẵn")).toHaveClass(
-      "bg-positive-soft",
-      "text-positive-deep",
-    );
+    expect(screen.getByText("Có sẵn")).toHaveClass("text-positive-deep");
     const image = container.querySelector("img");
     expect(image).toHaveAttribute("src", "/api/media/listings/abc/x_thumb.webp");
     // Decorative: the title next to it already names the listing.
     expect(image).toHaveAttribute("alt", "");
-    expect(screen.queryByText(/Chốt đơn/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Chốt/)).not.toBeInTheDocument();
   });
 
-  it("marks a pre-order in blue with its order deadline", () => {
+  it("shows a pre-order's closing time on soft orange", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-06T12:00:00.000Z"));
+
     render(
       <ListingCard
         listing={listing({
@@ -56,12 +60,41 @@ describe("ListingCard", () => {
       />,
     );
 
-    expect(screen.getByText("Đặt trước")).toHaveClass(
-      "bg-primary-soft",
-      "text-primary",
+    const closing = screen.getByText(/^Chốt \d{2}:\d{2} .+, \d{1,2}\/10$/);
+    expect(closing.closest("p")).toHaveClass(
+      "bg-deadline-soft",
+      "text-deadline-deep",
     );
-    expect(screen.getByText(/^Chốt đơn \d{2}:\d{2} \d{2}\/10\/2026$/)).toBeInTheDocument();
     expect(screen.getByRole("link")).toHaveTextContent("từ 35.000 đ/kg");
+    expect(screen.queryByText("Có sẵn")).not.toBeInTheDocument();
+  });
+
+  it("uses solid orange when a pre-order closes today", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-06T12:00:00.000Z"));
+
+    render(
+      <ListingCard
+        listing={listing({
+          mode: "preorder",
+          // One minute later: the same calendar day in every time zone.
+          orderDeadline: "2026-10-06T12:01:00.000Z",
+        })}
+      />,
+    );
+
+    expect(
+      screen.getByText(/^Chốt \d{2}:\d{2} hôm nay$/).closest("p"),
+    ).toHaveClass("bg-deadline", "text-foreground");
+  });
+
+  it("stacks the photo above the text when asked, for the carousel", () => {
+    const { rerender } = render(<ListingCard listing={listing()} />);
+    expect(screen.getByRole("link")).toHaveClass("grid");
+
+    rerender(<ListingCard listing={listing()} layout="stacked" />);
+    expect(screen.getByRole("link")).toHaveClass("flex-col");
+    expect(screen.getByRole("link")).not.toHaveClass("grid");
   });
 
   it("shows how many people ordered a pre-order, but not zero and not for in-stock", () => {
