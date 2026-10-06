@@ -13,7 +13,7 @@ pnpm dev                  # http://localhost:3000 (backend must run on API_URL)
 pnpm test                 # unit and component tests
 pnpm test:cov             # tests with the 80% coverage gate
 pnpm lint && pnpm typecheck
-pnpm gen:api              # regenerate src/lib/api/schema.d.ts from the backend
+pnpm gen:api              # regenerate src/shared/api/schema.d.ts from the backend
 pnpm e2e                  # Playwright, real frontend + backend (see End-to-end tests)
 ```
 
@@ -30,30 +30,40 @@ src/
 │       ├── listings/[id]/        detail and edit
 │       ├── sell/                 my listings, new listing, received orders, summary
 │       ├── orders/               my orders, order page
-│       ├── sellers/[id]/        a seller's public page
-│       ├── admin/categories/    category management (admins only)
+│       ├── sellers/[id]/         a seller's public page
+│       ├── admin/categories/     category management (admins only)
 │       └── profile/
-├── components/
-│   ├── ui/               shadcn/ui primitives (Base UI); change only to apply design tokens
-│   ├── brand/            logo mark, wordmark
-│   ├── layout/           header, search box, user menu, navigation items, phone tab bar
-│   ├── form/             Field wrapper and shared control styles
-│   ├── listings/         card, filters, closing-soon carousel, detail view, gallery, item table
-│   ├── sell/             mode step, listing form, my listings
-│   ├── orders/           order panel, order page, editor, QR block, actions, lists, summary
-│   ├── sellers/          seller page
-│   ├── admin/            admin screens
-│   └── profile/
-└── lib/
-    ├── api/              typed client, session refresh, query hooks, ApiError
-    ├── listings/         URL filters, form schema, draft store, save sequence
-    ├── orders/           order arithmetic shared with the backend's rules
-    ├── query/            TanStack Query provider
-    ├── theme/            contrast helpers and the palette contrast gate
-    └── format/           money, dates, closing times, quantities, initials
+├── shared/               knows nothing about the business
+│   ├── ui/
+│   │   ├── atoms/        logo-mark, wordmark, price
+│   │   │   └── shadcn/   shadcn/ui primitives (Base UI); change only to apply design tokens
+│   │   └── molecules/    field (and shared control styles), user-avatar
+│   ├── api/              typed client, session refresh, ApiError, schema.d.ts,
+│   │                     query provider, use-current-user, use-public-user
+│   └── lib/              utils.ts, format/ (money, dates, quantities, initials), theme/
+└── features/
+    ├── listings/         components/ (card, grid, filters, carousel, detail view, gallery,
+    │                     item table), api/ (listing and category hooks), lib/ (URL filters)
+    ├── profile/          components/, api/ (banks, update profile), lib/ (schema)
+    ├── shell/            components/ (header, search box, user menu, phone tab bar),
+    │                     lib/ (nav-items)
+    ├── sellers/          components/ (seller page)
+    ├── admin/            components/ (category admin), api/
+    ├── orders/           components/ (panel, order page, editor, QR block, actions, lists,
+    │                     summary), api/ (use-orders), lib/ (order-math)
+    └── sell/             components/ (mode step, listing form, my listings),
+                          lib/ (form schema, draft store, save sequence)
 ```
 
-Pages under `app/` stay thin: they render one component from `components/`,
+Each feature has `components/`, `api/`, `lib/` (only the ones it needs) and an
+`index.ts`, its public entry point. `shared` never imports features;
+features import each other only through `index.ts`, and only
+`orders`, `sell`, `sellers` and `admin` may import `listings`; `app/` is the
+one place that joins two features. ESLint enforces this (`FEATURE_DEPS` in
+`eslint.config.mjs`). See `docs/architecture.md` for the rules, the atom and
+molecule definitions, and how to add a feature.
+
+Pages under `app/` stay thin: they render one component from a feature,
 which holds the behaviour and has the tests.
 
 ## Talking to the backend
@@ -62,11 +72,11 @@ which holds the behaviour and has the tests.
   requests to `API_URL`, which is read at runtime. Never reference the backend
   origin anywhere else, and never add `NEXT_PUBLIC_API_URL`.
 - Use the typed client: `api.GET("/users/me")`, `api.POST("/auth/logout")`.
-  Wrap reads in a TanStack Query hook under `src/lib/api/`.
-- `src/lib/api/schema.d.ts` is generated. When the backend API changes: merge
+  Wrap reads in a TanStack Query hook under the owning feature's `api/` folder (or `src/shared/api/` if several features need it).
+- `src/shared/api/schema.d.ts` is generated. When the backend API changes: merge
   the backend change, run `pnpm gen:api` here, fix the type errors, commit the
   regenerated file.
-- A 401 triggers one session refresh and one retry (`auth-fetch.ts`). Do not
+- A 401 triggers one session refresh and one retry (`src/shared/api/auth-fetch.ts`). Do not
   add retry logic elsewhere.
 - Links that start the sign-in flow must be plain `<a href="/api/auth/google">`,
   not `next/link`.
@@ -77,11 +87,11 @@ which holds the behaviour and has the tests.
   backend's `code`.
 - Show `userMessage(error)` to people. Backend messages are English text for
   developers and must never be rendered. Add new codes to the map in
-  `api-error.ts`.
+  `src/shared/api/api-error.ts`.
 
 ## State
 
-- **Server data**: TanStack Query hooks in `src/lib/api/`. After a write,
+- **Server data**: TanStack Query hooks in each feature's `api/` folder. After a write,
   invalidate `["listings"]`, `["my-listings"]` and `["listing", id]`.
 - **Closing soon and seller page**: the carousel uses `useClosingSoon`
   (`GET /listings?sort=deadline`) and the seller page uses `useSellerListings`,
@@ -89,7 +99,7 @@ which holds the behaviour and has the tests.
 - **Browse filters**: the URL query string, through
   `parseListingFilters` / `listingsHref`. Filters are links, so a search can
   be shared and the back button works.
-- **Unfinished new listing**: the Zustand store in `sell-draft-store.ts`
+- **Unfinished new listing**: the Zustand store in `features/sell/lib/sell-draft-store.ts`
   (sessionStorage). It exists so typed values survive the detour to the
   profile page. Do not put server data in Zustand.
 
@@ -99,7 +109,7 @@ which holds the behaviour and has the tests.
   gives Vietnamese messages; the backend stays the authority.
 - Wrap controls in `Field`, which wires the label, hint and error message.
 - Use a native `<select>` with `selectClassName`. When its options load after
-  the first render, re-apply the value (see `profile-form.tsx`), or the
+  the first render, re-apply the value (see `features/profile/components/profile-form.tsx`), or the
   browser silently falls back to the first option.
 - Prices and quantities are typed as text and parsed with `parsePrice` /
   `parseQuantity`, so "35.000" and "2,5" work.
@@ -112,7 +122,7 @@ already serves a 400px thumbnail and a 1600px full size.
 
 ## Orders
 
-- `src/lib/orders/order-math.ts` mirrors the backend's rounding and quantity
+- `src/features/orders/lib/order-math.ts` mirrors the backend's rounding and quantity
   rules and is tested with the same table. It only previews the total; the
   amount that counts is the one the server returns.
 - `OrderPanel` holds one idempotency key for its lifetime and sends it with
@@ -142,7 +152,7 @@ already serves a 400px thumbnail and a 1600px full size.
   only avoids showing a screen that would fail.
 - After a category change, invalidate `["admin-categories"]`,
   `CATEGORIES_QUERY_KEY` (`["categories"]`) and `["listings"]`
-  (`use-admin-categories.ts` does this).
+  (`features/admin/api/use-admin-categories.ts` does this).
 - A listing may stay in a category that was hidden after it was posted. The
   edit form then shows that category as "(đã ẩn)" so the select keeps its
   value; new listings never offer hidden categories.
@@ -168,11 +178,11 @@ already serves a 400px thumbnail and a 1600px full size.
   (the selected selling-mode segment). Coloured text uses the `-deep` variant
   (`text-positive-deep`, `text-warn-deep`, `text-error-deep`); the base colours
   are for icons, borders, dots and backgrounds with dark text.
-- `src/lib/theme/contrast.test.ts` fails when a text/background pair drops
+- `src/shared/lib/theme/contrast.test.ts` fails when a text/background pair drops
   below WCAG AA. Add new pairs there when you introduce them.
 - Buttons are always pills (`rounded-full`); cards use `rounded-lg` (12px).
 - The header is `h-16` and sticky; anything that sticks under it uses
-  `top-16`. Navigation lives in `nav-items.ts`: the header shows it from `md`
+  `top-16`. Navigation lives in `features/shell/lib/nav-items.ts`: the header shows it from `md`
   up, `MobileTabBar` below. Add a destination there, not in either component.
 - Fixed and sticky chrome (header, tab bar) is `z-20`; things that stick under
   the header are `z-10`. `main` reserves `pb-24` below `md` for the tab bar.
@@ -185,6 +195,7 @@ already serves a 400px thumbnail and a 1600px full size.
 - `h1` and `h2` get `font-heading` from the base layer, and shadcn's
   `AlertDialogTitle` uses `font-heading` too, so changing `--font-heading`
   restyles dialogs.
+- Use `Price` for money in the heading typeface and `UserAvatar` for a person's picture.
 - Use the `Wordmark` component for the product name. Never add the SmartOSC
   logo file to this repository.
 - To style a link as a button, use `buttonVariants(...)` on an `<a>`.
@@ -194,7 +205,7 @@ already serves a 400px thumbnail and a 1600px full size.
 
 - Write the test first. Tests sit next to the code as `*.test.ts(x)`.
 - Test behaviour through the DOM (roles and visible text), not implementation.
-- Mock `@/lib/api/client` in component tests; never call the network.
+- Mock `@/shared/api/client` in component tests; never call the network.
 - Coverage must stay at or above 80% for lines, branches, functions and
   statements. Add tests rather than exclusions.
 

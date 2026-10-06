@@ -44,7 +44,7 @@ The browser only talks to this app. `src/proxy.ts` forwards `/api/*` to the
 backend at `API_URL`, which is read at runtime, so session cookies stay on one
 origin and the same Docker image runs in every environment.
 
-API types in `src/lib/api/schema.d.ts` are generated from the backend's OpenAPI
+API types in `src/shared/api/schema.d.ts` are generated from the backend's OpenAPI
 document with `pnpm gen:api`.
 
 See [CLAUDE.md](./CLAUDE.md) for conventions and [DESIGN.md](./DESIGN.md) for
