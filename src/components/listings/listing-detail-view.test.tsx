@@ -7,6 +7,11 @@ import { ListingDetailView } from "./listing-detail-view";
 
 const { api } = vi.hoisted(() => ({ api: { GET: vi.fn() } }));
 vi.mock("@/lib/api/client", () => ({ api }));
+vi.mock("@/components/orders/order-panel", () => ({
+  OrderPanel: ({ listing }: { listing: { id: string } }) => (
+    <p>order panel for {listing.id}</p>
+  ),
+}));
 
 const SELLER = { id: "seller-1", name: "Chị Lan", avatarUrl: null };
 
@@ -150,12 +155,12 @@ describe("ListingDetailView", () => {
     );
   });
 
-  it("does not offer editing to other people", async () => {
+  it("offers ordering, not editing, to other people", async () => {
     serve(listing());
 
     renderView();
 
-    await screen.findByRole("heading", { name: "Loa bluetooth cũ" });
+    expect(await screen.findByText("order panel for l1")).toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Sửa bài đăng" }),
     ).not.toBeInTheDocument();
@@ -198,6 +203,10 @@ describe("ListingDetailView", () => {
     renderView();
 
     await screen.findByRole("link", { name: "Sửa bài đăng" });
+    expect(
+      screen.getByRole("link", { name: "Đơn hàng của bài này" }),
+    ).toHaveAttribute("href", "/sell/orders?listing=l1");
+    expect(screen.queryByText(/order panel/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Chỉ bạn nhìn thấy/)).not.toBeInTheDocument();
   });
 

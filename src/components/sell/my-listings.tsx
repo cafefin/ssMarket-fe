@@ -164,6 +164,14 @@ export function MyListings() {
                   >
                     Xem
                   </Link>
+                  {listing.status !== "draft" && (
+                    <Link
+                      href={`/sell/orders?listing=${listing.id}`}
+                      className={buttonVariants({ ...small, variant: "ghost" })}
+                    >
+                      Đơn hàng
+                    </Link>
+                  )}
                   {listing.status !== "closed" && (
                     <Link
                       href={`/listings/${listing.id}/edit`}

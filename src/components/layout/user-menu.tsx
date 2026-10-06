@@ -46,8 +46,15 @@ export function UserMenu({ user }: { user: CurrentUser }) {
         <DropdownMenuItem onClick={() => router.push("/profile")}>
           Hồ sơ
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push("/orders")}>
+          Đơn của tôi
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/sell")}>
           Bài đăng của tôi
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push("/sell/orders")}>
+          Đơn nhận được
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => void handleLogout()}>

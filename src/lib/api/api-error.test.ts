@@ -30,6 +30,22 @@ describe("toApiError", () => {
   );
 });
 
+describe("details", () => {
+  it("keeps structured details and defaults to an empty object", () => {
+    const withDetails = toApiError(
+      { code: "ALREADY_ORDERED", message: "x", details: { orderId: "o1" } },
+      new Response(null, { status: 409 }),
+    );
+    const without = toApiError(
+      { code: "X", message: "x", details: "nope" },
+      new Response(null, { status: 409 }),
+    );
+
+    expect(withDetails.details).toEqual({ orderId: "o1" });
+    expect(without.details).toEqual({});
+  });
+});
+
 describe("userMessage", () => {
   it("translates known codes to Vietnamese", () => {
     expect(userMessage(new ApiError(409, "TOO_MANY_IMAGES", "x"))).toBe(

@@ -23,6 +23,9 @@ export function toFormValues(listing: ListingDetail): ListingFormValues {
       : "",
     deliveryDate: listing.deliveryDate ?? "",
     items: listing.items.map((item) => ({
+      // Keeping the id lets the backend update the item in place, so orders
+      // that already reference it stay valid.
+      id: item.id,
       name: item.name,
       unit: item.unit,
       unitPrice: priceFormatter.format(item.unitPrice),

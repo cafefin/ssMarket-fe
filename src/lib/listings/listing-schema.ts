@@ -20,6 +20,8 @@ export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const itemSchema = z.object({
+  /** Set for an item that already exists on the listing being edited. */
+  id: z.string().optional(),
   name: z.string(),
   unit: z.string(),
   /** Text so people can type "35.000"; separators are ignored. */
@@ -167,6 +169,7 @@ export function toListingBody(
       : null,
     deliveryDate: preorder ? values.deliveryDate : null,
     items: values.items.map((item) => ({
+      ...(item.id ? { id: item.id } : {}),
       name: item.name.trim(),
       // Validated against LISTING_UNITS by listingSchema.
       unit: item.unit as ListingInputBody["items"][number]["unit"],

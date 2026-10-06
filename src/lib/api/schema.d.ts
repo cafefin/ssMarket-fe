@@ -196,6 +196,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OrdersController_listMine"];
+        put?: never;
+        post: operations["OrdersController_place"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OrdersController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{id}/report-payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrdersController_reportPayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{id}/confirm-payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrdersController_confirmPayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{id}/reject-payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrdersController_rejectPayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{id}/deliver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrdersController_deliver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrdersController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SalesController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -257,6 +385,11 @@ export interface components {
         /** @enum {string} */
         ListingMode: "in_stock" | "preorder";
         ListingItemInputDto: {
+            /**
+             * Format: uuid
+             * @description When editing: the id of an existing item to keep. Omit for a new item.
+             */
+            id?: string;
             /** @example Cam sành */
             name: string;
             /**
@@ -369,6 +502,102 @@ export interface components {
             items: components["schemas"]["ListingSummaryDto"][];
             /** @description Pass as `cursor` to get the next page; null on the last page */
             nextCursor: string | null;
+        };
+        OrderLineInputDto: {
+            /** Format: uuid */
+            itemId: string;
+            /**
+             * @description Decimal string, so no precision is lost in transit
+             * @example 1.5
+             */
+            quantity: string;
+        };
+        /** @enum {string} */
+        PaymentMethod: "prepaid_qr" | "pay_on_delivery";
+        PlaceOrderDto: {
+            /** Format: uuid */
+            listingId: string;
+            lines: components["schemas"]["OrderLineInputDto"][];
+            paymentMethod: components["schemas"]["PaymentMethod"];
+            /** @example Tầng 7 */
+            deliveryLocation: string;
+            note?: string | null;
+        };
+        OrderListingDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: date-time */
+            orderDeadline: string | null;
+            /** Format: date */
+            deliveryDate: string | null;
+        };
+        OrderPersonDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        /** @enum {string} */
+        OrderActor: "buyer" | "seller";
+        /** @enum {string} */
+        PaymentStatus: "unpaid" | "reported" | "paid";
+        /** @enum {string} */
+        FulfillmentStatus: "pending" | "delivered" | "cancelled";
+        OrderLineDto: {
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            unit: string;
+            /** @description Integer VND, as it was when the order was placed */
+            unitPrice: number;
+            quantity: number;
+            /** @description Integer VND */
+            lineTotal: number;
+        };
+        OrderQrDto: {
+            /** @description The text to render as a QR code */
+            payload: string;
+            bankName: string;
+            accountNumber: string;
+            accountName: string;
+            /** @description Integer VND */
+            amount: number;
+            /** @description Transfer content: the order code */
+            content: string;
+        };
+        OrderDetailDto: {
+            /** Format: uuid */
+            id: string;
+            /** @example SSM7K2Q9X */
+            code: string;
+            listing: components["schemas"]["OrderListingDto"];
+            buyer: components["schemas"]["OrderPersonDto"];
+            seller: components["schemas"]["OrderPersonDto"];
+            viewerRole: components["schemas"]["OrderActor"];
+            isPreorder: boolean;
+            paymentMethod: components["schemas"]["PaymentMethod"];
+            paymentStatus: components["schemas"]["PaymentStatus"];
+            fulfillmentStatus: components["schemas"]["FulfillmentStatus"];
+            /** @description Integer VND */
+            totalAmount: number;
+            deliveryLocation: string;
+            note: string | null;
+            lines: components["schemas"]["OrderLineDto"][];
+            refundNeeded: boolean;
+            cancelledBy: components["schemas"]["OrderActor"] | null;
+            cancelReason: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Present while a QR order is waiting for payment */
+            qr: components["schemas"]["OrderQrDto"] | null;
+        };
+        OrderPageDto: {
+            items: components["schemas"]["OrderDetailDto"][];
+            nextCursor: string | null;
+        };
+        CancelOrderDto: {
+            /** @description Required when the seller cancels */
+            reason?: string | null;
         };
     };
     responses: never;
@@ -721,6 +950,216 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    OrdersController_listMine: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderPageDto"];
+                };
+            };
+        };
+    };
+    OrdersController_place: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description A UUID generated once per order form */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceOrderDto"];
+            };
+        };
+        responses: {
+            /** @description The order this key already created */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailDto"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailDto"];
+                };
+            };
+        };
+    };
+    OrdersController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailDto"];
+                };
+            };
+        };
+    };
+    OrdersController_reportPayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailDto"];
+                };
+            };
+        };
+    };
+    OrdersController_confirmPayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailDto"];
+                };
+            };
+        };
+    };
+    OrdersController_rejectPayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailDto"];
+                };
+            };
+        };
+    };
+    OrdersController_deliver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailDto"];
+                };
+            };
+        };
+    };
+    OrdersController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelOrderDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailDto"];
+                };
+            };
+        };
+    };
+    SalesController_list: {
+        parameters: {
+            query?: {
+                listingId?: string;
+                paymentStatus?: "unpaid" | "reported" | "paid";
+                fulfillmentStatus?: "pending" | "delivered" | "cancelled";
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderPageDto"];
+                };
             };
         };
     };

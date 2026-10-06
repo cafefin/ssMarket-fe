@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { OrderPanel } from "@/components/orders/order-panel";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiError } from "@/lib/api/api-error";
@@ -148,15 +149,28 @@ export function ListingDetailView({ id }: { id: string }) {
           </section>
         )}
 
-        {isOwner && listing.status !== "closed" && (
-          <div>
-            <Link
-              href={`/listings/${listing.id}/edit`}
-              className={buttonVariants({ variant: "outline" })}
-            >
-              Sửa bài đăng
-            </Link>
+        {/* The seller manages; everyone else can order while it is open. */}
+        {isOwner ? (
+          <div className="flex flex-wrap gap-3">
+            {listing.status !== "closed" && (
+              <Link
+                href={`/listings/${listing.id}/edit`}
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Sửa bài đăng
+              </Link>
+            )}
+            {listing.status !== "draft" && (
+              <Link
+                href={`/sell/orders?listing=${listing.id}`}
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Đơn hàng của bài này
+              </Link>
+            )}
           </div>
+        ) : (
+          me && listing.isOpen && <OrderPanel listing={listing} />
         )}
       </div>
     </article>
