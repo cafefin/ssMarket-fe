@@ -8,24 +8,24 @@
    src/lib/theme/contrast.test.ts fails if a text/background pair drops below AA. */
 :root {
   --background: #ffffff;
-  --foreground: #0a0a0a;
+  --foreground: #16233b;
   --card: #ffffff;
-  --card-foreground: #0a0a0a;
+  --card-foreground: #16233b;
   --popover: #ffffff;
-  --popover-foreground: #0a0a0a;
+  --popover-foreground: #16233b;
   --primary: #2b62b2;
   --primary-foreground: #ffffff;
   --primary-deep: #234f91;
   --primary-soft: #eaf0f9;
-  --secondary: #f7f7f7;
-  --secondary-foreground: #0a0a0a;
-  --muted: #f7f7f7;
-  --muted-foreground: #5a5a5c;
-  --accent: #f7f7f7;
-  --accent-foreground: #0a0a0a;
+  --secondary: #f3f6fa;
+  --secondary-foreground: #16233b;
+  --muted: #f3f6fa;
+  --muted-foreground: #566176;
+  --accent: #f3f6fa;
+  --accent-foreground: #16233b;
   --destructive: #b93c3c;
-  --border: #e5e5e5;
-  --input: #e5e5e5;
+  --border: #dde3ec;
+  --input: #dde3ec;
   --ring: #2b62b2;
 
   /* The design token "accent" (SmartOSC green). Named "positive" here because
@@ -40,7 +40,13 @@
   --error-deep: #b93c3c;
   --error-soft: #fdecec;
 
-  --surface: #f7f7f7;
+  /* Orange marks a pre-order and its closing time. Amber (warn) stays for
+     orders that wait on a person. */
+  --deadline: #ff9447;
+  --deadline-deep: #a8400a;
+  --deadline-soft: #fff1e4;
+
+  --surface: #f3f6fa;
   --surface-soft: #fafafa;
   --hairline-soft: #ededed;
   --charcoal: #1c1c1e;
@@ -52,7 +58,7 @@
   --font-sans:
     var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: var(--font-geist-mono), "SF Mono", Menlo, Consolas, monospace;
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-bricolage), var(--font-sans);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -84,6 +90,9 @@
   --color-error: var(--error);
   --color-error-deep: var(--error-deep);
   --color-error-soft: var(--error-soft);
+  --color-deadline: var(--deadline);
+  --color-deadline-deep: var(--deadline-deep);
+  --color-deadline-soft: var(--deadline-soft);
   --color-surface: var(--surface);
   --color-surface-soft: var(--surface-soft);
   --color-hairline-soft: var(--hairline-soft);
@@ -108,5 +117,9 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+  }
+  h1,
+  h2 {
+    @apply font-heading;
   }
 }

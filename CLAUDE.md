@@ -137,6 +137,7 @@ already serves a 400px thumbnail and a 1600px full size.
 - Blue (`primary`) is for actions: main buttons, links, focus rings, selected
   states. Green (`positive`) means something good happened or is available:
   in stock, paid, delivered. Do not use green for decoration.
+- Orange (`deadline`) marks a pre-order and when it closes. Text uses `text-deadline-deep` on `bg-deadline-soft`; a pre-order closing today uses `bg-deadline` with `text-foreground`. Do not use orange for anything else.
 - The design token `accent` in `DESIGN.md` is `positive` in CSS, because
   shadcn/ui uses `accent` for neutral hover surfaces.
 - White text goes only on `bg-primary` and `bg-primary-deep`. Coloured text
@@ -146,7 +147,7 @@ already serves a 400px thumbnail and a 1600px full size.
 - `src/lib/theme/contrast.test.ts` fails when a text/background pair drops
   below WCAG AA. Add new pairs there when you introduce them.
 - Buttons are always pills (`rounded-full`); cards use `rounded-lg` (12px).
-- Inter for UI text, Geist Mono for codes people copy. No third typeface.
+- `font-heading` (Bricolage Grotesque) for h1, h2, prices and the wordmark; Inter for other UI text; Geist Mono for codes people copy.
 - Use the `Wordmark` component for the product name. Never add the SmartOSC
   logo file to this repository.
 - To style a link as a button, use `buttonVariants(...)` on an `<a>`.

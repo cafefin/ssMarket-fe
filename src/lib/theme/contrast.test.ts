@@ -34,6 +34,17 @@ describe("theme palette", () => {
     expect(tokens.positive?.toUpperCase()).toBe("#4CAF4D");
   });
 
+  it("uses a navy ink drawn from the brand blue", () => {
+    expect(tokens.foreground?.toUpperCase()).toBe("#16233B");
+    expect(tokens["muted-foreground"]?.toUpperCase()).toBe("#566176");
+  });
+
+  it("has an orange family for deadlines", () => {
+    expect(tokens.deadline?.toUpperCase()).toBe("#FF9447");
+    expect(tokens["deadline-deep"]?.toUpperCase()).toBe("#A8400A");
+    expect(tokens["deadline-soft"]?.toUpperCase()).toBe("#FFF1E4");
+  });
+
   // [text token, background token]: every pairing components are allowed to use.
   it.each([
     ["primary-foreground", "primary"],
@@ -50,6 +61,13 @@ describe("theme palette", () => {
     ["error-deep", "background"],
     ["error-deep", "error-soft"],
     ["destructive", "background"],
+    ["deadline-deep", "deadline-soft"],
+    ["deadline-deep", "background"],
+    ["foreground", "deadline"],
+    ["foreground", "deadline-soft"],
+    ["primary-deep", "primary-soft"],
+    ["muted-foreground", "surface"],
+    ["background", "foreground"],
   ])("%s on %s meets WCAG AA for body text", (text, background) => {
     expect(tokens[text], `missing token --${text}`).toBeDefined();
     expect(tokens[background], `missing token --${background}`).toBeDefined();

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Inter } from "next/font/google";
+import { Bricolage_Grotesque, Geist_Mono, Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/lib/query/query-provider";
 import "./globals.css";
@@ -14,6 +14,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Headings, prices and the wordmark. The width axis gives the condensed
+// figures used for prices.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  subsets: ["latin", "vietnamese"],
+  axes: ["wdth"],
+});
+
 export const metadata: Metadata = {
   title: "ssMarket",
   description: "Sàn mua bán nội bộ dành cho nhân viên.",
@@ -21,7 +29,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="vi" className={`${inter.variable} ${geistMono.variable}`}>
+    <html
+      lang="vi"
+      className={`${inter.variable} ${geistMono.variable} ${bricolage.variable}`}
+    >
       <body>
         <QueryProvider>{children}</QueryProvider>
         <Toaster position="top-center" />
