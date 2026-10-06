@@ -480,7 +480,8 @@ is navy with white text.
 
 **`mode-badge-in-stock`** and **`mode-badge-preorder`**: tell the two kinds of
 listing apart. "Có sẵn" is green because the goods exist now; "Đặt trước" is
-blue because it invites an action before a deadline.
+orange (`{colors.deadline-soft}` background, `{colors.deadline-deep}` text)
+because it marks a deadline.
 
 **`status-badge-*`**: order and listing states. Positive: paid, delivered,
 open. Info: payment reported and awaiting confirmation. Warn: unpaid, awaiting

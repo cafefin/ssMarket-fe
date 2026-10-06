@@ -12,7 +12,7 @@ const MAX_ITEMS = 10;
 const MIN_SLIDE = 266; // one card (250px) plus the gap
 
 const ARROW =
-  "flex size-10 items-center justify-center rounded-full border border-border bg-background text-primary outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-disabled:text-border";
+  "flex size-10 items-center justify-center rounded-full border border-border bg-background text-primary outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-disabled:cursor-default aria-disabled:text-border";
 
 /**
  * Pre-orders that close soonest, in a row that scrolls sideways. The API has
