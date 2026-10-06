@@ -1,9 +1,6 @@
 import type { ListingItem, ListingMode } from "@/lib/api/use-listings";
 import { formatMoney } from "@/lib/format/money";
-
-const quantityFormatter = new Intl.NumberFormat("vi-VN", {
-  maximumFractionDigits: 3,
-});
+import { formatQuantity } from "@/lib/format/quantity";
 
 /** The items of a listing. Stock is shown only for in-stock listings. */
 export function ItemTable({
@@ -48,7 +45,7 @@ export function ItemTable({
                 {item.stockQuantity === 0 ? (
                   <span className="text-error-deep">Hết hàng</span>
                 ) : (
-                  `${quantityFormatter.format(item.stockQuantity ?? 0)} ${item.unit}`
+                  `${formatQuantity(item.stockQuantity ?? 0)} ${item.unit}`
                 )}
               </td>
             )}

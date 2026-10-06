@@ -4,6 +4,7 @@ import type { ListingSummary } from "@/lib/api/use-listings";
 import { closesToday, formatDeadline } from "@/lib/format/deadline";
 import { initials } from "@/lib/format/initials";
 import { formatMoney } from "@/lib/format/money";
+import { formatQuantity } from "@/lib/format/quantity";
 import { cn } from "@/lib/utils";
 import { ImagePlaceholder } from "./image-placeholder";
 
@@ -18,10 +19,24 @@ const FOOT =
  */
 function Foot({ listing }: { listing: ListingSummary }) {
   if (listing.mode === "in_stock") {
+    if (listing.stockQuantity === 0) {
+      return (
+        <p className={cn(FOOT, "border-t border-border text-muted-foreground")}>
+          <span aria-hidden="true" className="size-2 rounded-full bg-muted-foreground" />
+          Hết hàng
+        </p>
+      );
+    }
     return (
       <p className={cn(FOOT, "border-t border-border text-positive-deep")}>
         <span aria-hidden="true" className="size-2 rounded-full bg-positive" />
         Có sẵn
+        {listing.stockQuantity !== null && (
+          <span className="font-normal">
+            {" "}
+            còn {formatQuantity(listing.stockQuantity)} {listing.minPriceUnit}
+          </span>
+        )}
       </p>
     );
   }

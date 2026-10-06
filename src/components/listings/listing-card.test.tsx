@@ -147,4 +147,35 @@ describe("ListingCard", () => {
     expect(screen.getByTestId("image-placeholder")).toBeInTheDocument();
     expect(container.querySelector("img")).toBeNull();
   });
+
+  it("shows how much is left of a single in-stock item", () => {
+    render(
+      <ListingCard
+        listing={listing({ stockQuantity: 24, minPriceUnit: "hũ" })}
+      />,
+    );
+    const foot = screen.getByText("Có sẵn").closest("p");
+    expect(foot).toHaveTextContent("Có sẵn còn 24 hũ");
+  });
+
+  it("writes decimal stock the Vietnamese way", () => {
+    render(
+      <ListingCard
+        listing={listing({ stockQuantity: 2.5, minPriceUnit: "kg" })}
+      />,
+    );
+    expect(screen.getByText("còn 2,5 kg")).toBeInTheDocument();
+  });
+
+  it("says Hết hàng, not in green, when nothing is left", () => {
+    render(<ListingCard listing={listing({ stockQuantity: 0 })} />);
+    const foot = screen.getByText("Hết hàng");
+    expect(foot.closest("p")).not.toHaveClass("text-positive-deep");
+    expect(screen.queryByText("Có sẵn")).not.toBeInTheDocument();
+  });
+
+  it("shows only Có sẵn when the stock is not known", () => {
+    render(<ListingCard listing={listing({ stockQuantity: null })} />);
+    expect(screen.getByText("Có sẵn").closest("p")).toHaveTextContent(/^Có sẵn$/);
+  });
 });
