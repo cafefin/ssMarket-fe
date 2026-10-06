@@ -27,7 +27,8 @@ src/
 │   └── (app)/            everything that requires a session
 │       ├── page.tsx              browse and search
 │       ├── listings/[id]/        detail and edit
-│       ├── sell/                 my listings, new listing
+│       ├── sell/                 my listings, new listing, received orders
+│       ├── orders/               my orders, order page
 │       └── profile/
 ├── components/
 │   ├── ui/               shadcn/ui primitives (Base UI); change only to apply design tokens
@@ -36,10 +37,12 @@ src/
 │   ├── form/             Field wrapper and shared control styles
 │   ├── listings/         card, filters, detail view, gallery, item table
 │   ├── sell/             mode step, listing form, my listings
+│   ├── orders/           order panel, order page, QR block, actions, lists
 │   └── profile/
 └── lib/
     ├── api/              typed client, session refresh, query hooks, ApiError
     ├── listings/         URL filters, form schema, draft store, save sequence
+    ├── orders/           order arithmetic shared with the backend's rules
     ├── query/            TanStack Query provider
     ├── theme/            contrast helpers and the palette contrast gate
     └── format/           money, dates, initials
@@ -98,6 +101,23 @@ which holds the behaviour and has the tests.
 Listing images come from `/api/media/...` behind the session cookie, so use a
 plain `<img>` (the Next.js image optimizer cannot fetch them). The backend
 already serves a 400px thumbnail and a 1600px full size.
+
+## Orders
+
+- `src/lib/orders/order-math.ts` mirrors the backend's rounding and quantity
+  rules and is tested with the same table. It only previews the total; the
+  amount that counts is the one the server returns.
+- `OrderPanel` holds one idempotency key for its lifetime and sends it with
+  every attempt. Do not generate a new key per click.
+- `availableActions(order)` is the single place that decides which buttons a
+  person sees for an order. Buttons that undo something (cancel, "Chưa nhận
+  được") ask for confirmation; the seller must give a reason to cancel.
+- When an action fails because the order changed, the order is refetched so
+  the page shows its real state.
+- Status is always shown as text badges (`OrderStatusBadges`), never by
+  colour alone.
+- When editing a listing, send each existing item's `id`; the backend then
+  updates it in place and existing orders stay valid.
 
 ## Design system
 
