@@ -22,6 +22,9 @@ export UPLOAD_DIR="${TMPDIR:-/tmp}/ssmarket-e2e-uploads"
 export GOOGLE_CLIENT_ID=e2e-client-id
 export GOOGLE_CLIENT_SECRET=e2e-client-secret
 export ALLOWED_EMAIL_DOMAIN=example.com
+# The development sign-in ?as=e2e-admin becomes this email, which gets the
+# admin role at sign-in.
+export ADMIN_EMAILS=e2e-admin@dev.invalid
 export JWT_ACCESS_SECRET=e2e-secret-e2e-secret-e2e-secret-123456
 
 rm -rf "$UPLOAD_DIR"
