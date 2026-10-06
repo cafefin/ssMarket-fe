@@ -11,14 +11,14 @@ import { Label } from "@/shared/ui/atoms/shadcn/label";
 import { ApiError, userMessage } from "@/shared/api/api-error";
 import { useCurrentUser } from "@/shared/api/use-current-user";
 import { type ListingDetail, LISTINGS_QUERY_KEY, listingQueryKey } from "@/features/listings";
-import { type PaymentMethod, usePlaceOrder } from "@/lib/api/use-orders";
+import { type PaymentMethod, usePlaceOrder } from "../api/use-orders";
 import { formatMoney } from "@/shared/lib/format/money";
 import {
   formatQuantity,
   lineTotal,
   normalizeQuantity,
   quantityProblem,
-} from "@/lib/orders/order-math";
+} from "../lib/order-math";
 
 const METHODS: { value: PaymentMethod; label: string }[] = [
   { value: "prepaid_qr", label: "Chuyển khoản trước qua mã QR" },

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { OrderPanel } from "@/components/orders/order-panel";
+import { OrderPanel } from "@/features/orders";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";

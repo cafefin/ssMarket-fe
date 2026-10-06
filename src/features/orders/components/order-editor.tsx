@@ -8,13 +8,13 @@ import { Label } from "@/shared/ui/atoms/shadcn/label";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { userMessage } from "@/shared/api/api-error";
 import { useListing } from "@/features/listings";
-import { type Order, useEditOrder } from "@/lib/api/use-orders";
+import { type Order, useEditOrder } from "../api/use-orders";
 import { formatMoney } from "@/shared/lib/format/money";
 import {
   lineTotal,
   normalizeQuantity,
   quantityProblem,
-} from "@/lib/orders/order-math";
+} from "../lib/order-math";
 
 /** Why a buyer cannot edit this order, or null when they can. */
 export function editBlockedReason(order: Order, now: Date): string | null {

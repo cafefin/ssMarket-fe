@@ -2,7 +2,7 @@
 
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
-import type { OrderQr as Qr } from "@/lib/api/use-orders";
+import type { OrderQr as Qr } from "../api/use-orders";
 import { formatMoney } from "@/shared/lib/format/money";
 
 function CopyRow({

@@ -12,10 +12,10 @@ import {
   type SummaryRow,
   useBulkOrders,
   useSummary,
-} from "@/lib/api/use-orders";
+} from "../api/use-orders";
 import { formatDate, formatDateTime } from "@/shared/lib/format/datetime";
 import { formatMoney } from "@/shared/lib/format/money";
-import { formatQuantity } from "@/lib/orders/order-math";
+import { formatQuantity } from "../lib/order-math";
 import { cn } from "@/shared/lib/utils";
 import { OrderStatusBadges } from "./status-badges";
 

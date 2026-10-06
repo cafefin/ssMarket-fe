@@ -9,7 +9,7 @@ import {
   type PaymentStatus,
   type SalesFilters,
   useSales,
-} from "@/lib/api/use-orders";
+} from "../api/use-orders";
 import { OrderList } from "./order-list";
 
 const PAYMENT: { value: PaymentStatus; label: string }[] = [

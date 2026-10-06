@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { SalesList } from "@/components/orders/sales-list";
+import { SalesList } from "@/features/orders";
 
 export default function SalesPage() {
   return (

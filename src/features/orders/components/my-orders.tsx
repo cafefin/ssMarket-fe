@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
-import { useMyOrders } from "@/lib/api/use-orders";
+import { useMyOrders } from "../api/use-orders";
 import { OrderList } from "./order-list";
 
 export function MyOrders() {

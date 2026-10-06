@@ -7,7 +7,7 @@ import { ListingDetailView } from "./listing-detail-view";
 
 const { api } = vi.hoisted(() => ({ api: { GET: vi.fn() } }));
 vi.mock("@/shared/api/client", () => ({ api }));
-vi.mock("@/components/orders/order-panel", () => ({
+vi.mock("@/features/orders/components/order-panel", () => ({
   OrderPanel: ({ listing }: { listing: { id: string } }) => (
     <p>order panel for {listing.id}</p>
   ),

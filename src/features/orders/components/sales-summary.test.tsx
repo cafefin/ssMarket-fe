@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { SalesSummary as Summary, SummaryRow } from "@/lib/api/use-orders";
+import type { SalesSummary as Summary, SummaryRow } from "../api/use-orders";
 import { QueryProvider } from "@/shared/api/query-provider";
 import { SalesSummary } from "./sales-summary";
 

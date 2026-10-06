@@ -20,7 +20,7 @@ import {
   type Order,
   type OrderAction,
   useOrderAction,
-} from "@/lib/api/use-orders";
+} from "../api/use-orders";
 
 const DONE: Record<OrderAction, string> = {
   "report-payment": "Đã báo cho người bán",

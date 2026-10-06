@@ -2,7 +2,7 @@ import type {
   FulfillmentStatus,
   Order,
   PaymentStatus,
-} from "@/lib/api/use-orders";
+} from "../api/use-orders";
 import { cn } from "@/shared/lib/utils";
 
 type Tone = "positive" | "info" | "warn" | "error";

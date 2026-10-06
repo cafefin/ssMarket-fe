@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
-import type { Order } from "@/lib/api/use-orders";
+import type { Order } from "../api/use-orders";
 import { formatDateTime } from "@/shared/lib/format/datetime";
 import { formatMoney } from "@/shared/lib/format/money";
 import { OrderActions } from "./order-actions";

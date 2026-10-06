@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { OrderView } from "@/components/orders/order-view";
+import { OrderView } from "@/features/orders";
 
 export default function OrderPage() {
   const { id } = useParams<{ id: string }>();
