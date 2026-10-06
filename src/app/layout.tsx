@@ -14,12 +14,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Headings, prices and the wordmark. The width axis gives the condensed
-// figures used for prices.
+// Headings, prices and the wordmark.
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin", "vietnamese"],
-  axes: ["wdth"],
 });
 
 export const metadata: Metadata = {

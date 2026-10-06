@@ -147,7 +147,7 @@ export function ListingDetailView({ id }: { id: string }) {
                 </dd>
               </div>
               {listing.orderCount > 0 && (
-                <div className="col-span-2">
+                <div className="min-[560px]:col-span-2">
                   <dt className="sr-only">Số người đã đặt</dt>
                   <dd className="font-medium text-deadline-deep">
                     {listing.orderCount} người đã đặt

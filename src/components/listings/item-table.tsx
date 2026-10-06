@@ -40,7 +40,7 @@ export function ItemTable({
             <th scope="row" className="py-3 pr-3 text-left font-normal">
               {item.name}
             </th>
-            <td className="py-3 text-right font-semibold whitespace-nowrap">
+            <td className="py-3 text-right font-heading text-xl font-bold whitespace-nowrap">
               {formatMoney(item.unitPrice)}/{item.unit}
             </td>
             {showStock && (

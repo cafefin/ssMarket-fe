@@ -92,12 +92,12 @@ export function ListingCard({
         <h3 className="line-clamp-2 font-medium group-hover:text-primary">
           {listing.title}
         </h3>
-        <p className="font-heading text-[22px] leading-tight font-bold [font-stretch:75%]">
-          <span className="font-sans text-[13px] font-normal text-muted-foreground [font-stretch:100%]">
+        <p className="font-heading text-[22px] leading-tight font-bold">
+          <span className="font-sans text-[13px] font-normal text-muted-foreground">
             từ{" "}
           </span>
           {formatMoney(listing.minUnitPrice)}
-          <span className="font-sans text-[13px] font-normal text-muted-foreground [font-stretch:100%]">
+          <span className="font-sans text-[13px] font-normal text-muted-foreground">
             /{listing.minPriceUnit}
           </span>
         </p>

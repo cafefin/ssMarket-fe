@@ -34,6 +34,15 @@ describe("ListingCard", () => {
     expect(link).toHaveTextContent("Nguyen Van A");
   });
 
+  it("sets the price in the heading typeface at its normal width", () => {
+    render(<ListingCard listing={listing()} />);
+
+    const price = screen.getByText("500.000 đ");
+    expect(price).toHaveClass("font-heading");
+    // Prices look the same on the card, the item table and the order total.
+    expect(price).not.toHaveClass("[font-stretch:75%]");
+  });
+
   it("keeps the seller's initials out of the link's name", () => {
     render(<ListingCard listing={listing()} />);
 

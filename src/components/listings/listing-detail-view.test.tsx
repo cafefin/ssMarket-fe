@@ -91,7 +91,7 @@ describe("ListingDetailView", () => {
     expect(screen.getByText("Chị Lan")).toBeInTheDocument();
 
     const loa = screen.getByRole("row", { name: /Loa JBL Go 3/ });
-    expect(within(loa).getByText("500.000 đ/cái")).toBeInTheDocument();
+    expect(within(loa).getByText("500.000 đ/cái")).toHaveClass("font-heading");
     expect(within(loa).getByText("2 cái")).toBeInTheDocument();
     expect(
       within(screen.getByRole("row", { name: /Dây sạc/ })).getByText("Hết hàng"),
@@ -163,7 +163,11 @@ describe("ListingDetailView", () => {
 
     renderView();
 
-    expect(await screen.findByText("12 người đã đặt")).toBeInTheDocument();
+    const count = await screen.findByText("12 người đã đặt");
+    // Spanning two columns below 560px would force a second column into the
+    // single-column band.
+    expect(count.closest("div")).toHaveClass("min-[560px]:col-span-2");
+    expect(count.closest("div")).not.toHaveClass("col-span-2");
   });
 
   it("lets the viewer switch between photos", async () => {

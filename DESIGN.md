@@ -99,7 +99,6 @@ typography:
     fontSize: 22px
     fontWeight: 700
     lineHeight: 1.20
-    fontStretch: 75%
   code-sm:
     fontFamily: Geist Mono
     fontSize: 13px
@@ -384,7 +383,7 @@ introduce one.
 
 ## Typography
 
-**Bricolage Grotesque** is used for headings (h1, h2), prices and the wordmark. Prices use its condensed width (75%). **Inter** is used for every other piece of interface text. **Geist Mono** is used only for values people copy or compare character by character: order codes, bank account numbers, transfer references.
+**Bricolage Grotesque** is used for headings (h1, h2), prices and the wordmark. **Inter** is used for every other piece of interface text. **Geist Mono** is used only for values people copy or compare character by character: order codes, bank account numbers, transfer references.
 
 | Token | Size | Weight | Use |
 |---|---|---|---|
@@ -398,7 +397,7 @@ introduce one.
 | `{typography.caption-bold}` | 13px | 600 | Badges |
 | `{typography.micro-uppercase}` | 11px | 600 | Table column headers |
 | `{typography.button-md}` | 14px | 500 | Button labels |
-| `{typography.price}` | 22px | 700 | Prices on cards and in tables; Bricolage Grotesque, condensed (75% width) |
+| `{typography.price}` | 22px | 700 | Prices on cards, in the item table and the order total; Bricolage Grotesque |
 | `{typography.code-sm}` | 13px | 500 | Order codes, account numbers |
 
 Emphasis comes from weight, never from italics. Body text keeps a 1.5 line

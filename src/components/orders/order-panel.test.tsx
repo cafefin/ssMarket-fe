@@ -94,6 +94,8 @@ describe("OrderPanel", () => {
   it("adds up the total as quantities are typed, accepting a comma for kg", async () => {
     await renderPanel();
     expect(total()).toHaveTextContent("0 đ");
+    // The same typeface as prices on cards and in the item table.
+    expect(total()).toHaveClass("font-heading");
 
     await userEvent.type(quantity(/^Loa/), "2");
     await userEvent.type(quantity(/^Cam/), "1,5");
