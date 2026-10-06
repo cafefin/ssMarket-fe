@@ -2,9 +2,91 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
+// Dependency rules (docs/architecture.md). Features talk to each other only
+// through their index.ts, in one direction; shared knows nothing of features.
+const FEATURE_DEPS = {
+  listings: [],
+  profile: [],
+  shell: [],
+  sellers: ["listings"],
+  admin: ["listings"],
+  orders: ["listings"],
+  sell: ["listings"],
+};
+const FEATURES = Object.keys(FEATURE_DEPS);
+
+const featureBoundaries = FEATURES.map((name) => ({
+  files: [`src/features/${name}/**/*.{ts,tsx}`],
+  rules: {
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          { group: ["@/app", "@/app/**"], message: "Features never import from app/." },
+          {
+            group: [`@/features/${name}`, `@/features/${name}/**`],
+            message: "Inside a feature, use relative imports.",
+          },
+          {
+            group: ["@/features/*/**"],
+            message: "Use another feature only through its index: @/features/<name>.",
+          },
+          {
+            group: ["../../*", "../../**"],
+            message: "Leave a feature with @/features/<name> or @/shared/..., not ../../.",
+          },
+          ...FEATURES.filter((other) => other !== name && !FEATURE_DEPS[name].includes(other)).map(
+            (other) => ({
+              group: [`@/features/${other}`],
+              message: `${name} may not depend on ${other} (see docs/architecture.md).`,
+            }),
+          ),
+        ],
+      },
+    ],
+  },
+}));
+
+const sharedBoundary = {
+  files: ["src/shared/**/*.{ts,tsx}"],
+  rules: {
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          {
+            group: ["@/features", "@/features/**", "@/app", "@/app/**"],
+            message: "shared/ knows nothing about features or app/.",
+          },
+        ],
+      },
+    ],
+  },
+};
+
+const appBoundary = {
+  files: ["src/app/**/*.{ts,tsx}"],
+  rules: {
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          {
+            group: ["@/features/*/**"],
+            message: "Use a feature through its index: @/features/<name>.",
+          },
+        ],
+      },
+    ],
+  },
+};
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  ...featureBoundaries,
+  sharedBoundary,
+  appBoundary,
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
