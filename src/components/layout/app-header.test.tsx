@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryProvider } from "@/lib/query/query-provider";
@@ -60,6 +60,36 @@ describe("AppHeader", () => {
       "href",
       "/sell/new",
     );
+  });
+
+  it("shows the sell link from md up and the wordmark from lg up", () => {
+    renderHeader();
+
+    const sell = screen.getByRole("link", { name: "Đăng bán" });
+    expect(sell).toHaveClass("max-md:hidden");
+    expect(sell).not.toHaveClass("hidden");
+    expect(screen.getByRole("img", { name: "ssMarket" })).toHaveClass(
+      "lg:inline",
+    );
+  });
+
+  it("shows the main navigation and marks the current section", () => {
+    location.pathname = "/orders/123";
+
+    renderHeader();
+
+    const nav = screen.getByRole("navigation", { name: "Điều hướng chính" });
+    expect(within(nav).getByRole("link", { name: "Trang chủ" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+    expect(within(nav).getByRole("link", { name: "Đơn mua" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(
+      within(nav).getByRole("link", { name: "Bán hàng" }),
+    ).not.toHaveAttribute("aria-current");
   });
 
   describe("search", () => {

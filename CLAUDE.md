@@ -28,17 +28,17 @@ src/
 │   └── (app)/            everything that requires a session
 │       ├── page.tsx              browse and search
 │       ├── listings/[id]/        detail and edit
-│       ├── sell/                 my listings, new listing, received orders
+│       ├── sell/                 my listings, new listing, received orders, summary
 │       ├── orders/               my orders, order page
 │       └── profile/
 ├── components/
 │   ├── ui/               shadcn/ui primitives (Base UI); change only to apply design tokens
-│   ├── brand/            wordmark
-│   ├── layout/           header, search box, user menu
+│   ├── brand/            logo mark, wordmark
+│   ├── layout/           header, search box, user menu, navigation items, phone tab bar
 │   ├── form/             Field wrapper and shared control styles
-│   ├── listings/         card, filters, detail view, gallery, item table
+│   ├── listings/         card, filters, closing-soon carousel, detail view, gallery, item table
 │   ├── sell/             mode step, listing form, my listings
-│   ├── orders/           order panel, order page, QR block, actions, lists
+│   ├── orders/           order panel, order page, editor, QR block, actions, lists, summary
 │   └── profile/
 └── lib/
     ├── api/              typed client, session refresh, query hooks, ApiError
@@ -46,7 +46,7 @@ src/
     ├── orders/           order arithmetic shared with the backend's rules
     ├── query/            TanStack Query provider
     ├── theme/            contrast helpers and the palette contrast gate
-    └── format/           money, dates, initials
+    └── format/           money, dates, closing times, initials
 ```
 
 Pages under `app/` stay thin: they render one component from `components/`,
@@ -117,6 +117,13 @@ already serves a 400px thumbnail and a 1600px full size.
   the page shows its real state.
 - Status is always shown as text badges (`OrderStatusBadges`), never by
   colour alone.
+- `SalesSummary` (`/sell/listings/[id]`) shows the seller's table. Figures and
+  the totals row come from the server; only the per-group subtotals are added
+  up in the browser. Bulk actions report how many orders changed and list the
+  ones that did not.
+- `editBlockedReason(order, now)` decides whether a buyer sees "Sửa đơn", an
+  explanation, or nothing. The editor shows already-ordered items at their
+  ordered price, as the server will charge them.
 - When editing a listing, send each existing item's `id`; the backend then
   updates it in place and existing orders stay valid.
 
@@ -128,18 +135,33 @@ already serves a 400px thumbnail and a 1600px full size.
 - Use theme classes (`bg-primary`, `text-muted-foreground`, `border-border`,
   `rounded-lg`). Never write hex colours in components.
 - Blue (`primary`) is for actions: main buttons, links, focus rings, selected
-  states. Green (`positive`) means something good happened or is available:
-  in stock, paid, delivered. Do not use green for decoration.
+  states. The selected selling-mode segment is the exception: it is navy
+  (`bg-foreground`). Green (`positive`) means something good happened or is
+  available: in stock, paid, delivered. Do not use green for decoration.
+- Orange (`deadline`) marks a pre-order and when it closes. Text uses
+  `text-deadline-deep` on `bg-deadline-soft`; a pre-order closing today uses
+  `bg-deadline` with `text-foreground`. Do not use orange for anything else.
 - The design token `accent` in `DESIGN.md` is `positive` in CSS, because
   shadcn/ui uses `accent` for neutral hover surfaces.
-- White text goes only on `bg-primary` and `bg-primary-deep`. Coloured text
-  uses the `-deep` variant (`text-positive-deep`, `text-warn-deep`,
-  `text-error-deep`); the base colours are for icons, borders, dots and
-  backgrounds with dark text.
+- White text goes only on `bg-primary`, `bg-primary-deep` and `bg-foreground`
+  (the selected selling-mode segment). Coloured text uses the `-deep` variant
+  (`text-positive-deep`, `text-warn-deep`, `text-error-deep`); the base colours
+  are for icons, borders, dots and backgrounds with dark text.
 - `src/lib/theme/contrast.test.ts` fails when a text/background pair drops
   below WCAG AA. Add new pairs there when you introduce them.
 - Buttons are always pills (`rounded-full`); cards use `rounded-lg` (12px).
-- Inter for UI text, Geist Mono for codes people copy. No third typeface.
+- The header is `h-16` and sticky; anything that sticks under it uses
+  `top-16`. Navigation lives in `nav-items.ts`: the header shows it from `md`
+  up, `MobileTabBar` below. Add a destination there, not in either component.
+- Fixed and sticky chrome (header, tab bar) is `z-20`; things that stick under
+  the header are `z-10`. `main` reserves `pb-24` below `md` for the tab bar.
+- `ListingCard` is a row (photo left) below 560px and stacked above; pass
+  `layout="stacked"` where it must always be stacked, as in the carousel.
+- `font-heading` (Bricolage Grotesque) for h1, h2, prices and the wordmark;
+  Inter for other UI text; Geist Mono for codes people copy.
+- `h1` and `h2` get `font-heading` from the base layer, and shadcn's
+  `AlertDialogTitle` uses `font-heading` too, so changing `--font-heading`
+  restyles dialogs.
 - Use the `Wordmark` component for the product name. Never add the SmartOSC
   logo file to this repository.
 - To style a link as a button, use `buttonVariants(...)` on an `<a>`.

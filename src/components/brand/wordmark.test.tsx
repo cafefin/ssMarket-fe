@@ -21,4 +21,10 @@ describe("Wordmark", () => {
 
     expect(screen.getByLabelText("ssMarket")).toHaveClass("text-3xl");
   });
+
+  it("is set in the heading typeface", () => {
+    render(<Wordmark />);
+
+    expect(screen.getByLabelText("ssMarket")).toHaveClass("font-heading");
+  });
 });

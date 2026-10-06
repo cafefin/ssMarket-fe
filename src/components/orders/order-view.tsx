@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiError } from "@/lib/api/api-error";
@@ -9,6 +10,7 @@ import { formatDate, formatDateTime } from "@/lib/format/datetime";
 import { formatMoney } from "@/lib/format/money";
 import { formatQuantity } from "@/lib/orders/order-math";
 import { OrderActions } from "./order-actions";
+import { editBlockedReason, OrderEditor } from "./order-editor";
 import { OrderQr } from "./order-qr";
 import { OrderStatusBadges } from "./status-badges";
 
@@ -48,6 +50,7 @@ function nextStep(order: Order): string | null {
 
 export function OrderView({ id }: { id: string }) {
   const { data: order, error, isPending, refetch } = useOrder(id);
+  const [editing, setEditing] = useState(false);
 
   if (isPending) {
     return (
@@ -85,6 +88,7 @@ export function OrderView({ id }: { id: string }) {
 
   const buyer = order.viewerRole === "buyer";
   const step = nextStep(order);
+  const editBlocked = editBlockedReason(order, new Date());
 
   return (
     <article className="flex flex-col gap-6">
@@ -105,7 +109,31 @@ export function OrderView({ id }: { id: string }) {
 
       {order.qr && buyer && <OrderQr qr={order.qr} code={order.code} />}
 
-      <OrderActions order={order} />
+      {editing && editBlocked === null ? (
+        <OrderEditor order={order} onDone={() => setEditing(false)} />
+      ) : (
+        <div className="flex flex-col gap-3">
+          <OrderActions order={order} />
+          {editBlocked === null && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Sửa đơn
+              </button>
+              <span className="text-sm text-muted-foreground">
+                {" "}
+                · Bạn có thể đổi số lượng đến hạn chốt đơn.
+              </span>
+            </div>
+          )}
+          {editBlocked !== null && editBlocked !== "hidden" && (
+            <p className="text-sm text-muted-foreground">{editBlocked}</p>
+          )}
+        </div>
+      )}
 
       <section className="rounded-lg border border-border p-4">
         <h2 className="font-semibold">

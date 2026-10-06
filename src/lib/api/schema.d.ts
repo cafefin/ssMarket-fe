@@ -132,6 +132,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/listings/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ListingsController_reopen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/listings/{id}/close": {
         parameters: {
             query?: never;
@@ -225,7 +241,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        patch: operations["OrdersController_edit"];
         trace?: never;
     };
     "/orders/{id}/report-payment": {
@@ -318,6 +334,54 @@ export interface paths {
         get: operations["SalesController_list"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/listings/{listingId}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SummaryController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/listings/{listingId}/summary.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SummaryController_csv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/listings/{listingId}/orders/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SummaryController_bulk"];
         delete?: never;
         options?: never;
         head?: never;
@@ -473,6 +537,13 @@ export interface components {
             deliveryDate: string | null;
             /** Format: date-time */
             publishedAt: string | null;
+            /** @description Orders that have not been cancelled */
+            orderCount: number;
+            /**
+             * Format: uuid
+             * @description The earlier round this listing was reopened from
+             */
+            reopenedFromId: string | null;
             items: components["schemas"]["ListingItemDto"][];
             images: components["schemas"]["ListingImageDto"][];
         };
@@ -491,6 +562,8 @@ export interface components {
              * @example kg
              */
             minPriceUnit: string;
+            /** @description Orders that have not been cancelled */
+            orderCount: number;
             /** Format: date-time */
             orderDeadline: string | null;
             /** Format: date */
@@ -595,9 +668,91 @@ export interface components {
             items: components["schemas"]["OrderDetailDto"][];
             nextCursor: string | null;
         };
+        EditOrderDto: {
+            lines: components["schemas"]["OrderLineInputDto"][];
+            paymentMethod: components["schemas"]["PaymentMethod"];
+            /** @example Tầng 7 */
+            deliveryLocation: string;
+            note?: string | null;
+        };
         CancelOrderDto: {
             /** @description Required when the seller cancels */
             reason?: string | null;
+        };
+        SummaryListingDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: date-time */
+            orderDeadline: string | null;
+            /** Format: date */
+            deliveryDate: string | null;
+        };
+        SummaryItemDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            unit: string;
+            /** @description False for an item the seller has removed */
+            isActive: boolean;
+        };
+        SummaryBuyerDto: {
+            name: string;
+            email: string;
+        };
+        SummaryRowDto: {
+            /** Format: uuid */
+            orderId: string;
+            code: string;
+            buyer: components["schemas"]["SummaryBuyerDto"];
+            deliveryLocation: string;
+            /** @description Quantity per item id; items not ordered are absent */
+            quantities: {
+                [key: string]: number;
+            };
+            /** @description Integer VND */
+            totalAmount: number;
+            paymentMethod: components["schemas"]["PaymentMethod"];
+            paymentStatus: components["schemas"]["PaymentStatus"];
+            fulfillmentStatus: components["schemas"]["FulfillmentStatus"];
+            note: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        SummaryTotalsDto: {
+            orderCount: number;
+            /** @description Quantity per item id; items not ordered are absent */
+            quantities: {
+                [key: string]: number;
+            };
+            /** @description Integer VND */
+            totalAmount: number;
+            /** @description Sum of orders whose payment is confirmed */
+            paidAmount: number;
+            /** @description totalAmount minus paidAmount */
+            outstandingAmount: number;
+        };
+        SalesSummaryDto: {
+            listing: components["schemas"]["SummaryListingDto"];
+            items: components["schemas"]["SummaryItemDto"][];
+            rows: components["schemas"]["SummaryRowDto"][];
+            /** @description Cancelled orders never count towards totals */
+            totals: components["schemas"]["SummaryTotalsDto"];
+        };
+        BulkOrdersDto: {
+            /** @enum {string} */
+            action: "deliver" | "confirm_payment";
+            orderIds: string[];
+        };
+        BulkResultDto: {
+            /** Format: uuid */
+            orderId: string;
+            ok: boolean;
+            /** @description Why this order was skipped, e.g. INVALID_ORDER_STATE */
+            code: string | null;
+        };
+        BulkResponseDto: {
+            results: components["schemas"]["BulkResultDto"][];
         };
     };
     responses: never;
@@ -862,6 +1017,28 @@ export interface operations {
             };
         };
     };
+    ListingsController_reopen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A new draft copied from this finished pre-order round */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingDetailDto"];
+                };
+            };
+        };
+    };
     ListingsController_close: {
         parameters: {
             query?: never;
@@ -1030,6 +1207,31 @@ export interface operations {
             };
         };
     };
+    OrdersController_edit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditOrderDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailDto"];
+                };
+            };
+        };
+    };
     OrdersController_reportPayment: {
         parameters: {
             query?: never;
@@ -1159,6 +1361,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrderPageDto"];
+                };
+            };
+        };
+    };
+    SummaryController_get: {
+        parameters: {
+            query?: {
+                includeCancelled?: boolean;
+            };
+            header?: never;
+            path: {
+                listingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesSummaryDto"];
+                };
+            };
+        };
+    };
+    SummaryController_csv: {
+        parameters: {
+            query?: {
+                includeCancelled?: boolean;
+            };
+            header?: never;
+            path: {
+                listingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The summary as a CSV file for Excel */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SummaryController_bulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkOrdersDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkResponseDto"];
                 };
             };
         };

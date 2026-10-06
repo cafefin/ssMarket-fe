@@ -211,9 +211,12 @@ export function OrderPanel({ listing }: { listing: ListingDetail }) {
         </div>
       )}
 
-      <div className="flex items-center justify-between border-t border-hairline-soft pt-3">
+      <div className="flex items-baseline justify-between border-t border-hairline-soft pt-3">
         <span className="text-sm text-muted-foreground">Tổng tiền</span>
-        <output aria-label="Tổng tiền" className="text-lg font-semibold">
+        <output
+          aria-label="Tổng tiền"
+          className="font-heading text-4xl leading-tight font-bold"
+        >
           {formatMoney(total)}
         </output>
       </div>

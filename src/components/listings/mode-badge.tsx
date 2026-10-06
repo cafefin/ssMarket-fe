@@ -2,9 +2,12 @@ import type { ListingMode } from "@/lib/api/use-listings";
 import { cn } from "@/lib/utils";
 
 const MODES: Record<ListingMode, { label: string; className: string }> = {
-  // Green: the goods exist now. Blue: an invitation to act before a deadline.
+  // Green: the goods exist now. Orange: order before a closing time.
   in_stock: { label: "Có sẵn", className: "bg-positive-soft text-positive-deep" },
-  preorder: { label: "Đặt trước", className: "bg-primary-soft text-primary" },
+  preorder: {
+    label: "Đặt trước",
+    className: "bg-deadline-soft text-deadline-deep",
+  },
 };
 
 export function ModeBadge({

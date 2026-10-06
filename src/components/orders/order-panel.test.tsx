@@ -28,6 +28,8 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   orderDeadline: null,
   deliveryDate: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
+  orderCount: 0,
+  reopenedFromId: null,
   items: [
     { id: "loa", name: "Loa", unit: "cái", unitPrice: 500000, stockQuantity: 3 },
     { id: "cam", name: "Cam", unit: "kg", unitPrice: 35000, stockQuantity: 10 },
@@ -92,6 +94,8 @@ describe("OrderPanel", () => {
   it("adds up the total as quantities are typed, accepting a comma for kg", async () => {
     await renderPanel();
     expect(total()).toHaveTextContent("0 đ");
+    // The same typeface as prices on cards and in the item table.
+    expect(total()).toHaveClass("font-heading");
 
     await userEvent.type(quantity(/^Loa/), "2");
     await userEvent.type(quantity(/^Cam/), "1,5");

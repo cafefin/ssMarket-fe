@@ -17,6 +17,11 @@ export type PaymentMethod = components["schemas"]["PaymentMethod"];
 export type PaymentStatus = components["schemas"]["PaymentStatus"];
 export type FulfillmentStatus = components["schemas"]["FulfillmentStatus"];
 export type PlaceOrderBody = components["schemas"]["PlaceOrderDto"];
+export type EditOrderBody = components["schemas"]["EditOrderDto"];
+export type SalesSummary = components["schemas"]["SalesSummaryDto"];
+export type SummaryRow = components["schemas"]["SummaryRowDto"];
+export type BulkAction = components["schemas"]["BulkOrdersDto"]["action"];
+export type BulkResult = components["schemas"]["BulkResultDto"];
 
 export const ORDERS_QUERY_KEY = ["orders"] as const;
 export const SALES_QUERY_KEY = ["sales"] as const;
@@ -172,5 +177,77 @@ export function useOrderAction() {
     // The order changed under us (e.g. the other person acted first): show
     // its current state rather than stale buttons.
     onError: (_error, input) => refresh(input.id),
+  });
+}
+
+export function useEditOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: { id: string; body: EditOrderBody }): Promise<Order> => {
+      const { data, error, response } = await api.PATCH("/orders/{id}", {
+        params: { path: { id: input.id } },
+        body: input.body,
+      });
+      if (!data) {
+        throw toApiError(error, response);
+      }
+      return data;
+    },
+    onSuccess: (order) => {
+      queryClient.setQueryData(orderQueryKey(order.id), order);
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY }),
+        queryClient.invalidateQueries({ queryKey: LISTINGS_QUERY_KEY }),
+        queryClient.invalidateQueries({
+          queryKey: listingQueryKey(order.listing.id),
+        }),
+      ]);
+    },
+  });
+}
+
+export const summaryQueryKey = (listingId: string) =>
+  ["summary", listingId] as const;
+
+/** Who ordered what on one of the seller's listings. */
+export function useSummary(listingId: string) {
+  return useQuery({
+    queryKey: summaryQueryKey(listingId),
+    queryFn: async (): Promise<SalesSummary> => {
+      const { data, error, response } = await api.GET(
+        "/listings/{listingId}/summary",
+        { params: { path: { listingId } } },
+      );
+      if (!data) {
+        throw toApiError(error, response);
+      }
+      return data;
+    },
+  });
+}
+
+export function useBulkOrders(listingId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: {
+      action: BulkAction;
+      orderIds: string[];
+    }): Promise<BulkResult[]> => {
+      const { data, error, response } = await api.POST(
+        "/listings/{listingId}/orders/bulk",
+        { params: { path: { listingId } }, body: input },
+      );
+      if (!data) {
+        throw toApiError(error, response);
+      }
+      return data.results;
+    },
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: summaryQueryKey(listingId) }),
+        queryClient.invalidateQueries({ queryKey: SALES_QUERY_KEY }),
+      ]),
   });
 }

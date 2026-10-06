@@ -12,6 +12,9 @@ vi.mock("@/lib/api/client", () => ({ api }));
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(location.search),
 }));
+vi.mock("./closing-soon-shelf", () => ({
+  ClosingSoonShelf: () => <div data-testid="closing-soon-shelf" />,
+}));
 
 const categories = [
   { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi" },
@@ -30,6 +33,7 @@ const summary = (id: string, title: string) => ({
   orderDeadline: null,
   deliveryDate: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
+  orderCount: 0,
 });
 
 type Page = { items: ReturnType<typeof summary>[]; nextCursor: string | null };
@@ -81,6 +85,31 @@ describe("ListingBrowser", () => {
     expect(screen.queryByLabelText("Đang tải bài đăng")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Xem thêm" })).not.toBeInTheDocument();
   });
+
+  it("opens with the closing-soon shelf and a heading for the full list", async () => {
+    serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
+
+    renderBrowser();
+
+    expect(screen.getByTestId("closing-soon-shelf")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Tất cả món đang bán" }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
+  });
+
+  it.each(["q=loa", "category=dien-tu", "mode=in_stock"])(
+    "hides the shelf when the list is narrowed by %s",
+    async (search) => {
+      location.search = search;
+      serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
+
+      renderBrowser();
+
+      expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
+      expect(screen.queryByTestId("closing-soon-shelf")).not.toBeInTheDocument();
+    },
+  );
 
   it("sends the filters from the URL to the API", async () => {
     location.search = "q=hoa+qua&category=thuc-pham-tuoi&mode=preorder";
@@ -207,6 +236,42 @@ describe("ListingBrowser", () => {
         "href",
         "/?category=dien-tu",
       );
+    });
+
+    it("offer an 'all' choice that is active when nothing is filtered", async () => {
+      serve([{ items: [], nextCursor: null }]);
+
+      renderBrowser();
+
+      const all = await screen.findByRole("button", { name: "Tất cả" });
+      expect(all).toHaveAttribute("aria-pressed", "true");
+      expect(all).toHaveAttribute("href", "/");
+      expect(
+        screen.getByRole("button", { name: "Mọi loại hàng" }),
+      ).toHaveAttribute("aria-pressed", "true");
+    });
+
+    it("let the 'all' choices clear one filter and keep the other", async () => {
+      location.search = "category=dien-tu&mode=in_stock";
+      serve([{ items: [], nextCursor: null }]);
+
+      renderBrowser();
+
+      const all = await screen.findByRole("button", { name: "Tất cả" });
+      expect(all).toHaveAttribute("aria-pressed", "false");
+      expect(all).toHaveAttribute("href", "/?category=dien-tu");
+      expect(
+        screen.getByRole("button", { name: "Mọi loại hàng" }),
+      ).toHaveAttribute("href", "/?mode=in_stock");
+    });
+
+    it("stay under the header while the list scrolls", async () => {
+      serve([{ items: [], nextCursor: null }]);
+
+      renderBrowser();
+
+      const group = await screen.findByRole("group", { name: "Hình thức bán" });
+      expect(group.closest(".sticky")).toHaveClass("top-16");
     });
   });
 });
