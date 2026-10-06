@@ -41,8 +41,8 @@ src/
 │   ├── listings/         card, filters, closing-soon carousel, detail view, gallery, item table
 │   ├── sell/             mode step, listing form, my listings
 │   ├── orders/           order panel, order page, editor, QR block, actions, lists, summary
-│   ├── sellers/            seller page
-│   ├── admin/              admin screens
+│   ├── sellers/          seller page
+│   ├── admin/            admin screens
 │   └── profile/
 └── lib/
     ├── api/              typed client, session refresh, query hooks, ApiError
@@ -50,7 +50,7 @@ src/
     ├── orders/           order arithmetic shared with the backend's rules
     ├── query/            TanStack Query provider
     ├── theme/            contrast helpers and the palette contrast gate
-    └── format/           money, dates, closing times, initials
+    └── format/           money, dates, closing times, quantities, initials
 ```
 
 Pages under `app/` stay thin: they render one component from `components/`,
@@ -141,7 +141,11 @@ already serves a 400px thumbnail and a 1600px full size.
   else is sent to `/`. The backend enforces the same rule; the frontend check
   only avoids showing a screen that would fail.
 - After a category change, invalidate `["admin-categories"]`,
-  `["categories"]` and `["listings"]` (`use-admin-categories.ts` does this).
+  `CATEGORIES_QUERY_KEY` (`["categories"]`) and `["listings"]`
+  (`use-admin-categories.ts` does this).
+- A listing may stay in a category that was hidden after it was posted. The
+  edit form then shows that category as "(đã ẩn)" so the select keeps its
+  value; new listings never offer hidden categories.
 - Category names come from the API. Never hard-code a category list.
 
 ## Design system

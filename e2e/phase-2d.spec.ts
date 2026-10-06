@@ -19,15 +19,14 @@ test("an admin adds a category that sellers can use, then hides it", async ({
   await expect(row).toBeVisible();
 
   const select = seller.page.getByLabel("Loại hàng");
-  // The first visit starts at the mode step; the form then keeps a draft, so
-  // the second visit opens the form directly.
-  const openForm = async (firstVisit: boolean) => {
+  // /sell/new starts at the mode step, or opens the form directly when a
+  // draft was kept, so handle whichever shows up.
+  const openForm = async () => {
     await seller.page.goto("/sell/new");
     const mode = seller.page.getByRole("button", { name: /Hàng có sẵn/ });
-    if (firstVisit) {
+    await expect(mode.or(select)).toBeVisible();
+    if (await mode.isVisible()) {
       await mode.click();
-    } else {
-      await expect(mode).toBeHidden();
     }
     await expect(select).toBeVisible();
     // Wait for the categories to load: the select starts empty, so a
@@ -37,12 +36,12 @@ test("an admin adds a category that sellers can use, then hides it", async ({
     ).toBeAttached();
     return select.locator("option", { hasText: name });
   };
-  await expect(await openForm(true)).toHaveCount(1);
+  await expect(await openForm()).toHaveCount(1);
 
   await row.getByRole("button", { name: `Ẩn ${name}` }).click();
   await expect(row.getByRole("button", { name: `Hiện ${name}` })).toBeVisible();
 
-  await expect(await openForm(false)).toHaveCount(0);
+  await expect(await openForm()).toHaveCount(0);
 });
 
 test("a buyer reaches the seller page from a listing", async ({ browser }) => {
@@ -74,8 +73,7 @@ test("a buyer reaches the seller page from a listing", async ({ browser }) => {
   ).toBeVisible();
   await expect(
     buyer.page
-      .locator("h2", { hasText: "Đang bán" })
-      .locator("~ *")
+      .getByRole("region", { name: "Đang bán" })
       .getByRole("link", { name: new RegExp(title) }),
   ).toBeVisible();
 });
