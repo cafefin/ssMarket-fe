@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { ListingCard, LISTING_GRID, useSellerListings } from "@/features/listings";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
+import { UserAvatar } from "@/shared/ui/molecules/user-avatar";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { ApiError, userMessage } from "@/shared/api/api-error";
 import { usePublicUser } from "@/shared/api/use-public-user";
-import { initials } from "@/shared/lib/format/initials";
 
 const WRAPPER = "mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-8";
 
@@ -48,14 +47,11 @@ export function SellerProfile({ sellerId }: { sellerId: string }) {
         <Skeleton className="h-16 w-64" aria-label="Đang tải người bán" />
       ) : (
         <header className="flex items-center gap-4">
-          <Avatar aria-hidden="true" size="lg">
-            {user.data.avatarUrl && (
-              <AvatarImage src={user.data.avatarUrl} alt="" />
-            )}
-            <AvatarFallback className="bg-primary-soft font-semibold text-primary-deep">
-              {initials(user.data.name)}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            name={user.data.name}
+            avatarUrl={user.data.avatarUrl}
+            size="lg"
+          />
           <div className="flex min-w-0 flex-col">
             <h1 className="text-[28px] leading-tight font-bold">
               {user.data.name}

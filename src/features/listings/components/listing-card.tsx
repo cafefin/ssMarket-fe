@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
+import { Price } from "@/shared/ui/atoms/price";
+import { UserAvatar } from "@/shared/ui/molecules/user-avatar";
 import type { ListingSummary } from "../api/use-listings";
 import { closesToday, formatDeadline } from "@/shared/lib/format/deadline";
-import { initials } from "@/shared/lib/format/initials";
-import { formatMoney } from "@/shared/lib/format/money";
 import { formatQuantity } from "@/shared/lib/format/quantity";
 import { cn } from "@/shared/lib/utils";
 import { ImagePlaceholder } from "./image-placeholder";
@@ -107,24 +106,20 @@ export function ListingCard({
         <h3 className="line-clamp-2 font-medium group-hover:text-primary">
           {listing.title}
         </h3>
-        <p className="font-heading text-[22px] leading-tight font-bold">
-          <span className="font-sans text-[13px] font-normal text-muted-foreground">
-            từ{" "}
-          </span>
-          {formatMoney(listing.minUnitPrice)}
-          <span className="font-sans text-[13px] font-normal text-muted-foreground">
-            /{listing.minPriceUnit}
-          </span>
+        <p className="leading-tight">
+          <Price
+            amount={listing.minUnitPrice}
+            size={22}
+            from
+            unit={listing.minPriceUnit}
+          />
         </p>
         <p className="mt-1 flex items-center gap-2 text-[13px] text-muted-foreground">
-          <Avatar aria-hidden="true" className="size-7">
-            {listing.seller.avatarUrl && (
-              <AvatarImage src={listing.seller.avatarUrl} alt="" />
-            )}
-            <AvatarFallback className="bg-primary-soft text-[11px] font-semibold text-primary-deep">
-              {initials(listing.seller.name)}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            name={listing.seller.name}
+            avatarUrl={listing.seller.avatarUrl}
+            size="xs"
+          />
           <span className="min-w-0 truncate">{listing.seller.name}</span>
         </p>
       </div>

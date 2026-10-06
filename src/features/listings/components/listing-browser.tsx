@@ -10,10 +10,7 @@ import { parseListingFilters } from "../lib/filters";
 import { ListingCard } from "./listing-card";
 import { ClosingSoonShelf } from "./closing-soon-shelf";
 import { ListingFilters } from "./listing-filters";
-
-// Below 560px a card is a row (see ListingCard), so one column is enough.
-export const LISTING_GRID =
-  "grid grid-cols-1 gap-3 min-[560px]:grid-cols-2 min-[560px]:gap-4 md:grid-cols-3 lg:grid-cols-4";
+import { LISTING_GRID } from "./listing-grid";
 
 /** The home page: filters from the URL, then the matching listings. */
 export function ListingBrowser() {

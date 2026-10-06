@@ -1,5 +1,5 @@
 import type { ListingItem, ListingMode } from "../api/use-listings";
-import { formatMoney } from "@/shared/lib/format/money";
+import { Price } from "@/shared/ui/atoms/price";
 import { formatQuantity } from "@/shared/lib/format/quantity";
 
 /** The items of a listing. Stock is shown only for in-stock listings. */
@@ -37,8 +37,13 @@ export function ItemTable({
             <th scope="row" className="py-3 pr-3 text-left font-normal">
               {item.name}
             </th>
-            <td className="py-3 text-right font-heading text-xl font-bold whitespace-nowrap">
-              {formatMoney(item.unitPrice)}/{item.unit}
+            <td className="py-3 text-right whitespace-nowrap">
+              <Price
+                amount={item.unitPrice}
+                size={20}
+                unit={item.unit}
+                unitStyle="inline"
+              />
             </td>
             {showStock && (
               <td className="py-3 pl-3 text-right whitespace-nowrap">

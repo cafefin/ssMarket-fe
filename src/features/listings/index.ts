@@ -1,6 +1,7 @@
 // Public entry point of the listings feature. Export only what code outside
 // the feature uses.
-export { ListingBrowser, LISTING_GRID } from "./components/listing-browser";
+export { ListingBrowser } from "./components/listing-browser";
+export { LISTING_GRID } from "./components/listing-grid";
 export { ListingCard } from "./components/listing-card";
 export { ListingDetailView } from "./components/listing-detail-view";
 export { ModeBadge } from "./components/mode-badge";

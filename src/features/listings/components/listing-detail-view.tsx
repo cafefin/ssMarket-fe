@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
+import { UserAvatar } from "@/shared/ui/molecules/user-avatar";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { ApiError } from "@/shared/api/api-error";
@@ -10,7 +10,6 @@ import { useCurrentUser } from "@/shared/api/use-current-user";
 import { type ListingDetail, useListing } from "../api/use-listings";
 import { formatDate } from "@/shared/lib/format/datetime";
 import { formatDeadline } from "@/shared/lib/format/deadline";
-import { initials } from "@/shared/lib/format/initials";
 import { ImageGallery } from "./image-gallery";
 import { ItemTable } from "./item-table";
 import { ModeBadge } from "./mode-badge";
@@ -121,14 +120,11 @@ export function ListingDetailView({
             {listing.title}
           </h1>
           <div className="flex items-center gap-3">
-            <Avatar aria-hidden="true" size="lg">
-              {listing.seller.avatarUrl && (
-                <AvatarImage src={listing.seller.avatarUrl} alt="" />
-              )}
-              <AvatarFallback className="bg-primary-soft font-semibold text-primary-deep">
-                {initials(listing.seller.name)}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              name={listing.seller.name}
+              avatarUrl={listing.seller.avatarUrl}
+              size="lg"
+            />
             <div className="flex flex-col">
               <p className="text-sm text-muted-foreground">
                 Người bán:{" "}

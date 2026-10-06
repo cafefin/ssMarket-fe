@@ -2,7 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/atoms/shadcn/avatar";
+import { UserAvatar } from "@/shared/ui/molecules/user-avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/atoms/shadcn/dropdown-menu";
 import { api, type CurrentUser } from "@/shared/api/client";
-import { initials } from "@/shared/lib/format/initials";
 
 export function UserMenu({ user }: { user: CurrentUser }) {
   const router = useRouter();
@@ -30,10 +29,12 @@ export function UserMenu({ user }: { user: CurrentUser }) {
         aria-label={`Tài khoản của ${user.name}`}
         className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
-        <Avatar>
-          {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" />}
-          <AvatarFallback>{initials(user.name)}</AvatarFallback>
-        </Avatar>
+        <UserAvatar
+          name={user.name}
+          avatarUrl={user.avatarUrl}
+          tone="plain"
+          decorative={false}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <div className="px-2 py-1.5">

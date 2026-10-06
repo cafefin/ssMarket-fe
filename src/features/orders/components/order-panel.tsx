@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { Price } from "@/shared/ui/atoms/price";
 import { Button } from "@/shared/ui/atoms/shadcn/button";
 import { Input } from "@/shared/ui/atoms/shadcn/input";
 import { Label } from "@/shared/ui/atoms/shadcn/label";
@@ -219,7 +220,7 @@ export function OrderPanel({ listing }: { listing: ListingDetail }) {
           aria-label="Tổng tiền"
           className="font-heading text-4xl leading-tight font-bold"
         >
-          {formatMoney(total)}
+          <Price amount={total} size={36} />
         </output>
       </div>
 
