@@ -79,7 +79,9 @@ Rules:
 allowed features) and builds one `no-restricted-imports` block per feature
 folder, plus one for `src/shared/**` and one for `src/app/**`. No new
 dependency. `pnpm lint` runs in CI and fails on a wrong-way import, a deep
-import into another feature, or an import of `app/` from a feature.
+import into another feature, or an import of `app/` from a feature. It checks
+static imports and re-exports, including relative paths that leave a feature,
+`shared/` or `app/`. It does not check dynamic `import()` or `vi.mock` strings.
 
 ## Atoms and molecules
 
