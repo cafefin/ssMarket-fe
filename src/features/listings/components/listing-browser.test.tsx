@@ -1,4 +1,5 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryProvider } from "@/shared/api/query-provider";
@@ -17,8 +18,8 @@ vi.mock("./closing-soon-shelf", () => ({
 }));
 
 const categories = [
-  { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi" },
-  { id: 4, slug: "dien-tu", name: "Điện tử" },
+  { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food" },
+  { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
 ];
 
 const summary = (id: string, title: string) => ({
@@ -60,11 +61,12 @@ function serve(listingPages: Array<Page | "error">) {
 const listingCalls = () =>
   api.GET.mock.calls.filter(([path]) => path === "/listings");
 
-function renderBrowser() {
-  render(
+function renderBrowser(locale: "vi" | "en" = "vi") {
+  renderWithIntl(
     <QueryProvider>
       <ListingBrowser />
     </QueryProvider>,
+    { locale },
   );
 }
 
@@ -110,6 +112,23 @@ describe("ListingBrowser", () => {
       expect(screen.queryByTestId("closing-soon-shelf")).not.toBeInTheDocument();
     },
   );
+
+  it("shows headings, filters and category names in English", async () => {
+    serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
+
+    renderBrowser("en");
+
+    expect(
+      screen.getByRole("heading", { name: "Everything for sale" }),
+    ).toBeInTheDocument();
+    const modes = screen.getByRole("group", { name: "Selling mode" });
+    expect(within(modes).getByRole("button", { name: "Pre-order" })).toBeInTheDocument();
+    const kinds = screen.getByRole("group", { name: "Category" });
+    expect(
+      await within(kinds).findByRole("button", { name: "Electronics" }),
+    ).toBeInTheDocument();
+    expect(within(kinds).queryByText("Điện tử")).not.toBeInTheDocument();
+  });
 
   it("sends the filters from the URL to the API", async () => {
     location.search = "q=hoa+qua&category=thuc-pham-tuoi&mode=preorder";

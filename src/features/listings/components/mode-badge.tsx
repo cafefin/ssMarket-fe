@@ -1,13 +1,11 @@
+import { useTranslations } from "next-intl";
 import type { ListingMode } from "../api/use-listings";
 import { cn } from "@/shared/lib/utils";
 
-const MODES: Record<ListingMode, { label: string; className: string }> = {
+const MODE_CLASSES: Record<ListingMode, string> = {
   // Green: the goods exist now. Orange: order before a closing time.
-  in_stock: { label: "Có sẵn", className: "bg-positive-soft text-positive-deep" },
-  preorder: {
-    label: "Đặt trước",
-    className: "bg-deadline-soft text-deadline-deep",
-  },
+  in_stock: "bg-positive-soft text-positive-deep",
+  preorder: "bg-deadline-soft text-deadline-deep",
 };
 
 export function ModeBadge({
@@ -17,15 +15,16 @@ export function ModeBadge({
   mode: ListingMode;
   className?: string;
 }) {
+  const t = useTranslations("listings.mode");
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-0.5 text-[13px] font-semibold",
-        MODES[mode].className,
+        MODE_CLASSES[mode],
         className,
       )}
     >
-      {MODES[mode].label}
+      {t(mode)}
     </span>
   );
 }

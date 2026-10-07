@@ -1,23 +1,31 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/shared/ui/atoms/shadcn/button";
 import { Input } from "@/shared/ui/atoms/shadcn/input";
 import { Label } from "@/shared/ui/atoms/shadcn/label";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
-import { userMessage } from "@/shared/api/api-error";
+import { useUserMessage } from "@/shared/api/use-user-message";
 import { useListing } from "@/features/listings";
 import { type Order, useEditOrder } from "../api/use-orders";
-import { formatMoney } from "@/shared/lib/format/money";
+import { useFormat } from "@/shared/lib/format/use-format";
 import {
   lineTotal,
+  MAX_ORDER_QUANTITY,
   normalizeQuantity,
   quantityProblem,
 } from "../lib/order-math";
 
-/** Why a buyer cannot edit this order, or null when they can. */
-export function editBlockedReason(order: Order, now: Date): string | null {
+/**
+ * Why a buyer cannot edit this order, or null when they can. "hidden" means
+ * the buyer sees no explanation either; the other reasons are message keys.
+ */
+export function editBlockedReason(
+  order: Order,
+  now: Date,
+): "hidden" | "reported" | "pastDeadline" | null {
   if (
     order.viewerRole !== "buyer" ||
     !order.isPreorder ||
@@ -26,13 +34,13 @@ export function editBlockedReason(order: Order, now: Date): string | null {
     return "hidden";
   }
   if (order.paymentStatus !== "unpaid") {
-    return "Đơn đã báo chuyển khoản, hãy liên hệ người bán để thay đổi.";
+    return "reported";
   }
   if (
     order.listing.orderDeadline &&
     new Date(order.listing.orderDeadline).getTime() <= now.getTime()
   ) {
-    return "Đã quá hạn chốt đơn nên không sửa được nữa.";
+    return "pastDeadline";
   }
   return null;
 }
@@ -51,6 +59,12 @@ export function OrderEditor({
 }) {
   const { data: listing, isPending, isError } = useListing(order.listing.id);
   const editOrder = useEditOrder();
+  const t = useTranslations("orders.editor");
+  const tp = useTranslations("orders.panel");
+  const tq = useTranslations("orders.quantityProblem");
+  const tc = useTranslations("common");
+  const format = useFormat();
+  const userMessage = useUserMessage();
   const [quantities, setQuantities] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       order.lines.map((line) => [
@@ -64,12 +78,12 @@ export function OrderEditor({
   const [showProblems, setShowProblems] = useState(false);
 
   if (isPending) {
-    return <Skeleton className="h-40 w-full rounded-lg" aria-label="Đang tải" />;
+    return <Skeleton className="h-40 w-full rounded-lg" aria-label={t("loading")} />;
   }
   if (isError || !listing) {
     return (
       <p role="alert" className="text-sm text-error-deep">
-        Không tải được bài đăng để sửa đơn. Vui lòng thử lại.
+        {t("loadFailed")}
       </p>
     );
   }
@@ -91,7 +105,11 @@ export function OrderEditor({
 
   const lines = items.map((item) => {
     const quantity = normalizeQuantity(quantities[item.id] ?? "");
-    const problem = quantity === "" ? null : quantityProblem(quantity, item.unit);
+    const code = quantity === "" ? null : quantityProblem(quantity, item.unit);
+    const problem =
+      code === "tooMany"
+        ? tq(code, { max: MAX_ORDER_QUANTITY })
+        : code && tq(code);
     return {
       item,
       quantity,
@@ -121,7 +139,7 @@ export function OrderEditor({
           note: note.trim() || null,
         },
       });
-      toast.success("Đã cập nhật đơn");
+      toast.success(t("updated"));
       onDone();
     } catch (error) {
       toast.error(userMessage(error));
@@ -131,14 +149,14 @@ export function OrderEditor({
   return (
     <form
       noValidate
-      aria-label="Sửa đơn"
+      aria-label={t("title")}
       onSubmit={(event) => {
         event.preventDefault();
         void save();
       }}
       className="flex flex-col gap-4 rounded-lg border border-primary bg-primary-soft/40 p-4"
     >
-      <h2 className="text-lg font-semibold">Sửa đơn</h2>
+      <h2 className="text-lg font-semibold">{t("title")}</h2>
       <ul className="flex flex-col gap-3">
         {lines.map(({ item, problem }) => {
           const inputId = `edit-quantity-${item.id}`;
@@ -148,7 +166,7 @@ export function OrderEditor({
                 <Label htmlFor={inputId} className="min-w-0 flex-1 font-normal">
                   <span className="block truncate">{item.name}</span>
                   <span className="block text-[13px] text-muted-foreground">
-                    {formatMoney(item.unitPrice)}/{item.unit}
+                    {format.money(item.unitPrice)}/{item.unit}
                   </span>
                 </Label>
                 <div className="flex shrink-0 items-center gap-2">
@@ -173,7 +191,7 @@ export function OrderEditor({
               </div>
               {showProblems && problem && (
                 <p role="alert" className="text-right text-[13px] text-error-deep">
-                  {item.name}: {problem}
+                  {tp("lineProblem", { item: item.name, problem })}
                 </p>
               )}
             </li>
@@ -182,14 +200,14 @@ export function OrderEditor({
       </ul>
 
       <div className="flex items-center justify-between border-t border-hairline-soft pt-3">
-        <span className="text-sm text-muted-foreground">Tổng tiền mới</span>
-        <output aria-label="Tổng tiền mới" className="text-lg font-semibold">
-          {formatMoney(total)}
+        <span className="text-sm text-muted-foreground">{t("newTotal")}</span>
+        <output aria-label={t("newTotal")} className="text-lg font-semibold">
+          {format.money(total)}
         </output>
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="editDeliveryLocation">Giao đến</Label>
+        <Label htmlFor="editDeliveryLocation">{tp("deliverTo")}</Label>
         <Input
           id="editDeliveryLocation"
           maxLength={120}
@@ -200,12 +218,12 @@ export function OrderEditor({
         />
         {showProblems && locationMissing && (
           <p role="alert" className="text-[13px] text-error-deep">
-            Nhập nơi nhận hàng
+            {tp("locationRequired")}
           </p>
         )}
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="editNote">Ghi chú (không bắt buộc)</Label>
+        <Label htmlFor="editNote">{tp("note")}</Label>
         <Input
           id="editNote"
           maxLength={500}
@@ -217,16 +235,16 @@ export function OrderEditor({
 
       {showProblems && chosen.length === 0 && (
         <p role="alert" className="text-[13px] text-error-deep">
-          Đơn cần ít nhất một mặt hàng. Muốn bỏ hết, hãy hủy đơn.
+          {t("noItems")}
         </p>
       )}
 
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={editOrder.isPending}>
-          {editOrder.isPending ? "Đang lưu…" : "Lưu thay đổi"}
+          {editOrder.isPending ? tc("saving") : t("saveChanges")}
         </Button>
         <Button type="button" variant="ghost" onClick={onDone}>
-          Thôi
+          {t("dismiss")}
         </Button>
       </div>
     </form>

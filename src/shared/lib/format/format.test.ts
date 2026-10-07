@@ -9,7 +9,14 @@ describe("formatMoney", () => {
     [1250000, "1.250.000 đ"],
     [999, "999 đ"],
   ])("%d -> %s", (amount, expected) => {
-    expect(formatMoney(amount)).toBe(expected);
+    expect(formatMoney(amount, "vi")).toBe(expected);
+  });
+
+  it.each([
+    [35000, "35,000 VND"],
+    [1250000, "1,250,000 VND"],
+  ])("%d -> %s in English", (amount, expected) => {
+    expect(formatMoney(amount, "en")).toBe(expected);
   });
 });
 

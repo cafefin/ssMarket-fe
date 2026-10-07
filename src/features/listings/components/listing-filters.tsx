@@ -1,17 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import type { Category } from "../api/use-categories";
 import {
   type ListingFilters as Filters,
   listingsHref,
 } from "../lib/filters";
+import { categoryName } from "../lib/category-name";
 import { cn } from "@/shared/lib/utils";
 
-const MODES = [
-  { value: "in_stock", label: "Có sẵn" },
-  { value: "preorder", label: "Đặt trước" },
-] as const;
+const MODES = ["in_stock", "preorder"] as const;
 
 const FOCUS = "outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 
@@ -63,13 +62,15 @@ export function ListingFilters({
   filters: Filters;
   categories: Category[];
 }) {
+  const t = useTranslations("listings");
+  const locale = useLocale();
   return (
     // top-16 matches the header's fixed height (h-16).
     <div className="sticky top-16 z-10 -mx-4 border-b border-border bg-background px-4 sm:-mx-8 sm:px-8">
       <div className="flex items-center gap-2 overflow-x-auto px-1 py-2.5 [scrollbar-width:none]">
         <div
           role="group"
-          aria-label="Hình thức bán"
+          aria-label={t("filters.modeGroup")}
           className="flex shrink-0 rounded-full border border-border p-0.5"
         >
           <Choice
@@ -77,21 +78,21 @@ export function ListingFilters({
             active={filters.mode === null}
             href={listingsHref({ ...filters, mode: null })}
           >
-            Tất cả
+            {t("filters.allModes")}
           </Choice>
           {MODES.map((mode) => {
-            const active = filters.mode === mode.value;
+            const active = filters.mode === mode;
             return (
               <Choice
-                key={mode.value}
+                key={mode}
                 variant="segment"
                 active={active}
                 href={listingsHref({
                   ...filters,
-                  mode: active ? null : mode.value,
+                  mode: active ? null : mode,
                 })}
               >
-                {mode.label}
+                {t(`mode.${mode}`)}
               </Choice>
             );
           })}
@@ -99,13 +100,13 @@ export function ListingFilters({
 
         <span aria-hidden="true" className="h-6 w-px shrink-0 bg-border" />
 
-        <div role="group" aria-label="Loại hàng" className="flex shrink-0 gap-2">
+        <div role="group" aria-label={t("filters.categoryGroup")} className="flex shrink-0 gap-2">
           <Choice
             variant="chip"
             active={filters.category === null}
             href={listingsHref({ ...filters, category: null })}
           >
-            Mọi loại hàng
+            {t("filters.allCategories")}
           </Choice>
           {categories.map((category) => {
             const active = filters.category === category.slug;
@@ -119,7 +120,7 @@ export function ListingFilters({
                   category: active ? null : category.slug,
                 })}
               >
-                {category.name}
+                {categoryName(category, locale)}
               </Choice>
             );
           })}

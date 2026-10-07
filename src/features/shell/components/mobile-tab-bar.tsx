@@ -2,6 +2,7 @@
 
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/lib/utils";
 import { isActive, NAV_ITEMS, type NavItem, PROFILE_ITEM } from "../lib/nav-items";
@@ -10,6 +11,7 @@ const TAB =
   "flex min-h-13 flex-col items-center justify-end gap-0.5 rounded-md text-xs font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 
 function Tab({ item, pathname }: { item: NavItem; pathname: string }) {
+  const t = useTranslations("shell");
   const active = isActive(pathname, item.href);
   const Icon = item.icon;
   return (
@@ -25,7 +27,7 @@ function Tab({ item, pathname }: { item: NavItem; pathname: string }) {
         aria-hidden="true"
         className={cn("size-6", active && "stroke-[2.5]")}
       />
-      {item.label}
+      {t(`nav.${item.labelKey}`)}
     </Link>
   );
 }
@@ -33,11 +35,12 @@ function Tab({ item, pathname }: { item: NavItem; pathname: string }) {
 /** Bottom navigation for phones; from md up the header carries the links. */
 export function MobileTabBar() {
   const pathname = usePathname();
+  const t = useTranslations("shell");
   const [home, orders, selling] = NAV_ITEMS;
 
   return (
     <nav
-      aria-label="Điều hướng chính"
+      aria-label={t("mainNavigation")}
       className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 items-end border-t border-border bg-background px-2 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] md:hidden"
     >
       <Tab item={home} pathname={pathname} />
@@ -46,7 +49,7 @@ export function MobileTabBar() {
         <span className="-mt-5 flex size-11 items-center justify-center rounded-full border-[3px] border-background bg-primary text-primary-foreground">
           <PlusIcon aria-hidden="true" className="size-5" />
         </span>
-        Đăng bán
+        {t("sell")}
       </Link>
       <Tab item={selling} pathname={pathname} />
       <Tab item={PROFILE_ITEM} pathname={pathname} />

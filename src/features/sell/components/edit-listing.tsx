@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import type { Locale } from "@/shared/i18n/config";
 import { ListingForm } from "./listing-form";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
@@ -10,9 +12,16 @@ import { type ListingDetail, useListing } from "@/features/listings";
 import { toDateTimeLocal } from "@/shared/lib/format/datetime";
 import type { ListingFormValues } from "../lib/listing-schema";
 
-const priceFormatter = new Intl.NumberFormat("vi-VN");
+const PRICE_FORMATTERS: Record<Locale, Intl.NumberFormat> = {
+  vi: new Intl.NumberFormat("vi-VN"),
+  en: new Intl.NumberFormat("en-US"),
+};
 
-export function toFormValues(listing: ListingDetail): ListingFormValues {
+/** A listing as form values; prices are written the way `locale` groups digits. */
+export function toFormValues(
+  listing: ListingDetail,
+  locale: Locale,
+): ListingFormValues {
   return {
     title: listing.title,
     categoryId: String(listing.category.id),
@@ -29,7 +38,7 @@ export function toFormValues(listing: ListingDetail): ListingFormValues {
       id: item.id,
       name: item.name,
       unit: item.unit,
-      unitPrice: priceFormatter.format(item.unitPrice),
+      unitPrice: PRICE_FORMATTERS[locale].format(item.unitPrice),
       stockQuantity:
         item.stockQuantity === null ? "" : String(item.stockQuantity),
     })),
@@ -37,11 +46,12 @@ export function toFormValues(listing: ListingDetail): ListingFormValues {
 }
 
 function Unavailable({ message }: { message: string }) {
+  const t = useTranslations("sell.edit");
   return (
     <div className="flex flex-col items-center gap-3 py-24 text-center">
       <h1 className="text-[22px] font-semibold">{message}</h1>
       <Link href="/sell" className={buttonVariants({ variant: "outline" })}>
-        Về bài đăng của tôi
+        {t("backToMine")}
       </Link>
     </div>
   );
@@ -51,13 +61,15 @@ export function EditListing({ id }: { id: string }) {
   const { data: listing, isPending, isError } = useListing(id);
   const { data: me } = useCurrentUser();
   const reopened = useSearchParams().get("reopened") === "1";
+  const t = useTranslations("sell.edit");
+  const locale = useLocale();
 
   if (isPending || !me) {
     if (isError) {
-      return <Unavailable message="Không tìm thấy bài đăng" />;
+      return <Unavailable message={t("notFound")} />;
     }
     return (
-      <div className="flex flex-col gap-4" aria-busy="true" aria-label="Đang tải bài đăng">
+      <div className="flex flex-col gap-4" aria-busy="true" aria-label={t("loading")}>
         <Skeleton className="h-9 w-1/2" />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />
@@ -66,24 +78,23 @@ export function EditListing({ id }: { id: string }) {
     );
   }
   if (isError || !listing || listing.seller.id !== me.id) {
-    return <Unavailable message="Không tìm thấy bài đăng" />;
+    return <Unavailable message={t("notFound")} />;
   }
   if (listing.status === "closed") {
-    return <Unavailable message="Bài đăng đã đóng nên không sửa được" />;
+    return <Unavailable message={t("closed")} />;
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-[28px] leading-tight font-semibold">Sửa bài đăng</h1>
+      <h1 className="text-[28px] leading-tight font-semibold">{t("title")}</h1>
       {reopened && listing.status === "draft" && (
         <p className="rounded-md border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn-deep">
-          Đây là bản sao của đợt trước. Kiểm tra hạn chốt, ngày giao và giá
-          trước khi đăng.
+          {t("reopened")}
         </p>
       )}
       <ListingForm
         mode={listing.mode}
-        initialValues={toFormValues(listing)}
+        initialValues={toFormValues(listing, locale)}
         listing={listing}
       />
     </div>

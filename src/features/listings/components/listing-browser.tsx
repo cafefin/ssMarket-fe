@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { useCategories } from "../api/use-categories";
@@ -14,6 +15,8 @@ import { LISTING_GRID } from "./listing-grid";
 
 /** The home page: filters from the URL, then the matching listings. */
 export function ListingBrowser() {
+  const t = useTranslations("listings.browser");
+  const tc = useTranslations("common");
   const filters = parseListingFilters(useSearchParams());
   const { data: categories = [] } = useCategories();
   const listings = useListings(filters);
@@ -26,15 +29,17 @@ export function ListingBrowser() {
       {!filtered && <ClosingSoonShelf />}
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-8">
         {filters.q ? (
-          <h1 className="text-[22px] font-bold">Kết quả cho “{filters.q}”</h1>
+          <h1 className="text-[22px] font-bold">
+            {t("resultsFor", { query: filters.q })}
+          </h1>
         ) : (
-          <h2 className="text-[22px] font-bold">Tất cả món đang bán</h2>
+          <h2 className="text-[22px] font-bold">{t("all")}</h2>
         )}
 
         <ListingFilters filters={filters} categories={categories} />
 
         {listings.isPending && (
-          <div className={LISTING_GRID} aria-busy="true" aria-label="Đang tải bài đăng">
+          <div className={LISTING_GRID} aria-busy="true" aria-label={t("loading")}>
             {Array.from({ length: 8 }, (_, index) => (
               <Skeleton
                 key={index}
@@ -47,10 +52,10 @@ export function ListingBrowser() {
         {listings.isError && (
           <div role="alert" className="flex flex-col items-center gap-3 py-16">
             <p className="text-error-deep">
-              Không tải được danh sách bài đăng.
+              {t("loadFailed")}
             </p>
             <Button variant="outline" onClick={() => void listings.refetch()}>
-              Thử lại
+              {tc("retry")}
             </Button>
           </div>
         )}
@@ -59,23 +64,23 @@ export function ListingBrowser() {
           <div className="flex flex-col items-center gap-3 py-16 text-center">
             <h2 className="text-[22px] font-semibold">
               {filters.q
-                ? `Không tìm thấy kết quả cho “${filters.q}”`
+                ? t("noResultsFor", { query: filters.q })
                 : filtered
-                  ? "Không có bài đăng nào khớp bộ lọc"
-                  : "Chưa có sản phẩm nào"}
+                  ? t("noMatch")
+                  : t("empty")}
             </h2>
             <p className="text-muted-foreground">
               {filtered
-                ? "Thử từ khóa khác hoặc bỏ bớt bộ lọc."
-                : "Các món đồ đồng nghiệp đăng bán sẽ xuất hiện ở đây."}
+                ? t("tryOther")
+                : t("emptyHint")}
             </p>
             {filtered ? (
               <Link href="/" className={buttonVariants({ variant: "outline" })}>
-                Xóa bộ lọc
+                {t("clearFilters")}
               </Link>
             ) : (
               <Link href="/sell/new" className={buttonVariants()}>
-                Đăng bán món đầu tiên
+                {t("sellFirst")}
               </Link>
             )}
           </div>
@@ -98,7 +103,7 @@ export function ListingBrowser() {
               disabled={listings.isFetchingNextPage}
               onClick={() => void listings.fetchNextPage()}
             >
-              {listings.isFetchingNextPage ? "Đang tải…" : "Xem thêm"}
+              {listings.isFetchingNextPage ? tc("loading") : tc("loadMore")}
             </Button>
           </div>
         )}

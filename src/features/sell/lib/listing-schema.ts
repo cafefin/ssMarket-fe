@@ -1,18 +1,12 @@
 import { z } from "zod";
 import type { components } from "@/shared/api/schema";
+import type { Translator } from "@/shared/i18n/translator";
+import { DEFAULT_UNIT, LISTING_UNITS } from "./units";
+
+export { LISTING_UNITS } from "./units";
 
 export type ListingMode = components["schemas"]["ListingMode"];
 export type ListingInputBody = components["schemas"]["ListingInputDto"];
-
-export const LISTING_UNITS = [
-  "cái",
-  "kg",
-  "hộp",
-  "túi",
-  "chai",
-  "bó",
-  "combo",
-] as const;
 
 export const MAX_ITEMS = 20;
 export const MAX_IMAGES = 5;
@@ -47,7 +41,7 @@ export type ListingItemValues = z.infer<typeof itemSchema>;
 
 export const emptyItem = (): ListingItemValues => ({
   name: "",
-  unit: "cái",
+  unit: DEFAULT_UNIT,
   unitPrice: "",
   stockQuantity: "",
 });
@@ -77,74 +71,69 @@ export function parseQuantity(text: string): string | null {
 
 /**
  * The form rules for one mode. They mirror `validateListingInput` in the
- * backend; the backend remains the authority.
+ * backend; the backend remains the authority. `t` gives the messages in the
+ * language of the page.
  */
-export function listingSchema(mode: ListingMode) {
+export function listingSchema(
+  mode: ListingMode,
+  t: Translator<"sell.validation">,
+) {
   return baseSchema.superRefine((value, context) => {
     const issue = (path: (string | number)[], message: string) =>
       context.addIssue({ code: "custom", path, message });
 
     const title = value.title.trim();
     if (title.length < 5 || title.length > 120) {
-      issue(["title"], "Tiêu đề gồm 5–120 ký tự");
+      issue(["title"], t("title"));
     }
     if (value.categoryId === "") {
-      issue(["categoryId"], "Chọn loại hàng");
+      issue(["categoryId"], t("category"));
     }
     if (value.description.length > 5000) {
-      issue(["description"], "Mô tả tối đa 5000 ký tự");
+      issue(["description"], t("description"));
     }
     if (!value.acceptsPrepaidQr && !value.acceptsPayOnDelivery) {
-      issue(["acceptsPayOnDelivery"], "Chọn ít nhất một hình thức thanh toán");
+      issue(["acceptsPayOnDelivery"], t("payment"));
     }
     if (value.items.length < 1 || value.items.length > MAX_ITEMS) {
-      issue(["items"], `Bài đăng cần 1–${MAX_ITEMS} mặt hàng`);
+      issue(["items"], t("itemCount", { max: MAX_ITEMS }));
     }
 
     if (mode === "preorder") {
       const deadline = new Date(value.orderDeadline);
       if (value.orderDeadline === "" || Number.isNaN(deadline.getTime())) {
-        issue(["orderDeadline"], "Chọn hạn chốt đơn");
+        issue(["orderDeadline"], t("deadlineRequired"));
       } else if (deadline.getTime() <= Date.now()) {
-        issue(["orderDeadline"], "Hạn chốt đơn phải ở tương lai");
+        issue(["orderDeadline"], t("deadlineFuture"));
       }
       if (!/^\d{4}-\d{2}-\d{2}$/.test(value.deliveryDate)) {
-        issue(["deliveryDate"], "Chọn ngày giao");
+        issue(["deliveryDate"], t("deliveryRequired"));
       } else if (
         value.orderDeadline !== "" &&
         value.deliveryDate < value.orderDeadline.slice(0, 10)
       ) {
-        issue(["deliveryDate"], "Ngày giao không được trước hạn chốt đơn");
+        issue(["deliveryDate"], t("deliveryBeforeDeadline"));
       }
     }
 
     value.items.forEach((item, index) => {
       const name = item.name.trim();
       if (name.length < 1 || name.length > 120) {
-        issue(["items", index, "name"], "Tên mặt hàng gồm 1–120 ký tự");
+        issue(["items", index, "name"], t("itemName"));
       }
       if (!(LISTING_UNITS as readonly string[]).includes(item.unit)) {
-        issue(["items", index, "unit"], "Chọn đơn vị");
+        issue(["items", index, "unit"], t("unit"));
       }
       const price = parsePrice(item.unitPrice);
       if (Number.isNaN(price) || price < 1_000 || price > 1_000_000_000) {
-        issue(
-          ["items", index, "unitPrice"],
-          "Đơn giá từ 1.000 đ đến 1.000.000.000 đ",
-        );
+        issue(["items", index, "unitPrice"], t("unitPrice"));
       }
       if (mode === "in_stock") {
         const stock = parseQuantity(item.stockQuantity);
         if (stock === null || Number(stock) <= 0) {
-          issue(
-            ["items", index, "stockQuantity"],
-            "Nhập số lượng lớn hơn 0",
-          );
+          issue(["items", index, "stockQuantity"], t("stockPositive"));
         } else if (item.unit !== "kg" && !Number.isInteger(Number(stock))) {
-          issue(
-            ["items", index, "stockQuantity"],
-            "Chỉ đơn vị kg được nhập số lẻ",
-          );
+          issue(["items", index, "stockQuantity"], t("stockWhole"));
         }
       }
     });
@@ -179,13 +168,19 @@ export function toListingBody(
   };
 }
 
-/** Why a chosen file cannot be attached, or null when it can. */
-export function imageProblem(file: { type: string; size: number }): string | null {
+/**
+ * Why a chosen file cannot be attached, as the error code the backend would
+ * answer with (translated through `errors.codes`), or null when it can.
+ */
+export function imageProblem(file: {
+  type: string;
+  size: number;
+}): "INVALID_IMAGE" | "PAYLOAD_TOO_LARGE" | null {
   if (!IMAGE_TYPES.includes(file.type)) {
-    return "Ảnh phải là file JPEG, PNG hoặc WebP.";
+    return "INVALID_IMAGE";
   }
   if (file.size > MAX_IMAGE_BYTES) {
-    return "Ảnh lớn hơn 5 MB.";
+    return "PAYLOAD_TOO_LARGE";
   }
   return null;
 }

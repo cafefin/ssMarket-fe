@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ListingDetail } from "@/features/listings";
 import { EditListing, toFormValues } from "./edit-listing";
@@ -56,13 +57,13 @@ describe("EditListing", () => {
     listingState.isPending = true;
     listingState.data = undefined;
 
-    render(<EditListing id="l1" />);
+    renderWithIntl(<EditListing id="l1" />);
 
     expect(screen.getByLabelText("Đang tải bài đăng")).toBeInTheDocument();
   });
 
   it("shows the form pre-filled for the seller", () => {
-    render(<EditListing id="l1" />);
+    renderWithIntl(<EditListing id="l1" />);
 
     expect(screen.getByRole("heading", { name: "Sửa bài đăng" })).toBeInTheDocument();
     expect(screen.getByText("form:preorder:Hoa quả tuần 41")).toBeInTheDocument();
@@ -71,7 +72,7 @@ describe("EditListing", () => {
   it("reminds the seller to check a reopened round before publishing", () => {
     location.search = "reopened=1";
 
-    render(<EditListing id="l1" />);
+    renderWithIntl(<EditListing id="l1" />);
 
     expect(
       screen.getByText(/Kiểm tra hạn chốt, ngày giao và giá/),
@@ -88,7 +89,7 @@ describe("EditListing", () => {
   ])("hides the form for %s", (_label, arrange) => {
     arrange();
 
-    render(<EditListing id="l1" />);
+    renderWithIntl(<EditListing id="l1" />);
 
     expect(
       screen.getByRole("heading", { name: "Không tìm thấy bài đăng" }),
@@ -99,7 +100,7 @@ describe("EditListing", () => {
   it("explains that a closed listing cannot be edited", () => {
     listingState.data = listing({ status: "closed" });
 
-    render(<EditListing id="l1" />);
+    renderWithIntl(<EditListing id="l1" />);
 
     expect(
       screen.getByRole("heading", { name: "Bài đăng đã đóng nên không sửa được" }),
@@ -113,7 +114,7 @@ describe("EditListing", () => {
 
 describe("toFormValues", () => {
   it("turns a pre-order listing into form values", () => {
-    const values = toFormValues(listing());
+    const values = toFormValues(listing(), "vi");
 
     expect(values).toMatchObject({
       title: "Hoa quả tuần 41",
@@ -124,6 +125,10 @@ describe("toFormValues", () => {
       items: [{ name: "Cam sành", unit: "kg", unitPrice: "35.000", stockQuantity: "" }],
     });
     expect(values.orderDeadline).toMatch(/^2026-10-(09|10)T\d{2}:00$/);
+  });
+
+  it("groups price digits the English way in English", () => {
+    expect(toFormValues(listing(), "en").items[0].unitPrice).toBe("35,000");
   });
 
   it("turns an in-stock listing into form values", () => {
@@ -137,6 +142,7 @@ describe("toFormValues", () => {
             { id: "i1", name: "Cam", unit: "kg", unitPrice: 1250000, stockQuantity: 2.5 },
           ],
         }),
+        "vi",
       ),
     ).toMatchObject({
       orderDeadline: "",

@@ -1,60 +1,62 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { ApiError } from "@/shared/api/api-error";
 import { type Order, useOrder } from "../api/use-orders";
 import { formatDate, formatDateTime } from "@/shared/lib/format/datetime";
-import { formatMoney } from "@/shared/lib/format/money";
-import { formatQuantity } from "../lib/order-math";
+import type { Translator } from "@/shared/i18n/translator";
+import { useFormat } from "@/shared/lib/format/use-format";
 import { OrderActions } from "./order-actions";
 import { editBlockedReason, OrderEditor } from "./order-editor";
 import { OrderQr } from "./order-qr";
 import { OrderStatusBadges } from "./status-badges";
 
 /** One sentence telling the viewer what, if anything, happens next. */
-function nextStep(order: Order): string | null {
+function nextStep(order: Order, t: Translator<"orders.view.next">): string | null {
   const buyer = order.viewerRole === "buyer";
   if (order.fulfillmentStatus === "cancelled") {
-    const who = order.cancelledBy === "seller" ? "Người bán" : "Người mua";
-    const reason = order.cancelReason ? ` Lý do: ${order.cancelReason}` : "";
-    const refund = order.refundNeeded
-      ? buyer
-        ? " Người bán sẽ hoàn tiền cho bạn; hãy liên hệ họ nếu chưa nhận được."
-        : " Người mua đã chuyển khoản, bạn cần hoàn tiền cho họ."
-      : "";
-    return `${who} đã hủy đơn này.${reason}${refund}`;
+    return [
+      order.cancelledBy === "seller"
+        ? t("cancelledBySeller")
+        : t("cancelledByBuyer"),
+      order.cancelReason && t("reason", { reason: order.cancelReason }),
+      order.refundNeeded &&
+        (buyer ? t("refundBuyer") : t("refundSeller")),
+    ]
+      .filter(Boolean)
+      .join(" ");
   }
   if (order.paymentStatus === "reported") {
-    return buyer
-      ? "Người bán sẽ xác nhận khi thấy tiền về. Trang này tự cập nhật."
-      : "Người mua báo đã chuyển khoản. Hãy kiểm tra sao kê theo mã đơn rồi xác nhận.";
+    return buyer ? t("reportedBuyer") : t("reportedSeller");
   }
   if (order.paymentStatus === "unpaid") {
     if (order.paymentMethod === "prepaid_qr") {
-      return buyer
-        ? "Quét mã QR để chuyển khoản, rồi bấm “Tôi đã chuyển khoản”."
-        : "Đang chờ người mua chuyển khoản.";
+      return buyer ? t("qrBuyer") : t("qrSeller");
     }
-    return buyer
-      ? "Bạn trả tiền cho người bán khi nhận hàng."
-      : "Thu tiền khi giao hàng, rồi bấm “Đã nhận tiền”.";
+    return buyer ? t("onDeliveryBuyer") : t("onDeliverySeller");
   }
   if (order.fulfillmentStatus === "pending") {
-    return buyer ? "Đã thanh toán. Đang chờ người bán giao hàng." : null;
+    return buyer ? t("paidBuyer") : null;
   }
-  return "Đơn hàng đã hoàn tất.";
+  return t("done");
 }
 
 export function OrderView({ id }: { id: string }) {
   const { data: order, error, isPending, refetch } = useOrder(id);
   const [editing, setEditing] = useState(false);
+  const t = useTranslations("orders.view");
+  const tn = useTranslations("orders.view.next");
+  const te = useTranslations("orders.editor.blocked");
+  const tc = useTranslations("common");
+  const format = useFormat();
 
   if (isPending) {
     return (
-      <div className="flex flex-col gap-4" aria-busy="true" aria-label="Đang tải đơn hàng">
+      <div className="flex flex-col gap-4" aria-busy="true" aria-label={t("loading")}>
         <Skeleton className="h-9 w-1/2" />
         <Skeleton className="h-24 w-full" />
         <Skeleton className="h-40 w-full" />
@@ -67,11 +69,11 @@ export function OrderView({ id }: { id: string }) {
     return (
       <div role="alert" className="flex flex-col items-center gap-3 py-24 text-center">
         <h1 className="text-[22px] font-semibold">
-          {missing ? "Không tìm thấy đơn hàng" : "Không tải được đơn hàng"}
+          {missing ? t("notFound") : t("loadFailed")}
         </h1>
         {missing ? (
           <Link href="/orders" className={buttonVariants({ variant: "outline" })}>
-            Về đơn của tôi
+            {t("backToMine")}
           </Link>
         ) : (
           <button
@@ -79,7 +81,7 @@ export function OrderView({ id }: { id: string }) {
             className={buttonVariants({ variant: "outline" })}
             onClick={() => void refetch()}
           >
-            Thử lại
+            {tc("retry")}
           </button>
         )}
       </div>
@@ -87,18 +89,21 @@ export function OrderView({ id }: { id: string }) {
   }
 
   const buyer = order.viewerRole === "buyer";
-  const step = nextStep(order);
+  const step = nextStep(order, tn);
   const editBlocked = editBlockedReason(order, new Date());
 
   return (
     <article className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <p className="text-sm text-muted-foreground">
-          {buyer ? "Đơn bạn đã đặt" : "Đơn bạn nhận được"} ·{" "}
+          {buyer ? t("placed") : t("received")} ·{" "}
           {formatDateTime(order.createdAt)}
         </p>
         <h1 className="text-[28px] leading-tight font-semibold">
-          Đơn <span className="font-mono">{order.code}</span>
+          {t.rich("title", {
+            code: order.code,
+            mono: (chunks) => <span className="font-mono">{chunks}</span>,
+          })}
         </h1>
         <OrderStatusBadges order={order} />
       </header>
@@ -121,16 +126,15 @@ export function OrderView({ id }: { id: string }) {
                 onClick={() => setEditing(true)}
                 className="text-sm font-medium text-primary underline-offset-4 hover:underline"
               >
-                Sửa đơn
+                {t("edit")}
               </button>
               <span className="text-sm text-muted-foreground">
-                {" "}
-                · Bạn có thể đổi số lượng đến hạn chốt đơn.
+                {t("editHint")}
               </span>
             </div>
           )}
           {editBlocked !== null && editBlocked !== "hidden" && (
-            <p className="text-sm text-muted-foreground">{editBlocked}</p>
+            <p className="text-sm text-muted-foreground">{te(editBlocked)}</p>
           )}
         </div>
       )}
@@ -151,12 +155,12 @@ export function OrderView({ id }: { id: string }) {
                 <th scope="row" className="py-2 pr-3 text-left font-normal">
                   {line.itemName}
                   <span className="block text-[13px] text-muted-foreground">
-                    {formatQuantity(line.quantity)} {line.unit} ×{" "}
-                    {formatMoney(line.unitPrice)}
+                    {format.quantity(line.quantity)} {line.unit} ×{" "}
+                    {format.money(line.unitPrice)}
                   </span>
                 </th>
                 <td className="py-2 text-right whitespace-nowrap">
-                  {formatMoney(line.lineTotal)}
+                  {format.money(line.lineTotal)}
                 </td>
               </tr>
             ))}
@@ -164,10 +168,10 @@ export function OrderView({ id }: { id: string }) {
           <tfoot>
             <tr className="border-t border-border">
               <th scope="row" className="py-3 text-left font-semibold">
-                Tổng tiền
+                {t("total")}
               </th>
               <td className="py-3 text-right text-lg font-semibold whitespace-nowrap">
-                {formatMoney(order.totalAmount)}
+                {format.money(order.totalAmount)}
               </td>
             </tr>
           </tfoot>
@@ -177,33 +181,31 @@ export function OrderView({ id }: { id: string }) {
       <dl className="grid gap-4 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-muted-foreground">
-            {buyer ? "Người bán" : "Người mua"}
+            {buyer ? t("seller") : t("buyer")}
           </dt>
           <dd className="font-medium">
             {buyer ? order.seller.name : order.buyer.name}
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Giao đến</dt>
+          <dt className="text-muted-foreground">{t("deliverTo")}</dt>
           <dd className="font-medium">{order.deliveryLocation}</dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Thanh toán</dt>
+          <dt className="text-muted-foreground">{t("payment")}</dt>
           <dd className="font-medium">
-            {order.paymentMethod === "prepaid_qr"
-              ? "Chuyển khoản trước qua mã QR"
-              : "Trả tiền khi nhận hàng"}
+            {tc(`paymentMethods.${order.paymentMethod}`)}
           </dd>
         </div>
         {order.listing.deliveryDate && (
           <div>
-            <dt className="text-muted-foreground">Ngày giao dự kiến</dt>
+            <dt className="text-muted-foreground">{t("deliveryDate")}</dt>
             <dd className="font-medium">{formatDate(order.listing.deliveryDate)}</dd>
           </div>
         )}
         {order.note && (
           <div className="sm:col-span-2">
-            <dt className="text-muted-foreground">Ghi chú</dt>
+            <dt className="text-muted-foreground">{t("note")}</dt>
             <dd className="whitespace-pre-line">{order.note}</dd>
           </div>
         )}

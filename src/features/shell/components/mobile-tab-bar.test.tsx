@@ -1,4 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MobileTabBar } from "./mobile-tab-bar";
 
@@ -15,7 +16,7 @@ describe("MobileTabBar", () => {
   });
 
   it("links to the five destinations in order", () => {
-    render(<MobileTabBar />);
+    renderWithIntl(<MobileTabBar />);
 
     expect(
       within(bar())
@@ -33,7 +34,7 @@ describe("MobileTabBar", () => {
   it("marks the tab of the current section", () => {
     location.pathname = "/sell/orders";
 
-    render(<MobileTabBar />);
+    renderWithIntl(<MobileTabBar />);
 
     expect(within(bar()).getByRole("link", { name: "Bán hàng" })).toHaveAttribute(
       "aria-current",
@@ -47,7 +48,7 @@ describe("MobileTabBar", () => {
   it("marks the current tab by weight as well as colour", () => {
     location.pathname = "/orders";
 
-    render(<MobileTabBar />);
+    renderWithIntl(<MobileTabBar />);
 
     expect(within(bar()).getByRole("link", { name: "Đơn mua" })).toHaveClass(
       "font-semibold",
@@ -58,7 +59,7 @@ describe("MobileTabBar", () => {
   });
 
   it("is only shown below the desktop breakpoint", () => {
-    render(<MobileTabBar />);
+    renderWithIntl(<MobileTabBar />);
 
     expect(bar()).toHaveClass("md:hidden");
   });

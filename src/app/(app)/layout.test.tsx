@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import AppLayout from "./layout";
 
@@ -12,7 +13,7 @@ vi.mock("@/features/shell/components/mobile-tab-bar", () => ({
 
 describe("AppLayout", () => {
   it("renders the header above the page content", () => {
-    render(
+    renderWithIntl(
       <AppLayout>
         <p>page content</p>
       </AppLayout>,
@@ -23,7 +24,7 @@ describe("AppLayout", () => {
   });
 
   it("renders the phone tab bar after the content and leaves room for it", () => {
-    render(
+    renderWithIntl(
       <AppLayout>
         <p>page content</p>
       </AppLayout>,

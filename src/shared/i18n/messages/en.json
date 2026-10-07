@@ -1,0 +1,555 @@
+{
+  "metadata": {
+    "title": "ssMarket",
+    "description": "An internal marketplace for employees."
+  },
+  "format": {
+    "today": "today",
+    "currency": "VND",
+    "weekdays": {
+      "Mon": "Mon",
+      "Tue": "Tue",
+      "Wed": "Wed",
+      "Thu": "Thu",
+      "Fri": "Fri",
+      "Sat": "Sat",
+      "Sun": "Sun"
+    }
+  },
+  "common": {
+    "priceFrom": "from",
+    "retry": "Try again",
+    "loading": "Loading…",
+    "loadMore": "Show more",
+    "backHome": "Back to home",
+    "paymentMethods": {
+      "prepaid_qr": "Bank transfer in advance by QR code",
+      "pay_on_delivery": "Pay on delivery"
+    },
+    "saving": "Saving…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "no": "No"
+  },
+  "login": {
+    "tagline": "An internal marketplace for employees.",
+    "signInWithGoogle": "Sign in with Google",
+    "errors": {
+      "generic": "Sign-in failed. Please try again.",
+      "domainNotAllowed": "Only company email addresses can sign in."
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "codes": {
+      "BANK_PROFILE_REQUIRED": "Add your bank details before accepting QR payments.",
+      "INVALID_IMAGE": "Images must be JPEG, PNG or WebP files.",
+      "PAYLOAD_TOO_LARGE": "The image is larger than 5 MB.",
+      "TOO_MANY_IMAGES": "A listing can have at most 5 images.",
+      "INVALID_LISTING_STATE": "The listing has changed status. Reload the page and try again.",
+      "OUT_OF_STOCK": "Some items no longer have enough stock.",
+      "LISTING_NOT_OPEN": "This listing is no longer taking orders.",
+      "ALREADY_ORDERED": "You already have an order for this listing.",
+      "OWN_LISTING": "You cannot order from your own listing.",
+      "PAYMENT_METHOD_NOT_ACCEPTED": "The seller no longer accepts this payment method.",
+      "INVALID_QUANTITY": "The quantity is not valid. Please check it.",
+      "INVALID_ORDER_STATE": "The order has changed status. The page has been updated; please review it.",
+      "REQUEST_IN_PROGRESS": "Your request is being processed. Please wait a moment.",
+      "ORDER_NOT_EDITABLE": "This order can no longer be edited. The page has been updated; please review it.",
+      "SUMMARY_TOO_LARGE": "This listing has too many orders to show in one table.",
+      "CATEGORY_EXISTS": "A category with this name already exists.",
+      "CATEGORY_INACTIVE": "This category no longer accepts listings. Choose another one.",
+      "FORBIDDEN": "You are not allowed to do this.",
+      "NOT_FOUND": "We could not find what you asked for.",
+      "TOO_MANY_REQUESTS": "You are going too fast. Please try again in a few minutes.",
+      "VALIDATION_FAILED": "Some details are not valid. Please check them.",
+      "BAD_REQUEST": "Some details are not valid. Please check them."
+    }
+  },
+  "orders": {
+    "quantityProblem": {
+      "invalid": "Enter a valid number",
+      "tooMany": "At most {max}",
+      "kgStep": "Kg is ordered in steps of 0.1, from 0.1",
+      "wholeNumber": "Enter a whole number from 1"
+    },
+    "status": {
+      "payment": {
+        "unpaid": "Unpaid",
+        "reported": "Awaiting payment check",
+        "paid": "Paid"
+      },
+      "fulfillment": {
+        "pending": "To deliver",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      },
+      "refundNeeded": "Refund needed"
+    },
+    "list": {
+      "loading": "Loading orders",
+      "loadFailed": "Could not load the orders.",
+      "order": "Order {code}",
+      "seller": "Seller: {name}"
+    },
+    "mine": {
+      "title": "My orders",
+      "empty": "You have not ordered anything yet.",
+      "browse": "See what is for sale"
+    },
+    "sales": {
+      "title": "Orders received",
+      "listing": "Listing",
+      "payment": "Payment",
+      "delivery": "Delivery",
+      "all": "All",
+      "empty": "No orders match these filters."
+    },
+    "qr": {
+      "section": "Transfer details",
+      "code": "Transfer QR code for order {code}",
+      "hint": "Scan with your banking app. The amount and the transfer note are filled in.",
+      "bank": "Bank",
+      "accountNumber": "Account number",
+      "accountName": "Account holder",
+      "amount": "Amount",
+      "content": "Transfer note",
+      "copy": "Copy",
+      "copyNamed": "Copy {label}",
+      "copied": "Copied"
+    },
+    "panel": {
+      "onlyLeft": "Only {quantity} {unit} left",
+      "alreadyOrdered": "You have already ordered this",
+      "oneOrderPerRound": "Each person has one order per pre-order round.",
+      "viewYourOrder": "View your order",
+      "title": "Order",
+      "soldOut": " · Sold out",
+      "left": " · {quantity} left",
+      "lineProblem": "{item}: {problem}",
+      "notEnough": "Not enough left:",
+      "shortage": "{item}: {quantity} left",
+      "total": "Total",
+      "payment": "Payment",
+      "paymentLabel": "Payment:",
+      "deliverTo": "Deliver to",
+      "deliverToPlaceholder": "For example: Floor 7, zone A",
+      "locationRequired": "Enter where to deliver",
+      "note": "Note (optional)",
+      "noItems": "Enter a quantity for at least one item",
+      "placing": "Placing order…",
+      "place": "Place order"
+    },
+    "editor": {
+      "blocked": {
+        "reported": "You have reported the transfer; contact the seller to change this order.",
+        "pastDeadline": "The order deadline has passed, so this order can no longer be edited."
+      },
+      "loading": "Loading",
+      "loadFailed": "Could not load the listing to edit this order. Please try again.",
+      "updated": "Order updated",
+      "title": "Edit order",
+      "newTotal": "New total",
+      "noItems": "An order needs at least one item. To remove everything, cancel the order.",
+      "saveChanges": "Save changes",
+      "dismiss": "Never mind"
+    },
+    "actions": {
+      "done": {
+        "report-payment": "The seller has been told",
+        "confirm-payment": "Payment confirmed",
+        "reject-payment": "The order is back to unpaid",
+        "deliver": "Marked as delivered",
+        "cancel": "Order cancelled"
+      },
+      "reportPayment": "I have paid",
+      "confirmPayment": "Payment received",
+      "deliver": "Delivered",
+      "rejectPayment": "Not received",
+      "cancel": "Cancel order",
+      "cancelTitle": "Cancel order {code}?",
+      "rejectTitle": "Payment not received?",
+      "cancelSellerBody": "The buyer will see the reason you give. If they have already paid, you need to refund them yourself.",
+      "cancelBuyerBody": "A cancelled order cannot be restored. You can order again later.",
+      "rejectBody": "The order goes back to unpaid so the buyer can check their transfer.",
+      "cancelReason": "Reason for cancelling",
+      "reasonRequired": "Enter a reason so the buyer knows",
+      "confirm": "Confirm"
+    },
+    "view": {
+      "next": {
+        "cancelledBySeller": "The seller cancelled this order.",
+        "cancelledByBuyer": "The buyer cancelled this order.",
+        "reason": "Reason: {reason}",
+        "refundBuyer": "The seller will refund you; contact them if you have not received it.",
+        "refundSeller": "The buyer has paid; you need to refund them.",
+        "reportedBuyer": "The seller will confirm once the money arrives. This page updates by itself.",
+        "reportedSeller": "The buyer says they have paid. Check your statement for the order code, then confirm.",
+        "qrBuyer": "Scan the QR code to pay, then press “I have paid”.",
+        "qrSeller": "Waiting for the buyer to pay.",
+        "onDeliveryBuyer": "You pay the seller when you receive the goods.",
+        "onDeliverySeller": "Collect the money when you deliver, then press “Payment received”.",
+        "paidBuyer": "Paid. Waiting for the seller to deliver.",
+        "done": "This order is complete."
+      },
+      "loading": "Loading the order",
+      "notFound": "Order not found",
+      "loadFailed": "Could not load the order",
+      "backToMine": "Back to my orders",
+      "placed": "Your order",
+      "received": "An order you received",
+      "title": "Order <mono>{code}</mono>",
+      "edit": "Edit order",
+      "editHint": " · You can change quantities until the order deadline.",
+      "total": "Total",
+      "seller": "Seller",
+      "buyer": "Buyer",
+      "deliverTo": "Deliver to",
+      "payment": "Payment",
+      "deliveryDate": "Expected delivery",
+      "note": "Note"
+    },
+    "summary": {
+      "filters": {
+        "all": "All",
+        "unpaid": "Unpaid",
+        "reported": "To confirm",
+        "undelivered": "Not delivered"
+      },
+      "failures": {
+        "INVALID_ORDER_STATE": "already in this state or cancelled",
+        "NOT_IN_LISTING": "not part of this listing",
+        "other": "could not be updated"
+      },
+      "failure": "{code}: {reason}",
+      "loading": "Loading the summary",
+      "notFound": "Listing not found",
+      "loadFailed": "Could not load the summary",
+      "backToMine": "Back to my listings",
+      "updated": "{count, plural, one {# order updated} other {# orders updated}}",
+      "eyebrow": "Order summary",
+      "dates": "Order deadline {deadline} · Delivery {delivery}",
+      "figures": {
+        "orders": "Orders",
+        "total": "Total",
+        "paid": "Collected",
+        "outstanding": "Still to collect"
+      },
+      "filterGroup": "Filter orders",
+      "groupByLocation": "Group by delivery location",
+      "sort": "Sort",
+      "sortBy": {
+        "time": "Time ordered",
+        "buyer": "Buyer",
+        "location": "Delivery location"
+      },
+      "exportCsv": "Export CSV",
+      "selected": "{count, plural, one {# order selected} other {# orders selected}}",
+      "confirmPaid": "Confirm payment received",
+      "markDelivered": "Mark as delivered",
+      "someFailed": "Some orders could not be updated:",
+      "empty": "Nobody has ordered from this listing yet.",
+      "selectAll": "Select all orders shown",
+      "columns": {
+        "buyer": "Buyer",
+        "location": "Delivery location",
+        "item": "{name} ({unit})",
+        "discontinued": "no longer sold",
+        "total": "Total",
+        "status": "Status"
+      },
+      "noMatch": "No orders match this filter.",
+      "groupCount": "· {count, plural, one {# order} other {# orders}} ·",
+      "markGroupDelivered": "Mark the whole group as delivered",
+      "markGroupDeliveredNamed": "Mark the whole {location} group as delivered",
+      "selectOrder": "Select order {code}",
+      "totalRow": "{count, plural, one {Total of # order} other {Total of # orders}}"
+    }
+  },
+  "shell": {
+    "nav": {
+      "home": "Home",
+      "orders": "Purchases",
+      "selling": "Selling",
+      "me": "Me"
+    },
+    "mainNavigation": "Main navigation",
+    "sell": "Sell",
+    "searchPlaceholder": "Search speakers, fruit, keyboards…",
+    "searchLabel": "Search listings",
+    "menu": {
+      "account": "{name}'s account",
+      "profile": "Profile",
+      "myOrders": "My orders",
+      "myListings": "My listings",
+      "receivedOrders": "Orders received",
+      "categories": "Manage categories",
+      "signOut": "Sign out"
+    },
+    "language": {
+      "label": "Language",
+      "self": "English"
+    }
+  },
+  "listings": {
+    "mode": {
+      "in_stock": "In stock",
+      "preorder": "Pre-order"
+    },
+    "outOfStock": "Sold out",
+    "orderCount": "{count, plural, one {# person ordered} other {# people ordered}}",
+    "card": {
+      "remaining": "{quantity} {unit} left",
+      "closes": "Closes {deadline}"
+    },
+    "filters": {
+      "modeGroup": "Selling mode",
+      "allModes": "All",
+      "categoryGroup": "Category",
+      "allCategories": "All categories"
+    },
+    "items": {
+      "item": "Item",
+      "unitPrice": "Unit price",
+      "remaining": "Left"
+    },
+    "shelf": {
+      "title": "Closing soon",
+      "subtitle": "Order before time runs out; the seller buys everything in one go.",
+      "previous": "Show previous items",
+      "next": "Show next items"
+    },
+    "gallery": {
+      "photo": "Photo {number} of {title}",
+      "show": "Show photo {number}"
+    },
+    "browser": {
+      "resultsFor": "Results for “{query}”",
+      "all": "Everything for sale",
+      "loading": "Loading listings",
+      "loadFailed": "Could not load the listings.",
+      "noResultsFor": "No results for “{query}”",
+      "noMatch": "No listings match these filters",
+      "empty": "Nothing for sale yet",
+      "tryOther": "Try other words or remove some filters.",
+      "emptyHint": "Things your colleagues sell will show up here.",
+      "clearFilters": "Clear filters",
+      "sellFirst": "Post the first listing"
+    },
+    "detail": {
+      "notFound": "Listing not found",
+      "notFoundHint": "The listing may be closed, past its order deadline, or it does not exist.",
+      "ownerDraft": "This listing is a draft. Only you can see it.",
+      "ownerClosed": "This listing is closed. Only you can see it.",
+      "ownerExpired": "The order deadline has passed. Other people can no longer see this listing.",
+      "loading": "Loading the listing",
+      "loadFailed": "Could not load the listing.",
+      "seller": "Seller:",
+      "sellerPage": "View seller page",
+      "deadline": "Order deadline",
+      "deliveryDate": "Delivery date",
+      "orderCountLabel": "Number of people who ordered",
+      "payment": "Payment",
+      "description": "Description",
+      "edit": "Edit listing",
+      "summary": "Order summary"
+    }
+  },
+  "sellers": {
+    "notFound": "We could not find this seller.",
+    "loading": "Loading the seller",
+    "deliversAt": "Delivers at {location}",
+    "selling": "For sale",
+    "empty": "This seller has nothing for sale right now."
+  },
+  "profile": {
+    "title": "Profile",
+    "loadFailed": "Could not load your profile. Please reload the page.",
+    "saved": "Profile saved",
+    "delivery": {
+      "title": "Receiving orders",
+      "location": "Delivery location",
+      "locationHint": "For example: Floor 7, zone A. Sellers will deliver here."
+    },
+    "bank": {
+      "title": "Payout account",
+      "hint": "Only needed when you sell and want to be paid by bank transfer through a QR code. Buyers see these details on their orders.",
+      "bank": "Bank",
+      "none": "Not selected",
+      "accountNumber": "Account number",
+      "accountName": "Account holder name",
+      "accountNameHint": "We convert it to capital letters without accents, as on a bank card."
+    },
+    "save": "Save profile",
+    "validation": {
+      "maxLength": "At most {max} characters",
+      "bankIncomplete": "Fill in the bank, the account number and the account holder name",
+      "accountNumber": "The account number has 4–24 letters or digits, without spaces",
+      "accountName": "The account holder name has 2–120 characters"
+    }
+  },
+  "admin": {
+    "title": "Manage categories",
+    "intro": "Hidden categories leave the filters and the listing form; existing listings stay as they are.",
+    "add": {
+      "title": "Add a category",
+      "submit": "Add",
+      "done": "Category added"
+    },
+    "fields": {
+      "name": "Category name",
+      "shortName": "Name",
+      "nameEn": "English name",
+      "sortOrder": "Order"
+    },
+    "table": {
+      "caption": "Categories",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Shown",
+      "hidden": "Hidden"
+    },
+    "actions": {
+      "hide": "Hide",
+      "show": "Show",
+      "editNamed": "Edit {name}",
+      "hideNamed": "Hide {name}",
+      "showNamed": "Show {name}"
+    },
+    "saved": "Category saved",
+    "shown": "Category shown",
+    "hidden": "Category hidden",
+    "validation": {
+      "nameRequired": "Enter a category name",
+      "nameEnRequired": "Enter an English name",
+      "maxLength": "At most {max} characters",
+      "sortOrder": "The order is a whole number from 0"
+    }
+  },
+  "sell": {
+    "title": "Sell",
+    "changeMode": "Change selling mode",
+    "modeStep": {
+      "question": "How do you want to sell?",
+      "in_stock": {
+        "title": "In stock",
+        "description": "Things you have now, sold until they run out.",
+        "example": "For example: a used speaker, books, household items."
+      },
+      "preorder": {
+        "title": "Pre-order",
+        "description": "Take orders until a deadline, then deliver in one round.",
+        "example": "For example: weekly fruit, daily food."
+      }
+    },
+    "form": {
+      "modeLabel": "Selling mode:",
+      "title": "Title",
+      "titlePlaceholder": {
+        "preorder": "This week's fruit",
+        "in_stock": "Used JBL bluetooth speaker"
+      },
+      "category": "Category",
+      "chooseCategory": "Choose a category",
+      "hiddenCategory": "{name} (hidden)",
+      "description": "Description",
+      "deadline": "Order deadline",
+      "deadlineHint": "Nobody can order after this time.",
+      "deliveryDate": "Delivery date",
+      "payment": "Payment",
+      "payOnDeliveryHint": "You deliver, then collect cash or receive a transfer later.",
+      "prepaidQrHint": "Buyers scan a code with the amount filled in. Needs bank details in your profile.",
+      "bankRequired": "Add your bank details before accepting QR payments.",
+      "addBank": "Add bank details",
+      "keptExceptImages": ". What you typed will be kept, except the photos.",
+      "saveChanges": "Save changes",
+      "publishing": "Publishing…",
+      "publish": "Publish",
+      "saveDraft": "Save draft",
+      "imagesFailed": "The listing was saved, but these photos did not upload: {files}. Try adding them again.",
+      "publishFailed": "The draft was saved but not published. {reason}",
+      "published": "Published",
+      "changesSaved": "Changes saved",
+      "draftSaved": "Draft saved"
+    },
+    "items": {
+      "title": "Items",
+      "hint": {
+        "in_stock": "One line per item, with the quantity you have.",
+        "preorder": "One line per option, for example sweet oranges and juicing oranges. No quantity needed."
+      },
+      "item": "Item {number}",
+      "name": "Name",
+      "unit": "Unit",
+      "unitPrice": "Unit price (VND)",
+      "stock": "Quantity in stock",
+      "remove": "Remove item {number}",
+      "add": "Add an item"
+    },
+    "images": {
+      "title": "Photos",
+      "hint": "Up to {max} JPEG, PNG or WebP photos, each at most 5 MB. The first photo is the cover.",
+      "photo": "Photo {number}",
+      "newPhoto": "Photo {number}: {file}",
+      "remove": "Remove photo {number}",
+      "add": "Add photos",
+      "tooMany": "A listing can have at most {max} photos.",
+      "fileProblem": "{file}: {problem}"
+    },
+    "validation": {
+      "title": "The title has 5–120 characters",
+      "category": "Choose a category",
+      "description": "The description has at most 5000 characters",
+      "payment": "Choose at least one payment method",
+      "itemCount": "A listing needs 1–{max} items",
+      "deadlineRequired": "Choose an order deadline",
+      "deadlineFuture": "The order deadline must be in the future",
+      "deliveryRequired": "Choose a delivery date",
+      "deliveryBeforeDeadline": "The delivery date cannot be before the order deadline",
+      "itemName": "The item name has 1–120 characters",
+      "unit": "Choose a unit",
+      "unitPrice": "The unit price is from 1,000 VND to 1,000,000,000 VND",
+      "stockPositive": "Enter a quantity greater than 0",
+      "stockWhole": "Only kg can have a decimal quantity"
+    },
+    "edit": {
+      "title": "Edit listing",
+      "notFound": "Listing not found",
+      "closed": "This listing is closed and cannot be edited",
+      "loading": "Loading the listing",
+      "backToMine": "Back to my listings",
+      "reopened": "This is a copy of the previous round. Check the deadline, delivery date and prices before publishing."
+    },
+    "mine": {
+      "title": "My listings",
+      "tabs": "Listing status",
+      "tab": {
+        "open": "Open",
+        "draft": "Drafts",
+        "closed": "Closed"
+      },
+      "empty": {
+        "open": "You have no open listings.",
+        "draft": "You have no drafts.",
+        "closed": "You have not closed any listings."
+      },
+      "loading": "Loading listings",
+      "loadFailed": "Could not load your listings.",
+      "itemCount": "{count, plural, one {# item} other {# items}}",
+      "from": "from {price}/{unit}",
+      "closes": "Closes {time}",
+      "publishedAt": "Published {time}",
+      "expired": "Past the deadline. Buyers can no longer see this listing.",
+      "view": "View",
+      "summary": "Summary",
+      "reopen": "Reopen",
+      "close": "Close",
+      "closed": "Listing closed",
+      "closeTitle": "Close this listing?",
+      "closeBody": "“{title}” will no longer be shown to buyers. A closed listing cannot be opened again or edited."
+    }
+  }
+}

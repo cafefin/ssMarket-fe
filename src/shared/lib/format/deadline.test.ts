@@ -9,13 +9,13 @@ describe("formatDeadline", () => {
   it("names the weekday and the date when the deadline is on another day", () => {
     const tuesday = new Date("2026-10-06T03:00:00.000Z");
 
-    expect(formatDeadline(deadline, tuesday, ZONE)).toBe("17:00 thứ Sáu, 9/10");
+    expect(formatDeadline(deadline, "vi", tuesday, ZONE)).toBe("17:00 thứ Sáu, 9/10");
   });
 
   it("says today when the deadline is later the same day", () => {
     const fridayMorning = new Date("2026-10-09T01:00:00.000Z");
 
-    expect(formatDeadline(deadline, fridayMorning, ZONE)).toBe("17:00 hôm nay");
+    expect(formatDeadline(deadline, "vi", fridayMorning, ZONE)).toBe("17:00 hôm nay");
   });
 
   it("decides the day in the given time zone, not in UTC", () => {
@@ -23,7 +23,7 @@ describe("formatDeadline", () => {
     const lateNight = "2026-10-09T18:30:00.000Z";
     const fridayEvening = new Date("2026-10-09T10:00:00.000Z");
 
-    expect(formatDeadline(lateNight, fridayEvening, ZONE)).toBe(
+    expect(formatDeadline(lateNight, "vi", fridayEvening, ZONE)).toBe(
       "01:30 thứ Bảy, 10/10",
     );
   });
@@ -31,7 +31,7 @@ describe("formatDeadline", () => {
   it("writes Sunday the Vietnamese way", () => {
     const tuesday = new Date("2026-10-06T03:00:00.000Z");
 
-    expect(formatDeadline("2026-10-11T03:00:00.000Z", tuesday, ZONE)).toBe(
+    expect(formatDeadline("2026-10-11T03:00:00.000Z", "vi", tuesday, ZONE)).toBe(
       "10:00 Chủ nhật, 11/10",
     );
   });
@@ -40,12 +40,22 @@ describe("formatDeadline", () => {
 describe("formatDeadline month", () => {
   it("does not zero-pad the month", () => {
     expect(
-      formatDeadline(
-        "2027-03-05T10:00:00.000Z",
+      formatDeadline("2027-03-05T10:00:00.000Z", "vi",
         new Date("2027-03-01T03:00:00.000Z"),
         ZONE,
       ),
     ).toBe("17:00 thứ Sáu, 5/3");
+  });
+});
+
+describe("formatDeadline in English", () => {
+  const tuesday = new Date("2026-10-06T03:00:00.000Z");
+
+  it("uses English words", () => {
+    expect(formatDeadline(deadline, "en", tuesday, ZONE)).toBe("17:00 Fri, 9/10");
+    expect(
+      formatDeadline(deadline, "en", new Date("2026-10-09T01:00:00.000Z"), ZONE),
+    ).toBe("17:00 today");
   });
 });
 

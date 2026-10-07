@@ -1,4 +1,5 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SalesSummary as Summary, SummaryRow } from "../api/use-orders";
@@ -74,16 +75,20 @@ const three = () => [
 
 const ok = (data: unknown) => ({ data, response: new Response() });
 
-function renderSummary(value: Summary | { status: number } = summary(three())) {
+function renderSummary(
+  value: Summary | { status: number } = summary(three()),
+  locale: "vi" | "en" = "vi",
+) {
   api.GET.mockResolvedValue(
     "status" in value
       ? { error: { code: "X" }, response: new Response(null, { status: value.status }) }
       : ok(value),
   );
-  render(
+  renderWithIntl(
     <QueryProvider>
       <SalesSummary listingId="l1" />
     </QueryProvider>,
+    { locale },
   );
 }
 
@@ -121,6 +126,20 @@ describe("SalesSummary", () => {
     expect(minh).toHaveTextContent("52.500 đ");
     expect(within(minh).getByText("Chưa thanh toán")).toBeInTheDocument();
     expect(screen.getByRole("row", { name: /Lan/ })).toHaveTextContent("Giao sau 14h");
+  });
+
+  it("shows the figures and the table in English", async () => {
+    renderSummary(summary(three()), "en");
+
+    expect(
+      await screen.findByRole("heading", { name: "Hoa quả tuần 41" }),
+    ).toBeInTheDocument();
+    const figures = screen.getAllByRole("definition").map((d) => d.textContent);
+    expect(figures).toEqual(["3", "242,500 VND", "70,000 VND", "172,500 VND"]);
+    expect(screen.getByText("Collected")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Export CSV" })).toBeInTheDocument();
+    expect(screen.getByText("Total of 3 orders")).toBeInTheDocument();
+    expect(screen.getByRole("row", { name: /Minh/ })).toHaveTextContent("1.5");
   });
 
   it("has a column per item, marks a removed one, and totals from the server", async () => {

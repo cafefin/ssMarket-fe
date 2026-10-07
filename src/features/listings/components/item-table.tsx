@@ -1,6 +1,7 @@
+import { useTranslations } from "next-intl";
 import type { ListingItem, ListingMode } from "../api/use-listings";
 import { Price } from "@/shared/ui/atoms/price";
-import { formatQuantity } from "@/shared/lib/format/quantity";
+import { useFormat } from "@/shared/lib/format/use-format";
 
 /** The items of a listing. Stock is shown only for in-stock listings. */
 export function ItemTable({
@@ -10,6 +11,8 @@ export function ItemTable({
   items: ListingItem[];
   mode: ListingMode;
 }) {
+  const t = useTranslations("listings");
+  const format = useFormat();
   const showStock = mode === "in_stock";
   const header =
     "pb-2 text-left text-[11px] font-semibold tracking-wide text-muted-foreground uppercase";
@@ -19,14 +22,14 @@ export function ItemTable({
       <thead>
         <tr>
           <th scope="col" className={header}>
-            Mặt hàng
+            {t("items.item")}
           </th>
           <th scope="col" className={`${header} text-right`}>
-            Đơn giá
+            {t("items.unitPrice")}
           </th>
           {showStock && (
             <th scope="col" className={`${header} text-right`}>
-              Còn lại
+              {t("items.remaining")}
             </th>
           )}
         </tr>
@@ -48,9 +51,9 @@ export function ItemTable({
             {showStock && (
               <td className="py-3 pl-3 text-right whitespace-nowrap">
                 {item.stockQuantity === 0 ? (
-                  <span className="text-error-deep">Hết hàng</span>
+                  <span className="text-error-deep">{t("outOfStock")}</span>
                 ) : (
-                  `${formatQuantity(item.stockQuantity ?? 0)} ${item.unit}`
+                  `${format.quantity(item.stockQuantity ?? 0)} ${item.unit}`
                 )}
               </td>
             )}

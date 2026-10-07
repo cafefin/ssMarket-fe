@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, toApiError, userMessage } from "./api-error";
+import { ApiError, toApiError } from "./api-error";
 
 describe("toApiError", () => {
   it("keeps the status, code and message of a backend error", () => {
@@ -43,29 +43,5 @@ describe("details", () => {
 
     expect(withDetails.details).toEqual({ orderId: "o1" });
     expect(without.details).toEqual({});
-  });
-});
-
-describe("userMessage", () => {
-  it("translates known codes to Vietnamese", () => {
-    expect(userMessage(new ApiError(409, "TOO_MANY_IMAGES", "x"))).toBe(
-      "Mỗi bài đăng có tối đa 5 ảnh.",
-    );
-  });
-
-  it.each([
-    ["CATEGORY_EXISTS", "Đã có danh mục với tên này."],
-    ["CATEGORY_INACTIVE", "Danh mục này đã ngừng nhận bài đăng. Hãy chọn danh mục khác."],
-  ])("explains %s", (code, text) => {
-    expect(userMessage(new ApiError(400, code, "x"))).toBe(text);
-  });
-
-  it("never shows a raw backend or runtime message", () => {
-    expect(userMessage(new ApiError(500, "INTERNAL_SERVER_ERROR", "stack"))).toBe(
-      "Đã có lỗi xảy ra. Vui lòng thử lại.",
-    );
-    expect(userMessage(new TypeError("Failed to fetch"))).toBe(
-      "Đã có lỗi xảy ra. Vui lòng thử lại.",
-    );
   });
 });

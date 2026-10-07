@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { ListingDetail } from "../api/use-listings";
 import { cn } from "@/shared/lib/utils";
@@ -13,6 +14,7 @@ export function ImageGallery({
   images: ListingDetail["images"];
   title: string;
 }) {
+  const t = useTranslations("listings.gallery");
   const [selected, setSelected] = useState(0);
 
   if (images.length === 0) {
@@ -26,7 +28,7 @@ export function ImageGallery({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={current.url}
-        alt={`Ảnh ${selected + 1} của ${title}`}
+        alt={t("photo", { number: selected + 1, title })}
         className="aspect-[4/3] w-full rounded-lg border border-border bg-surface object-contain"
       />
       {images.length > 1 && (
@@ -35,7 +37,7 @@ export function ImageGallery({
             <button
               key={image.id}
               type="button"
-              aria-label={`Xem ảnh ${index + 1}`}
+              aria-label={t("show", { number: index + 1 })}
               aria-pressed={index === selected}
               onClick={() => setSelected(index)}
               className={cn(

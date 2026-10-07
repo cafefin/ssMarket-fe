@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProfilePage from "./page";
 
@@ -21,7 +22,7 @@ describe("ProfilePage", () => {
   });
 
   it("shows a loading placeholder until the user is known", () => {
-    const { container } = render(<ProfilePage />);
+    const { container } = renderWithIntl(<ProfilePage />);
 
     expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
     expect(screen.queryByText(/form for/)).not.toBeInTheDocument();
@@ -30,7 +31,7 @@ describe("ProfilePage", () => {
   it("shows the form with the user's identity once loaded", () => {
     state.data = { name: "An", email: "an@example.com" };
 
-    render(<ProfilePage />);
+    renderWithIntl(<ProfilePage />);
 
     expect(screen.getByRole("heading", { name: "Hồ sơ" })).toBeInTheDocument();
     expect(screen.getByText("An · an@example.com")).toBeInTheDocument();
@@ -40,7 +41,7 @@ describe("ProfilePage", () => {
   it("shows an error when the profile cannot be loaded", () => {
     state.isError = true;
 
-    render(<ProfilePage />);
+    renderWithIntl(<ProfilePage />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Không tải được hồ sơ. Vui lòng tải lại trang.",

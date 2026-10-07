@@ -1,9 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import { describe, expect, it } from "vitest";
 import LoginPage from "./page";
 
 async function renderLogin(params: { error?: string } = {}) {
-  render(await LoginPage({ searchParams: Promise.resolve(params) }));
+  renderWithIntl(await LoginPage({ searchParams: Promise.resolve(params) }));
 }
 
 describe("LoginPage", () => {

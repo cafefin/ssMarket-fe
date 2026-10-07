@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -15,20 +16,12 @@ import {
 import { Button } from "@/shared/ui/atoms/shadcn/button";
 import { Label } from "@/shared/ui/atoms/shadcn/label";
 import { Textarea } from "@/shared/ui/atoms/shadcn/textarea";
-import { userMessage } from "@/shared/api/api-error";
+import { useUserMessage } from "@/shared/api/use-user-message";
 import {
   type Order,
   type OrderAction,
   useOrderAction,
 } from "../api/use-orders";
-
-const DONE: Record<OrderAction, string> = {
-  "report-payment": "Đã báo cho người bán",
-  "confirm-payment": "Đã xác nhận nhận tiền",
-  "reject-payment": "Đã chuyển đơn về chưa thanh toán",
-  deliver: "Đã đánh dấu đã giao",
-  cancel: "Đã hủy đơn",
-};
 
 /** Which actions the viewer may take on an order in its current state. */
 export function availableActions(order: Order): OrderAction[] {
@@ -72,6 +65,9 @@ export function OrderActions({
   compact?: boolean;
 }) {
   const action = useOrderAction();
+  const t = useTranslations("orders.actions");
+  const tc = useTranslations("common");
+  const userMessage = useUserMessage();
   const [confirming, setConfirming] = useState<"cancel" | "reject-payment" | null>(
     null,
   );
@@ -87,7 +83,7 @@ export function OrderActions({
   async function run(name: OrderAction, cancelReason?: string): Promise<void> {
     try {
       await action.mutateAsync({ id: order.id, action: name, reason: cancelReason });
-      toast.success(DONE[name]);
+      toast.success(t(`done.${name}`));
     } catch (error) {
       toast.error(userMessage(error));
     }
@@ -109,7 +105,7 @@ export function OrderActions({
     <div className="flex flex-wrap gap-2">
       {actions.includes("report-payment") && (
         <Button size={size} disabled={busy} onClick={() => void run("report-payment")}>
-          Tôi đã chuyển khoản
+          {t("reportPayment")}
         </Button>
       )}
       {actions.includes("confirm-payment") && (
@@ -119,7 +115,7 @@ export function OrderActions({
           disabled={busy}
           onClick={() => void run("confirm-payment")}
         >
-          Đã nhận tiền
+          {t("confirmPayment")}
         </Button>
       )}
       {actions.includes("deliver") && (
@@ -129,7 +125,7 @@ export function OrderActions({
           disabled={busy}
           onClick={() => void run("deliver")}
         >
-          Đã giao
+          {t("deliver")}
         </Button>
       )}
       {actions.includes("reject-payment") && (
@@ -139,7 +135,7 @@ export function OrderActions({
           disabled={busy}
           onClick={() => setConfirming("reject-payment")}
         >
-          Chưa nhận được
+          {t("rejectPayment")}
         </Button>
       )}
       {actions.includes("cancel") && (
@@ -149,7 +145,7 @@ export function OrderActions({
           disabled={busy}
           onClick={() => setConfirming("cancel")}
         >
-          Hủy đơn
+          {t("cancel")}
         </Button>
       )}
 
@@ -165,21 +161,21 @@ export function OrderActions({
           <AlertDialogHeader>
             <AlertDialogTitle>
               {confirming === "cancel"
-                ? `Hủy đơn ${order.code}?`
-                : "Chưa nhận được tiền?"}
+                ? t("cancelTitle", { code: order.code })
+                : t("rejectTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirming === "cancel"
                 ? isSeller
-                  ? "Người mua sẽ thấy lý do bạn ghi. Nếu họ đã chuyển khoản, bạn cần tự hoàn tiền cho họ."
-                  : "Đơn đã hủy không khôi phục được. Bạn có thể đặt lại sau."
-                : "Đơn sẽ trở về trạng thái chưa thanh toán để người mua kiểm tra lại."}
+                  ? t("cancelSellerBody")
+                  : t("cancelBuyerBody")
+                : t("rejectBody")}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           {confirming === "cancel" && isSeller && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="cancelReason">Lý do hủy</Label>
+              <Label htmlFor="cancelReason">{t("cancelReason")}</Label>
               <Textarea
                 id="cancelReason"
                 rows={2}
@@ -190,14 +186,14 @@ export function OrderActions({
               />
               {reasonMissing && (
                 <p role="alert" className="text-[13px] text-error-deep">
-                  Nhập lý do để người mua biết
+                  {t("reasonRequired")}
                 </p>
               )}
             </div>
           )}
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Không</AlertDialogCancel>
+            <AlertDialogCancel>{tc("no")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (confirming === "cancel" && isSeller && reason.trim() === "") {
@@ -210,7 +206,7 @@ export function OrderActions({
                 closeDialog();
               }}
             >
-              {confirming === "cancel" ? "Hủy đơn" : "Xác nhận"}
+              {confirming === "cancel" ? t("cancel") : t("confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

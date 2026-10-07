@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { UserAvatar } from "@/shared/ui/molecules/user-avatar";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
@@ -10,44 +11,51 @@ import { useCurrentUser } from "@/shared/api/use-current-user";
 import { type ListingDetail, useListing } from "../api/use-listings";
 import { formatDate } from "@/shared/lib/format/datetime";
 import { formatDeadline } from "@/shared/lib/format/deadline";
+import { categoryName } from "../lib/category-name";
 import { ImageGallery } from "./image-gallery";
 import { ItemTable } from "./item-table";
 import { ModeBadge } from "./mode-badge";
 
 function ListingNotFound() {
+  const t = useTranslations();
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center gap-3 px-4 py-24 text-center">
-      <h1 className="text-[22px] font-semibold">Không tìm thấy bài đăng</h1>
+      <h1 className="text-[22px] font-semibold">
+        {t("listings.detail.notFound")}
+      </h1>
       <p className="text-muted-foreground">
-        Bài đăng có thể đã đóng, đã hết hạn chốt đơn hoặc không tồn tại.
+        {t("listings.detail.notFoundHint")}
       </p>
       <Link href="/" className={buttonVariants({ variant: "outline" })}>
-        Về trang chủ
+        {t("common.backHome")}
       </Link>
     </div>
   );
 }
 
-function ownerNote(listing: ListingDetail): string | null {
+/** Why the owner sees a listing that others may not, as a message key. */
+function ownerNote(
+  listing: ListingDetail,
+): "ownerDraft" | "ownerClosed" | "ownerExpired" | null {
   if (listing.status === "draft") {
-    return "Bài đăng đang là bản nháp. Chỉ bạn nhìn thấy nó.";
+    return "ownerDraft";
   }
   if (listing.status === "closed") {
-    return "Bài đăng đã đóng. Chỉ bạn nhìn thấy nó.";
+    return "ownerClosed";
   }
   if (!listing.isOpen) {
-    return "Đã quá hạn chốt đơn. Người khác không còn nhìn thấy bài đăng này.";
+    return "ownerExpired";
   }
   return null;
 }
 
-function paymentMethods(listing: ListingDetail): string {
+function paymentMethods(
+  listing: ListingDetail,
+): ("prepaid_qr" | "pay_on_delivery")[] {
   return [
-    listing.acceptsPrepaidQr && "Chuyển khoản trước qua mã QR",
-    listing.acceptsPayOnDelivery && "Trả tiền khi nhận hàng",
-  ]
-    .filter(Boolean)
-    .join(" · ");
+    ...(listing.acceptsPrepaidQr ? (["prepaid_qr"] as const) : []),
+    ...(listing.acceptsPayOnDelivery ? (["pay_on_delivery"] as const) : []),
+  ];
 }
 
 export function ListingDetailView({
@@ -59,13 +67,17 @@ export function ListingDetailView({
 }) {
   const { data: listing, error, isPending, refetch } = useListing(id);
   const { data: me } = useCurrentUser();
+  const t = useTranslations("listings.detail");
+  const tc = useTranslations("common");
+  const tl = useTranslations("listings");
+  const locale = useLocale();
 
   if (isPending) {
     return (
       <div
         className="mx-auto grid max-w-5xl gap-8 px-4 py-8 sm:px-8 md:grid-cols-2"
         aria-busy="true"
-        aria-label="Đang tải bài đăng"
+        aria-label={t("loading")}
       >
         <Skeleton className="aspect-[4/3] w-full rounded-lg" />
         <div className="flex flex-col gap-4">
@@ -83,13 +95,13 @@ export function ListingDetailView({
     }
     return (
       <div role="alert" className="flex flex-col items-center gap-3 py-24">
-        <p className="text-error-deep">Không tải được bài đăng.</p>
+        <p className="text-error-deep">{t("loadFailed")}</p>
         <button
           type="button"
           className={buttonVariants({ variant: "outline" })}
           onClick={() => void refetch()}
         >
-          Thử lại
+          {tc("retry")}
         </button>
       </div>
     );
@@ -105,7 +117,7 @@ export function ListingDetailView({
       <div className="flex flex-col gap-6">
         {note && (
           <p className="rounded-md border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn-deep">
-            {note}
+            {t(note)}
           </p>
         )}
 
@@ -113,7 +125,7 @@ export function ListingDetailView({
           <div className="flex flex-wrap items-center gap-2">
             <ModeBadge mode={listing.mode} />
             <span className="text-sm text-muted-foreground">
-              {listing.category.name}
+              {categoryName(listing.category, locale)}
             </span>
           </div>
           <h1 className="text-[28px] leading-tight font-bold md:text-4xl">
@@ -127,14 +139,14 @@ export function ListingDetailView({
             />
             <div className="flex flex-col">
               <p className="text-sm text-muted-foreground">
-                Người bán:{" "}
+                {t("seller")}{" "}
                 <span className="text-foreground">{listing.seller.name}</span>
               </p>
               <Link
                 href={`/sellers/${listing.seller.id}`}
                 className="text-[13px] text-primary underline-offset-4 hover:underline"
               >
-                Xem trang người bán
+                {t("sellerPage")}
               </Link>
             </div>
           </div>
@@ -145,22 +157,22 @@ export function ListingDetailView({
           listing.deliveryDate && (
             <dl className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2 rounded-md bg-deadline-soft p-4 text-sm">
               <div>
-                <dt className="text-deadline-deep">Chốt đơn</dt>
+                <dt className="text-deadline-deep">{t("deadline")}</dt>
                 <dd className="font-heading text-[22px] leading-tight font-bold text-deadline-deep">
-                  {formatDeadline(listing.orderDeadline)}
+                  {formatDeadline(listing.orderDeadline, locale)}
                 </dd>
               </div>
               <div>
-                <dt className="text-deadline-deep">Ngày giao</dt>
+                <dt className="text-deadline-deep">{t("deliveryDate")}</dt>
                 <dd className="font-semibold">
                   {formatDate(listing.deliveryDate)}
                 </dd>
               </div>
               {listing.orderCount > 0 && (
                 <div className="min-[560px]:col-span-2">
-                  <dt className="sr-only">Số người đã đặt</dt>
+                  <dt className="sr-only">{t("orderCountLabel")}</dt>
                   <dd className="font-medium text-deadline-deep">
-                    {listing.orderCount} người đã đặt
+                    {tl("orderCount", { count: listing.orderCount })}
                   </dd>
                 </div>
               )}
@@ -170,13 +182,17 @@ export function ListingDetailView({
         <ItemTable items={listing.items} mode={listing.mode} />
 
         <section className="flex flex-col gap-1 text-sm">
-          <h2 className="font-semibold">Thanh toán</h2>
-          <p className="text-muted-foreground">{paymentMethods(listing)}</p>
+          <h2 className="font-semibold">{t("payment")}</h2>
+          <p className="text-muted-foreground">
+            {paymentMethods(listing)
+              .map((method) => tc(`paymentMethods.${method}`))
+              .join(" · ")}
+          </p>
         </section>
 
         {listing.description && (
           <section className="flex flex-col gap-1">
-            <h2 className="text-sm font-semibold">Mô tả</h2>
+            <h2 className="text-sm font-semibold">{t("description")}</h2>
             <p className="whitespace-pre-line">{listing.description}</p>
           </section>
         )}
@@ -189,7 +205,7 @@ export function ListingDetailView({
                 href={`/listings/${listing.id}/edit`}
                 className={buttonVariants({ variant: "outline" })}
               >
-                Sửa bài đăng
+                {t("edit")}
               </Link>
             )}
             {listing.status !== "draft" && (
@@ -197,7 +213,7 @@ export function ListingDetailView({
                 href={`/sell/listings/${listing.id}`}
                 className={buttonVariants({ variant: "outline" })}
               >
-                Bảng tổng hợp đơn hàng
+                {t("summary")}
               </Link>
             )}
           </div>

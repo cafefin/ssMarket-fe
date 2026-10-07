@@ -1,7 +1,9 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { LanguagesIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { UserAvatar } from "@/shared/ui/molecules/user-avatar";
 import {
   DropdownMenu,
@@ -11,10 +13,15 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/atoms/shadcn/dropdown-menu";
 import { api, type CurrentUser } from "@/shared/api/client";
+import { MESSAGES } from "@/shared/i18n/messages";
+import { useSwitchLocale } from "../lib/use-switch-locale";
 
 export function UserMenu({ user }: { user: CurrentUser }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const t = useTranslations("shell.menu");
+  const { locale, switchTo, isPending } = useSwitchLocale();
+  const other = locale === "vi" ? "en" : "vi";
 
   async function handleLogout(): Promise<void> {
     await api.POST("/auth/logout");
@@ -26,7 +33,7 @@ export function UserMenu({ user }: { user: CurrentUser }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`Tài khoản của ${user.name}`}
+        aria-label={t("account", { name: user.name })}
         className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <UserAvatar
@@ -45,29 +52,39 @@ export function UserMenu({ user }: { user: CurrentUser }) {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/profile")}>
-          Hồ sơ
+          {t("profile")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push("/orders")}>
-          Đơn của tôi
+          {t("myOrders")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/sell")}>
-          Bài đăng của tôi
+          {t("myListings")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push("/sell/orders")}>
-          Đơn nhận được
+          {t("receivedOrders")}
         </DropdownMenuItem>
         {user.role === "admin" && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push("/admin/categories")}>
-              Quản lý danh mục
+              {t("categories")}
             </DropdownMenuItem>
           </>
         )}
         <DropdownMenuSeparator />
+        {/* From md up the switch sits in the header instead. */}
+        <DropdownMenuItem
+          className="md:hidden"
+          disabled={isPending}
+          onClick={() => void switchTo(other)}
+        >
+          <LanguagesIcon aria-hidden="true" />
+          {/* The other language, named in that language. */}
+          <span lang={other}>{MESSAGES[other].shell.language.self}</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => void handleLogout()}>
-          Đăng xuất
+          {t("signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

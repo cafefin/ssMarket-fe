@@ -1,0 +1,555 @@
+{
+  "metadata": {
+    "title": "ssMarket",
+    "description": "Sàn mua bán nội bộ dành cho nhân viên."
+  },
+  "format": {
+    "today": "hôm nay",
+    "currency": "đ",
+    "weekdays": {
+      "Mon": "thứ Hai",
+      "Tue": "thứ Ba",
+      "Wed": "thứ Tư",
+      "Thu": "thứ Năm",
+      "Fri": "thứ Sáu",
+      "Sat": "thứ Bảy",
+      "Sun": "Chủ nhật"
+    }
+  },
+  "common": {
+    "priceFrom": "từ",
+    "retry": "Thử lại",
+    "loading": "Đang tải…",
+    "loadMore": "Xem thêm",
+    "backHome": "Về trang chủ",
+    "paymentMethods": {
+      "prepaid_qr": "Chuyển khoản trước qua mã QR",
+      "pay_on_delivery": "Trả tiền khi nhận hàng"
+    },
+    "saving": "Đang lưu…",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "edit": "Sửa",
+    "no": "Không"
+  },
+  "login": {
+    "tagline": "Sàn mua bán nội bộ dành cho nhân viên.",
+    "signInWithGoogle": "Đăng nhập với Google",
+    "errors": {
+      "generic": "Đăng nhập không thành công. Vui lòng thử lại.",
+      "domainNotAllowed": "Chỉ email công ty mới đăng nhập được."
+    }
+  },
+  "errors": {
+    "generic": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+    "codes": {
+      "BANK_PROFILE_REQUIRED": "Bạn cần thêm thông tin ngân hàng trước khi nhận thanh toán qua QR.",
+      "INVALID_IMAGE": "Ảnh phải là file JPEG, PNG hoặc WebP.",
+      "PAYLOAD_TOO_LARGE": "Ảnh lớn hơn 5 MB.",
+      "TOO_MANY_IMAGES": "Mỗi bài đăng có tối đa 5 ảnh.",
+      "INVALID_LISTING_STATE": "Bài đăng đã đổi trạng thái. Hãy tải lại trang rồi thử lại.",
+      "OUT_OF_STOCK": "Một số mặt hàng không còn đủ số lượng.",
+      "LISTING_NOT_OPEN": "Bài đăng này không còn nhận đơn.",
+      "ALREADY_ORDERED": "Bạn đã có đơn cho bài đăng này.",
+      "OWN_LISTING": "Bạn không thể đặt hàng bài đăng của chính mình.",
+      "PAYMENT_METHOD_NOT_ACCEPTED": "Người bán không còn nhận hình thức thanh toán này.",
+      "INVALID_QUANTITY": "Số lượng chưa hợp lệ. Vui lòng kiểm tra lại.",
+      "INVALID_ORDER_STATE": "Đơn hàng đã thay đổi trạng thái. Trang đã được cập nhật, hãy xem lại.",
+      "REQUEST_IN_PROGRESS": "Yêu cầu đang được xử lý, vui lòng chờ một chút.",
+      "ORDER_NOT_EDITABLE": "Đơn này không còn sửa được. Trang đã được cập nhật, hãy xem lại.",
+      "SUMMARY_TOO_LARGE": "Bài đăng có quá nhiều đơn để hiển thị trong một bảng.",
+      "CATEGORY_EXISTS": "Đã có danh mục với tên này.",
+      "CATEGORY_INACTIVE": "Danh mục này đã ngừng nhận bài đăng. Hãy chọn danh mục khác.",
+      "FORBIDDEN": "Bạn không có quyền thực hiện thao tác này.",
+      "NOT_FOUND": "Không tìm thấy nội dung bạn yêu cầu.",
+      "TOO_MANY_REQUESTS": "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
+      "VALIDATION_FAILED": "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.",
+      "BAD_REQUEST": "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại."
+    }
+  },
+  "orders": {
+    "quantityProblem": {
+      "invalid": "Nhập một số hợp lệ",
+      "tooMany": "Tối đa {max}",
+      "kgStep": "Kg đặt theo bước 0,1, từ 0,1",
+      "wholeNumber": "Nhập số nguyên từ 1"
+    },
+    "status": {
+      "payment": {
+        "unpaid": "Chưa thanh toán",
+        "reported": "Chờ xác nhận tiền",
+        "paid": "Đã thanh toán"
+      },
+      "fulfillment": {
+        "pending": "Chờ giao",
+        "delivered": "Đã giao",
+        "cancelled": "Đã hủy"
+      },
+      "refundNeeded": "Cần hoàn tiền"
+    },
+    "list": {
+      "loading": "Đang tải đơn hàng",
+      "loadFailed": "Không tải được danh sách đơn hàng.",
+      "order": "Đơn {code}",
+      "seller": "Người bán: {name}"
+    },
+    "mine": {
+      "title": "Đơn của tôi",
+      "empty": "Bạn chưa đặt đơn nào.",
+      "browse": "Xem hàng đang bán"
+    },
+    "sales": {
+      "title": "Đơn nhận được",
+      "listing": "Bài đăng",
+      "payment": "Thanh toán",
+      "delivery": "Giao hàng",
+      "all": "Tất cả",
+      "empty": "Chưa có đơn nào khớp bộ lọc này."
+    },
+    "qr": {
+      "section": "Thông tin chuyển khoản",
+      "code": "Mã QR chuyển khoản cho đơn {code}",
+      "hint": "Quét bằng app ngân hàng. Số tiền và nội dung đã được điền sẵn.",
+      "bank": "Ngân hàng",
+      "accountNumber": "Số tài khoản",
+      "accountName": "Chủ tài khoản",
+      "amount": "Số tiền",
+      "content": "Nội dung",
+      "copy": "Sao chép",
+      "copyNamed": "Sao chép {label}",
+      "copied": "Đã sao chép"
+    },
+    "panel": {
+      "onlyLeft": "Chỉ còn {quantity} {unit}",
+      "alreadyOrdered": "Bạn đã đặt bài này",
+      "oneOrderPerRound": "Mỗi người có một đơn cho mỗi đợt đặt trước.",
+      "viewYourOrder": "Xem đơn của bạn",
+      "title": "Đặt hàng",
+      "soldOut": " · Hết hàng",
+      "left": " · Còn {quantity}",
+      "lineProblem": "{item}: {problem}",
+      "notEnough": "Không còn đủ hàng:",
+      "shortage": "{item}: còn {quantity}",
+      "total": "Tổng tiền",
+      "payment": "Thanh toán",
+      "paymentLabel": "Thanh toán:",
+      "deliverTo": "Giao đến",
+      "deliverToPlaceholder": "Ví dụ: Tầng 7, khu A",
+      "locationRequired": "Nhập nơi nhận hàng",
+      "note": "Ghi chú (không bắt buộc)",
+      "noItems": "Nhập số lượng cho ít nhất một mặt hàng",
+      "placing": "Đang đặt…",
+      "place": "Đặt hàng"
+    },
+    "editor": {
+      "blocked": {
+        "reported": "Đơn đã báo chuyển khoản, hãy liên hệ người bán để thay đổi.",
+        "pastDeadline": "Đã quá hạn chốt đơn nên không sửa được nữa."
+      },
+      "loading": "Đang tải",
+      "loadFailed": "Không tải được bài đăng để sửa đơn. Vui lòng thử lại.",
+      "updated": "Đã cập nhật đơn",
+      "title": "Sửa đơn",
+      "newTotal": "Tổng tiền mới",
+      "noItems": "Đơn cần ít nhất một mặt hàng. Muốn bỏ hết, hãy hủy đơn.",
+      "saveChanges": "Lưu thay đổi",
+      "dismiss": "Thôi"
+    },
+    "actions": {
+      "done": {
+        "report-payment": "Đã báo cho người bán",
+        "confirm-payment": "Đã xác nhận nhận tiền",
+        "reject-payment": "Đã chuyển đơn về chưa thanh toán",
+        "deliver": "Đã đánh dấu đã giao",
+        "cancel": "Đã hủy đơn"
+      },
+      "reportPayment": "Tôi đã chuyển khoản",
+      "confirmPayment": "Đã nhận tiền",
+      "deliver": "Đã giao",
+      "rejectPayment": "Chưa nhận được",
+      "cancel": "Hủy đơn",
+      "cancelTitle": "Hủy đơn {code}?",
+      "rejectTitle": "Chưa nhận được tiền?",
+      "cancelSellerBody": "Người mua sẽ thấy lý do bạn ghi. Nếu họ đã chuyển khoản, bạn cần tự hoàn tiền cho họ.",
+      "cancelBuyerBody": "Đơn đã hủy không khôi phục được. Bạn có thể đặt lại sau.",
+      "rejectBody": "Đơn sẽ trở về trạng thái chưa thanh toán để người mua kiểm tra lại.",
+      "cancelReason": "Lý do hủy",
+      "reasonRequired": "Nhập lý do để người mua biết",
+      "confirm": "Xác nhận"
+    },
+    "view": {
+      "next": {
+        "cancelledBySeller": "Người bán đã hủy đơn này.",
+        "cancelledByBuyer": "Người mua đã hủy đơn này.",
+        "reason": "Lý do: {reason}",
+        "refundBuyer": "Người bán sẽ hoàn tiền cho bạn; hãy liên hệ họ nếu chưa nhận được.",
+        "refundSeller": "Người mua đã chuyển khoản, bạn cần hoàn tiền cho họ.",
+        "reportedBuyer": "Người bán sẽ xác nhận khi thấy tiền về. Trang này tự cập nhật.",
+        "reportedSeller": "Người mua báo đã chuyển khoản. Hãy kiểm tra sao kê theo mã đơn rồi xác nhận.",
+        "qrBuyer": "Quét mã QR để chuyển khoản, rồi bấm “Tôi đã chuyển khoản”.",
+        "qrSeller": "Đang chờ người mua chuyển khoản.",
+        "onDeliveryBuyer": "Bạn trả tiền cho người bán khi nhận hàng.",
+        "onDeliverySeller": "Thu tiền khi giao hàng, rồi bấm “Đã nhận tiền”.",
+        "paidBuyer": "Đã thanh toán. Đang chờ người bán giao hàng.",
+        "done": "Đơn hàng đã hoàn tất."
+      },
+      "loading": "Đang tải đơn hàng",
+      "notFound": "Không tìm thấy đơn hàng",
+      "loadFailed": "Không tải được đơn hàng",
+      "backToMine": "Về đơn của tôi",
+      "placed": "Đơn bạn đã đặt",
+      "received": "Đơn bạn nhận được",
+      "title": "Đơn <mono>{code}</mono>",
+      "edit": "Sửa đơn",
+      "editHint": " · Bạn có thể đổi số lượng đến hạn chốt đơn.",
+      "total": "Tổng tiền",
+      "seller": "Người bán",
+      "buyer": "Người mua",
+      "deliverTo": "Giao đến",
+      "payment": "Thanh toán",
+      "deliveryDate": "Ngày giao dự kiến",
+      "note": "Ghi chú"
+    },
+    "summary": {
+      "filters": {
+        "all": "Tất cả",
+        "unpaid": "Chưa trả",
+        "reported": "Chờ xác nhận",
+        "undelivered": "Chưa giao"
+      },
+      "failures": {
+        "INVALID_ORDER_STATE": "đã ở trạng thái này hoặc đã hủy",
+        "NOT_IN_LISTING": "không thuộc bài đăng này",
+        "other": "không cập nhật được"
+      },
+      "failure": "{code}: {reason}",
+      "loading": "Đang tải bảng tổng hợp",
+      "notFound": "Không tìm thấy bài đăng",
+      "loadFailed": "Không tải được bảng tổng hợp",
+      "backToMine": "Về bài đăng của tôi",
+      "updated": "Đã cập nhật {count} đơn",
+      "eyebrow": "Bảng tổng hợp đơn hàng",
+      "dates": "Chốt đơn {deadline} · Giao ngày {delivery}",
+      "figures": {
+        "orders": "Số đơn",
+        "total": "Tổng tiền",
+        "paid": "Đã thu",
+        "outstanding": "Còn phải thu"
+      },
+      "filterGroup": "Lọc đơn",
+      "groupByLocation": "Gom theo nơi giao",
+      "sort": "Sắp xếp",
+      "sortBy": {
+        "time": "Thời điểm đặt",
+        "buyer": "Người mua",
+        "location": "Nơi giao"
+      },
+      "exportCsv": "Xuất CSV",
+      "selected": "Đã chọn {count} đơn",
+      "confirmPaid": "Xác nhận đã nhận tiền",
+      "markDelivered": "Đánh dấu đã giao",
+      "someFailed": "Một số đơn không cập nhật được:",
+      "empty": "Chưa có ai đặt hàng ở bài này.",
+      "selectAll": "Chọn tất cả đơn đang hiện",
+      "columns": {
+        "buyer": "Người mua",
+        "location": "Nơi giao",
+        "item": "{name} ({unit})",
+        "discontinued": "đã ngừng bán",
+        "total": "Tổng tiền",
+        "status": "Trạng thái"
+      },
+      "noMatch": "Không có đơn nào khớp bộ lọc này.",
+      "groupCount": "· {count} đơn ·",
+      "markGroupDelivered": "Đánh dấu đã giao cả nhóm",
+      "markGroupDeliveredNamed": "Đánh dấu đã giao cả nhóm {location}",
+      "selectOrder": "Chọn đơn {code}",
+      "totalRow": "Tổng {count} đơn"
+    }
+  },
+  "shell": {
+    "nav": {
+      "home": "Trang chủ",
+      "orders": "Đơn mua",
+      "selling": "Bán hàng",
+      "me": "Tôi"
+    },
+    "mainNavigation": "Điều hướng chính",
+    "sell": "Đăng bán",
+    "searchPlaceholder": "Tìm loa, hoa quả, bàn phím…",
+    "searchLabel": "Tìm kiếm bài đăng",
+    "menu": {
+      "account": "Tài khoản của {name}",
+      "profile": "Hồ sơ",
+      "myOrders": "Đơn của tôi",
+      "myListings": "Bài đăng của tôi",
+      "receivedOrders": "Đơn nhận được",
+      "categories": "Quản lý danh mục",
+      "signOut": "Đăng xuất"
+    },
+    "language": {
+      "label": "Ngôn ngữ",
+      "self": "Tiếng Việt"
+    }
+  },
+  "listings": {
+    "mode": {
+      "in_stock": "Có sẵn",
+      "preorder": "Đặt trước"
+    },
+    "outOfStock": "Hết hàng",
+    "orderCount": "{count} người đã đặt",
+    "card": {
+      "remaining": "còn {quantity} {unit}",
+      "closes": "Chốt {deadline}"
+    },
+    "filters": {
+      "modeGroup": "Hình thức bán",
+      "allModes": "Tất cả",
+      "categoryGroup": "Loại hàng",
+      "allCategories": "Mọi loại hàng"
+    },
+    "items": {
+      "item": "Mặt hàng",
+      "unitPrice": "Đơn giá",
+      "remaining": "Còn lại"
+    },
+    "shelf": {
+      "title": "Sắp chốt đơn",
+      "subtitle": "Đặt trước khi hết giờ, người bán gom một lượt.",
+      "previous": "Xem các món trước",
+      "next": "Xem các món tiếp theo"
+    },
+    "gallery": {
+      "photo": "Ảnh {number} của {title}",
+      "show": "Xem ảnh {number}"
+    },
+    "browser": {
+      "resultsFor": "Kết quả cho “{query}”",
+      "all": "Tất cả món đang bán",
+      "loading": "Đang tải bài đăng",
+      "loadFailed": "Không tải được danh sách bài đăng.",
+      "noResultsFor": "Không tìm thấy kết quả cho “{query}”",
+      "noMatch": "Không có bài đăng nào khớp bộ lọc",
+      "empty": "Chưa có sản phẩm nào",
+      "tryOther": "Thử từ khóa khác hoặc bỏ bớt bộ lọc.",
+      "emptyHint": "Các món đồ đồng nghiệp đăng bán sẽ xuất hiện ở đây.",
+      "clearFilters": "Xóa bộ lọc",
+      "sellFirst": "Đăng bán món đầu tiên"
+    },
+    "detail": {
+      "notFound": "Không tìm thấy bài đăng",
+      "notFoundHint": "Bài đăng có thể đã đóng, đã hết hạn chốt đơn hoặc không tồn tại.",
+      "ownerDraft": "Bài đăng đang là bản nháp. Chỉ bạn nhìn thấy nó.",
+      "ownerClosed": "Bài đăng đã đóng. Chỉ bạn nhìn thấy nó.",
+      "ownerExpired": "Đã quá hạn chốt đơn. Người khác không còn nhìn thấy bài đăng này.",
+      "loading": "Đang tải bài đăng",
+      "loadFailed": "Không tải được bài đăng.",
+      "seller": "Người bán:",
+      "sellerPage": "Xem trang người bán",
+      "deadline": "Chốt đơn",
+      "deliveryDate": "Ngày giao",
+      "orderCountLabel": "Số người đã đặt",
+      "payment": "Thanh toán",
+      "description": "Mô tả",
+      "edit": "Sửa bài đăng",
+      "summary": "Bảng tổng hợp đơn hàng"
+    }
+  },
+  "sellers": {
+    "notFound": "Không tìm thấy người bán này.",
+    "loading": "Đang tải người bán",
+    "deliversAt": "Giao tại {location}",
+    "selling": "Đang bán",
+    "empty": "Người bán này chưa có món nào đang bán."
+  },
+  "profile": {
+    "title": "Hồ sơ",
+    "loadFailed": "Không tải được hồ sơ. Vui lòng tải lại trang.",
+    "saved": "Đã lưu hồ sơ",
+    "delivery": {
+      "title": "Nhận hàng",
+      "location": "Vị trí nhận hàng",
+      "locationHint": "Ví dụ: Tầng 7, khu A. Người bán sẽ giao tới đây."
+    },
+    "bank": {
+      "title": "Tài khoản nhận tiền",
+      "hint": "Chỉ cần khi bạn bán hàng và muốn nhận chuyển khoản qua mã QR. Người mua sẽ thấy thông tin này trên đơn hàng của họ.",
+      "bank": "Ngân hàng",
+      "none": "Chưa chọn",
+      "accountNumber": "Số tài khoản",
+      "accountName": "Tên chủ tài khoản",
+      "accountNameHint": "Hệ thống tự chuyển thành chữ in hoa không dấu, như trên thẻ ngân hàng."
+    },
+    "save": "Lưu hồ sơ",
+    "validation": {
+      "maxLength": "Tối đa {max} ký tự",
+      "bankIncomplete": "Điền đủ ngân hàng, số tài khoản và tên chủ tài khoản",
+      "accountNumber": "Số tài khoản gồm 4–24 chữ cái hoặc chữ số, không có dấu cách",
+      "accountName": "Tên chủ tài khoản gồm 2–120 ký tự"
+    }
+  },
+  "admin": {
+    "title": "Quản lý danh mục",
+    "intro": "Danh mục ẩn không còn trong bộ lọc và form đăng bán; bài đăng cũ vẫn giữ nguyên.",
+    "add": {
+      "title": "Thêm danh mục",
+      "submit": "Thêm",
+      "done": "Đã thêm danh mục"
+    },
+    "fields": {
+      "name": "Tên danh mục",
+      "shortName": "Tên",
+      "nameEn": "Tên tiếng Anh",
+      "sortOrder": "Thứ tự"
+    },
+    "table": {
+      "caption": "Danh sách danh mục",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    },
+    "status": {
+      "active": "Đang hiện",
+      "hidden": "Đang ẩn"
+    },
+    "actions": {
+      "hide": "Ẩn",
+      "show": "Hiện",
+      "editNamed": "Sửa {name}",
+      "hideNamed": "Ẩn {name}",
+      "showNamed": "Hiện {name}"
+    },
+    "saved": "Đã lưu danh mục",
+    "shown": "Đã hiện danh mục",
+    "hidden": "Đã ẩn danh mục",
+    "validation": {
+      "nameRequired": "Nhập tên danh mục",
+      "nameEnRequired": "Nhập tên tiếng Anh",
+      "maxLength": "Tối đa {max} ký tự",
+      "sortOrder": "Thứ tự là số nguyên từ 0"
+    }
+  },
+  "sell": {
+    "title": "Đăng bán",
+    "changeMode": "Đổi hình thức",
+    "modeStep": {
+      "question": "Bạn muốn bán theo cách nào?",
+      "in_stock": {
+        "title": "Hàng có sẵn",
+        "description": "Đồ bạn đang có, bán đến khi hết.",
+        "example": "Ví dụ: loa cũ, sách, đồ gia dụng."
+      },
+      "preorder": {
+        "title": "Đặt trước",
+        "description": "Nhận đăng ký đến hạn chốt, giao theo đợt.",
+        "example": "Ví dụ: hoa quả theo tuần, đồ ăn theo ngày."
+      }
+    },
+    "form": {
+      "modeLabel": "Hình thức:",
+      "title": "Tiêu đề",
+      "titlePlaceholder": {
+        "preorder": "Hoa quả tuần này",
+        "in_stock": "Loa bluetooth JBL cũ"
+      },
+      "category": "Loại hàng",
+      "chooseCategory": "Chọn loại hàng",
+      "hiddenCategory": "{name} (đã ẩn)",
+      "description": "Mô tả",
+      "deadline": "Hạn chốt đơn",
+      "deadlineHint": "Sau thời điểm này không ai đặt thêm được.",
+      "deliveryDate": "Ngày giao",
+      "payment": "Thanh toán",
+      "payOnDeliveryHint": "Bạn giao hàng rồi thu tiền trực tiếp hoặc nhận chuyển khoản sau.",
+      "prepaidQrHint": "Người mua quét mã có sẵn số tiền. Cần thông tin ngân hàng trong hồ sơ của bạn.",
+      "bankRequired": "Bạn cần thêm thông tin ngân hàng trước khi nhận thanh toán qua QR.",
+      "addBank": "Thêm thông tin ngân hàng",
+      "keptExceptImages": ". Nội dung bạn đã nhập sẽ được giữ lại, trừ ảnh.",
+      "saveChanges": "Lưu thay đổi",
+      "publishing": "Đang đăng…",
+      "publish": "Đăng bán",
+      "saveDraft": "Lưu nháp",
+      "imagesFailed": "Đã lưu bài đăng nhưng chưa tải được ảnh: {files}. Hãy thử thêm lại ảnh.",
+      "publishFailed": "Đã lưu bản nháp nhưng chưa đăng được. {reason}",
+      "published": "Đã đăng bán",
+      "changesSaved": "Đã lưu thay đổi",
+      "draftSaved": "Đã lưu bản nháp"
+    },
+    "items": {
+      "title": "Mặt hàng",
+      "hint": {
+        "in_stock": "Mỗi dòng là một món, kèm số lượng bạn đang có.",
+        "preorder": "Mỗi dòng là một lựa chọn, ví dụ cam ngọt và cam vắt. Không cần nhập số lượng."
+      },
+      "item": "Mặt hàng {number}",
+      "name": "Tên",
+      "unit": "Đơn vị",
+      "unitPrice": "Đơn giá (đ)",
+      "stock": "Số lượng có",
+      "remove": "Xóa mặt hàng {number}",
+      "add": "Thêm mặt hàng"
+    },
+    "images": {
+      "title": "Ảnh",
+      "hint": "Tối đa {max} ảnh JPEG, PNG hoặc WebP, mỗi ảnh không quá 5 MB. Ảnh đầu tiên là ảnh đại diện.",
+      "photo": "Ảnh {number}",
+      "newPhoto": "Ảnh {number}: {file}",
+      "remove": "Xóa ảnh {number}",
+      "add": "Thêm ảnh",
+      "tooMany": "Mỗi bài đăng có tối đa {max} ảnh.",
+      "fileProblem": "{file}: {problem}"
+    },
+    "validation": {
+      "title": "Tiêu đề gồm 5–120 ký tự",
+      "category": "Chọn loại hàng",
+      "description": "Mô tả tối đa 5000 ký tự",
+      "payment": "Chọn ít nhất một hình thức thanh toán",
+      "itemCount": "Bài đăng cần 1–{max} mặt hàng",
+      "deadlineRequired": "Chọn hạn chốt đơn",
+      "deadlineFuture": "Hạn chốt đơn phải ở tương lai",
+      "deliveryRequired": "Chọn ngày giao",
+      "deliveryBeforeDeadline": "Ngày giao không được trước hạn chốt đơn",
+      "itemName": "Tên mặt hàng gồm 1–120 ký tự",
+      "unit": "Chọn đơn vị",
+      "unitPrice": "Đơn giá từ 1.000 đ đến 1.000.000.000 đ",
+      "stockPositive": "Nhập số lượng lớn hơn 0",
+      "stockWhole": "Chỉ đơn vị kg được nhập số lẻ"
+    },
+    "edit": {
+      "title": "Sửa bài đăng",
+      "notFound": "Không tìm thấy bài đăng",
+      "closed": "Bài đăng đã đóng nên không sửa được",
+      "loading": "Đang tải bài đăng",
+      "backToMine": "Về bài đăng của tôi",
+      "reopened": "Đây là bản sao của đợt trước. Kiểm tra hạn chốt, ngày giao và giá trước khi đăng."
+    },
+    "mine": {
+      "title": "Bài đăng của tôi",
+      "tabs": "Trạng thái bài đăng",
+      "tab": {
+        "open": "Đang mở",
+        "draft": "Nháp",
+        "closed": "Đã đóng"
+      },
+      "empty": {
+        "open": "Bạn chưa có bài đăng nào đang mở.",
+        "draft": "Bạn không có bản nháp nào.",
+        "closed": "Bạn chưa đóng bài đăng nào."
+      },
+      "loading": "Đang tải bài đăng",
+      "loadFailed": "Không tải được bài đăng của bạn.",
+      "itemCount": "{count} mặt hàng",
+      "from": "từ {price}/{unit}",
+      "closes": "Chốt đơn {time}",
+      "publishedAt": "Đăng lúc {time}",
+      "expired": "Đã quá hạn chốt. Người mua không còn nhìn thấy bài này.",
+      "view": "Xem",
+      "summary": "Tổng hợp",
+      "reopen": "Mở lại",
+      "close": "Đóng bài",
+      "closed": "Đã đóng bài đăng",
+      "closeTitle": "Đóng bài đăng?",
+      "closeBody": "“{title}” sẽ không còn hiện với người mua. Bài đã đóng không mở lại và không sửa được."
+    }
+  }
+}

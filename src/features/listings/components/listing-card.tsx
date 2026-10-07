@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Price } from "@/shared/ui/atoms/price";
 import { UserAvatar } from "@/shared/ui/molecules/user-avatar";
 import type { ListingSummary } from "../api/use-listings";
-import { closesToday, formatDeadline } from "@/shared/lib/format/deadline";
-import { formatQuantity } from "@/shared/lib/format/quantity";
+import { closesToday } from "@/shared/lib/format/deadline";
+import { useFormat } from "@/shared/lib/format/use-format";
 import { cn } from "@/shared/lib/utils";
 import { ImagePlaceholder } from "./image-placeholder";
 
@@ -17,23 +18,28 @@ const FOOT =
  * are green on white, a pre-order shows when it closes on orange.
  */
 function Foot({ listing }: { listing: ListingSummary }) {
+  const t = useTranslations("listings");
+  const format = useFormat();
   if (listing.mode === "in_stock") {
     if (listing.stockQuantity === 0) {
       return (
         <p className={cn(FOOT, "border-t border-border text-muted-foreground")}>
           <span aria-hidden="true" className="size-2 rounded-full bg-muted-foreground" />
-          Hết hàng
+          {t("outOfStock")}
         </p>
       );
     }
     return (
       <p className={cn(FOOT, "border-t border-border text-positive-deep")}>
         <span aria-hidden="true" className="size-2 rounded-full bg-positive" />
-        Có sẵn
+        {t("mode.in_stock")}
         {listing.stockQuantity !== null && (
           <span className="font-normal">
             {" "}
-            còn {formatQuantity(listing.stockQuantity)} {listing.minPriceUnit}
+            {t("card.remaining", {
+              quantity: format.quantity(listing.stockQuantity),
+              unit: listing.minPriceUnit,
+            })}
           </span>
         )}
       </p>
@@ -54,11 +60,13 @@ function Foot({ listing }: { listing: ListingSummary }) {
     >
       <span>
         {listing.orderDeadline
-          ? `Chốt ${formatDeadline(listing.orderDeadline)}`
-          : "Đặt trước"}
+          ? t("card.closes", { deadline: format.deadline(listing.orderDeadline) })
+          : t("mode.preorder")}
       </span>
       {listing.orderCount > 0 && (
-        <span className="font-normal">{listing.orderCount} người đã đặt</span>
+        <span className="font-normal">
+          {t("orderCount", { count: listing.orderCount })}
+        </span>
       )}
     </p>
   );
@@ -73,7 +81,7 @@ export function ListingCard({
 }) {
   const stacked = layout === "stacked";
   // On phones a responsive card is a row: photo on the left, so long
-  // Vietnamese titles and the price keep the full width.
+  // titles and the price keep the full width.
   const photo = stacked
     ? "aspect-[4/3] w-full"
     : "row-span-2 h-full min-h-28 w-full min-[560px]:aspect-[4/3] min-[560px]:h-auto min-[560px]:min-h-0";

@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useClosingSoon } from "../api/use-listings";
 import { ListingCard } from "./listing-card";
@@ -13,6 +14,7 @@ const ARROW =
 
 /** Pre-orders that close soonest, in a row that scrolls sideways. The server orders them (GET /listings?sort=deadline). */
 export function ClosingSoonShelf() {
+  const t = useTranslations("listings.shelf");
   const { data } = useClosingSoon(MAX_ITEMS);
   const row = useRef<HTMLUListElement>(null);
   const [edge, setEdge] = useState({ start: true, end: false });
@@ -63,17 +65,17 @@ export function ClosingSoonShelf() {
         <div className="flex items-center gap-4">
           <div className="mr-auto flex min-w-0 flex-col gap-x-4 sm:flex-row sm:items-baseline">
             <h2 id="closing-soon-title" className="text-[22px] font-bold">
-              Sắp chốt đơn
+              {t("title")}
             </h2>
             <p className="text-[13px] text-deadline-deep">
-              Đặt trước khi hết giờ, người bán gom một lượt.
+              {t("subtitle")}
             </p>
           </div>
           {/* Phones swipe; the buttons are for pointers and keyboards. */}
           <div className="hidden shrink-0 gap-2 min-[560px]:flex">
             <button
               type="button"
-              aria-label="Xem các món trước"
+              aria-label={t("previous")}
               aria-disabled={edge.start}
               onClick={() => !edge.start && slide(-1)}
               className={ARROW}
@@ -82,7 +84,7 @@ export function ClosingSoonShelf() {
             </button>
             <button
               type="button"
-              aria-label="Xem các món tiếp theo"
+              aria-label={t("next")}
               aria-disabled={edge.end}
               onClick={() => !edge.end && slide(1)}
               className={ARROW}

@@ -8,20 +8,21 @@ import {
 
 export interface NavItem {
   href: string;
-  label: string;
+  /** A key in the `shell.nav` messages. */
+  labelKey: "home" | "orders" | "selling" | "me";
   icon: LucideIcon;
 }
 
 /** The destinations shown in the header on wide screens and in the tab bar. */
 export const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/", label: "Trang chủ", icon: HouseIcon },
-  { href: "/orders", label: "Đơn mua", icon: ReceiptTextIcon },
-  { href: "/sell", label: "Bán hàng", icon: StoreIcon },
+  { href: "/", labelKey: "home", icon: HouseIcon },
+  { href: "/orders", labelKey: "orders", icon: ReceiptTextIcon },
+  { href: "/sell", labelKey: "selling", icon: StoreIcon },
 ];
 
 export const PROFILE_ITEM: NavItem = {
   href: "/profile",
-  label: "Tôi",
+  labelKey: "me",
   icon: UserIcon,
 };
 

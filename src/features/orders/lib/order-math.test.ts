@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  formatQuantity,
   lineTotal,
   normalizeQuantity,
   quantityProblem,
@@ -44,8 +43,10 @@ describe("quantityProblem", () => {
   });
 
   it("explains the step for kg and the whole-number rule for other units", () => {
-    expect(quantityProblem("1.25", "kg")).toBe("Kg đặt theo bước 0,1, từ 0,1");
-    expect(quantityProblem("1.5", "hộp")).toBe("Nhập số nguyên từ 1");
+    expect(quantityProblem("1.25", "kg")).toBe("kgStep");
+    expect(quantityProblem("1.5", "hộp")).toBe("wholeNumber");
+    expect(quantityProblem("abc", "hộp")).toBe("invalid");
+    expect(quantityProblem("10000", "hộp")).toBe("tooMany");
   });
 });
 
@@ -53,10 +54,5 @@ describe("formatting", () => {
   it("accepts a comma as the decimal separator", () => {
     expect(normalizeQuantity(" 1,5 ")).toBe("1.5");
     expect(normalizeQuantity("2")).toBe("2");
-  });
-
-  it("shows quantities the Vietnamese way", () => {
-    expect(formatQuantity(1.5)).toBe("1,5");
-    expect(formatQuantity(2)).toBe("2");
   });
 });

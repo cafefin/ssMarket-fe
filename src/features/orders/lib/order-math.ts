@@ -18,39 +18,36 @@ function toThousandths(quantity: string): number | null {
   return Number(whole) * 1000 + Number(fraction.padEnd(3, "0"));
 }
 
-/** Why a quantity cannot be ordered, in Vietnamese, or null when it can. */
-export function quantityProblem(quantity: string, unit: string): string | null {
+/** Why a quantity cannot be ordered; the component turns it into words. */
+export type QuantityProblem = "invalid" | "tooMany" | "kgStep" | "wholeNumber";
+
+export const MAX_ORDER_QUANTITY = MAX_QUANTITY;
+
+/** Why a quantity cannot be ordered, or null when it can. */
+export function quantityProblem(
+  quantity: string,
+  unit: string,
+): QuantityProblem | null {
   const thousandths = toThousandths(quantity);
   if (thousandths === null) {
-    return "Nhập một số hợp lệ";
+    return "invalid";
   }
   if (thousandths > MAX_QUANTITY * 1000) {
-    return `Tối đa ${MAX_QUANTITY}`;
+    return "tooMany";
   }
   if (unit === "kg") {
-    return thousandths >= 100 && thousandths % 100 === 0
-      ? null
-      : "Kg đặt theo bước 0,1, từ 0,1";
+    return thousandths >= 100 && thousandths % 100 === 0 ? null : "kgStep";
   }
   return thousandths >= 1000 && thousandths % 1000 === 0
     ? null
-    : "Nhập số nguyên từ 1";
+    : "wholeNumber";
 }
 
-/** unit price × quantity, rounded half up to a whole đồng. */
+/** unit price × quantity, rounded half up to a whole dong. */
 export function lineTotal(unitPrice: number, quantity: string): number {
   const thousandths = toThousandths(quantity);
   if (thousandths === null) {
     return 0;
   }
   return Math.floor((unitPrice * thousandths + 500) / 1000);
-}
-
-const quantityFormatter = new Intl.NumberFormat("vi-VN", {
-  maximumFractionDigits: 3,
-});
-
-/** 1.5 -> "1,5"; 2 -> "2". */
-export function formatQuantity(quantity: number): string {
-  return quantityFormatter.format(quantity);
 }

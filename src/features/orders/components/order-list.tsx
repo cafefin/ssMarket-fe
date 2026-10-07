@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { Button } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import type { Order } from "../api/use-orders";
 import { formatDateTime } from "@/shared/lib/format/datetime";
-import { formatMoney } from "@/shared/lib/format/money";
+import { useFormat } from "@/shared/lib/format/use-format";
 import { OrderActions } from "./order-actions";
 import { OrderStatusBadges } from "./status-badges";
 
@@ -21,7 +22,7 @@ interface OrderListProps {
   empty: ReactNode;
 }
 
-/** Orders as a list, for the buyer ("Đơn của tôi") and the seller alike. */
+/** Orders as a list, for the buyer ("My orders") and the seller alike. */
 export function OrderList({
   orders,
   isPending,
@@ -32,9 +33,12 @@ export function OrderList({
   onLoadMore,
   empty,
 }: OrderListProps) {
+  const t = useTranslations("orders.list");
+  const tc = useTranslations("common");
+  const format = useFormat();
   if (isPending) {
     return (
-      <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang tải đơn hàng">
+      <div className="flex flex-col gap-3" aria-busy="true" aria-label={t("loading")}>
         <Skeleton className="h-24 w-full rounded-lg" />
         <Skeleton className="h-24 w-full rounded-lg" />
       </div>
@@ -43,9 +47,9 @@ export function OrderList({
   if (isError || !orders) {
     return (
       <div role="alert" className="flex flex-col items-center gap-3 py-12">
-        <p className="text-error-deep">Không tải được danh sách đơn hàng.</p>
+        <p className="text-error-deep">{t("loadFailed")}</p>
         <Button variant="outline" onClick={onRetry}>
-          Thử lại
+          {tc("retry")}
         </Button>
       </div>
     );
@@ -62,7 +66,7 @@ export function OrderList({
           return (
             <li
               key={order.id}
-              aria-label={`Đơn ${order.code}`}
+              aria-label={t("order", { code: order.code })}
               className="flex flex-col gap-3 rounded-lg border border-border p-4"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
@@ -77,12 +81,12 @@ export function OrderList({
                   <p className="text-[13px] text-muted-foreground">
                     {seller
                       ? `${order.buyer.name} · ${order.deliveryLocation}`
-                      : `Người bán: ${order.seller.name}`}{" "}
+                      : t("seller", { name: order.seller.name })}{" "}
                     · {formatDateTime(order.createdAt)}
                   </p>
                 </div>
                 <p className="font-semibold whitespace-nowrap">
-                  {formatMoney(order.totalAmount)}
+                  {format.money(order.totalAmount)}
                 </p>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -96,7 +100,7 @@ export function OrderList({
       {hasNextPage && (
         <div className="flex justify-center">
           <Button variant="outline" disabled={isFetchingNextPage} onClick={onLoadMore}>
-            {isFetchingNextPage ? "Đang tải…" : "Xem thêm"}
+            {isFetchingNextPage ? tc("loading") : tc("loadMore")}
           </Button>
         </div>
       )}

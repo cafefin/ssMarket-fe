@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { selectClassName } from "@/shared/ui/molecules/field";
 import { Label } from "@/shared/ui/atoms/shadcn/label";
 import { useMyListings } from "@/features/listings";
@@ -12,22 +13,18 @@ import {
 } from "../api/use-orders";
 import { OrderList } from "./order-list";
 
-const PAYMENT: { value: PaymentStatus; label: string }[] = [
-  { value: "unpaid", label: "Chưa thanh toán" },
-  { value: "reported", label: "Chờ xác nhận tiền" },
-  { value: "paid", label: "Đã thanh toán" },
-];
-const FULFILLMENT: { value: FulfillmentStatus; label: string }[] = [
-  { value: "pending", label: "Chờ giao" },
-  { value: "delivered", label: "Đã giao" },
-  { value: "cancelled", label: "Đã hủy" },
+const PAYMENT: readonly PaymentStatus[] = ["unpaid", "reported", "paid"];
+const FULFILLMENT: readonly FulfillmentStatus[] = [
+  "pending",
+  "delivered",
+  "cancelled",
 ];
 
 function pick<T extends string>(
   value: string | null,
-  options: { value: T }[],
+  options: readonly T[],
 ): T | null {
-  return options.find((option) => option.value === value)?.value ?? null;
+  return options.find((option) => option === value) ?? null;
 }
 
 /** Orders the seller has received. Filters live in the URL. */
@@ -35,6 +32,7 @@ export function SalesList() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const t = useTranslations("orders");
   const filters: SalesFilters = {
     listingId: params.get("listing"),
     paymentStatus: pick(params.get("payment"), PAYMENT),
@@ -76,7 +74,7 @@ export function SalesList() {
         value={value ?? ""}
         onChange={(event) => setFilter(name, event.target.value)}
       >
-        <option value="">Tất cả</option>
+        <option value="">{t("sales.all")}</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -88,22 +86,34 @@ export function SalesList() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-[28px] leading-tight font-semibold">Đơn nhận được</h1>
+      <h1 className="text-[28px] leading-tight font-semibold">{t("sales.title")}</h1>
       <div className="flex flex-col gap-3 sm:flex-row">
         {filter(
           "filter-listing",
-          "Bài đăng",
+          t("sales.listing"),
           "listing",
           filters.listingId,
           listings.map((listing) => ({ value: listing.id, label: listing.title })),
         )}
-        {filter("filter-payment", "Thanh toán", "payment", filters.paymentStatus, PAYMENT)}
+        {filter(
+          "filter-payment",
+          t("sales.payment"),
+          "payment",
+          filters.paymentStatus,
+          PAYMENT.map((value) => ({
+            value,
+            label: t(`status.payment.${value}`),
+          })),
+        )}
         {filter(
           "filter-delivery",
-          "Giao hàng",
+          t("sales.delivery"),
           "delivery",
           filters.fulfillmentStatus,
-          FULFILLMENT,
+          FULFILLMENT.map((value) => ({
+            value,
+            label: t(`status.fulfillment.${value}`),
+          })),
         )}
       </div>
       <OrderList
@@ -116,7 +126,7 @@ export function SalesList() {
         onLoadMore={() => void sales.fetchNextPage()}
         empty={
           <p className="text-muted-foreground">
-            Chưa có đơn nào khớp bộ lọc này.
+            {t("sales.empty")}
           </p>
         }
       />
