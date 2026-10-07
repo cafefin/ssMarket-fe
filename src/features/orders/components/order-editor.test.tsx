@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Order } from "../api/use-orders";
@@ -56,7 +57,7 @@ function renderOrder(value: Order = order()) {
   api.GET.mockImplementation((path: string) =>
     Promise.resolve(ok(path === "/orders/{id}" ? value : listing)),
   );
-  render(
+  renderWithIntl(
     <QueryProvider>
       <OrderView id="o1" />
     </QueryProvider>,
@@ -84,14 +85,14 @@ describe("editBlockedReason", () => {
 
   it("explains why a reported or late order cannot be edited", () => {
     expect(editBlockedReason(order({ paymentStatus: "reported" }), now)).toBe(
-      "Đơn đã báo chuyển khoản, hãy liên hệ người bán để thay đổi.",
+      "reported",
     );
     expect(
       editBlockedReason(
         order({ listing: { ...order().listing, orderDeadline: PAST } }),
         now,
       ),
-    ).toBe("Đã quá hạn chốt đơn nên không sửa được nữa.");
+    ).toBe("pastDeadline");
   });
 });
 

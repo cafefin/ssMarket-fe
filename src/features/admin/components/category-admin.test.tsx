@@ -1,4 +1,5 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryProvider } from "@/shared/api/query-provider";
@@ -32,7 +33,7 @@ const rows = [
   },
 ];
 
-function setup(role: "admin" | "user" = "admin") {
+function setup(role: "admin" | "user" = "admin", locale: "vi" | "en" = "vi") {
   api.GET.mockImplementation(async (path: string) => {
     if (path === "/users/me") {
       return { data: { id: "u1", name: "An", role } };
@@ -41,10 +42,11 @@ function setup(role: "admin" | "user" = "admin") {
   });
   api.POST.mockResolvedValue({ data: { ...rows[0], id: 9 } });
   api.PATCH.mockResolvedValue({ data: rows[0] });
-  render(
+  renderWithIntl(
     <QueryProvider>
       <CategoryAdmin />
     </QueryProvider>,
+    { locale },
   );
 }
 
@@ -68,6 +70,20 @@ describe("CategoryAdmin", () => {
     expect(
       within(rowOf("Thực phẩm tươi")).getByText("Đang hiện"),
     ).toBeInTheDocument();
+  });
+
+  it("works in English and names rows by their English name", async () => {
+    setup("admin", "en");
+
+    const table = await screen.findByRole("table");
+    expect(
+      within(table).getByRole("columnheader", { name: "English name" }),
+    ).toBeInTheDocument();
+    expect(within(rowOf("Electronics")).getByText("Hidden")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Edit Fresh food" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Show Electronics" })).toBeInTheDocument();
   });
 
   it("adds a category and clears the form", async () => {
@@ -286,7 +302,7 @@ describe("CategoryAdmin", () => {
 
   it("shows a skeleton and fetches no admin data while the user loads", () => {
     api.GET.mockReturnValue(new Promise(() => {}));
-    render(
+    renderWithIntl(
       <QueryProvider>
         <CategoryAdmin />
       </QueryProvider>,

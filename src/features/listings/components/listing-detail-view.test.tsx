@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react";
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ListingDetail } from "../api/use-listings";
@@ -53,11 +54,15 @@ function serve(detail: ListingDetail | { status: number }, viewerId = "buyer-1")
   });
 }
 
-function renderView(props: Partial<ComponentProps<typeof ListingDetailView>> = {}) {
-  render(
+function renderView(
+  props: Partial<ComponentProps<typeof ListingDetailView>> = {},
+  locale: "vi" | "en" = "vi",
+) {
+  renderWithIntl(
     <QueryProvider>
       <ListingDetailView id="l1" {...props} />
     </QueryProvider>,
+    { locale },
   );
 }
 
@@ -109,6 +114,24 @@ describe("ListingDetailView", () => {
     expect(screen.getByText(/Còn mới 90%/)).toHaveClass("whitespace-pre-line");
     expect(screen.getByTestId("image-placeholder")).toBeInTheDocument();
     expect(screen.queryByText("Chốt đơn")).not.toBeInTheDocument();
+  });
+
+  it("shows the listing in English, with the English category name", async () => {
+    serve(listing());
+
+    renderView({}, "en");
+
+    expect(
+      await screen.findByRole("heading", { name: "Loa bluetooth cũ" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("In stock")).toBeInTheDocument();
+    expect(screen.getByText("Electronics")).toBeInTheDocument();
+    const loa = screen.getByRole("row", { name: /Loa JBL Go 3/ });
+    expect(within(loa).getByText("500,000 VND/cái")).toBeInTheDocument();
+    expect(
+      screen.getByText("Bank transfer in advance by QR code · Pay on delivery"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "View seller page" })).toBeInTheDocument();
   });
 
   it("shows a pre-order with its deadline and delivery date and no stock column", async () => {

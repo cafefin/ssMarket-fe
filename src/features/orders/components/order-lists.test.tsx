@@ -1,4 +1,5 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Order } from "../api/use-orders";
@@ -68,7 +69,7 @@ describe("MyOrders", () => {
   });
 
   function renderList() {
-    render(
+    renderWithIntl(
       <QueryProvider>
         <MyOrders />
       </QueryProvider>,
@@ -147,7 +148,7 @@ describe("SalesList", () => {
   });
 
   function renderList() {
-    render(
+    renderWithIntl(
       <QueryProvider>
         <SalesList />
       </QueryProvider>,

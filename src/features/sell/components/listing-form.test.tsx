@@ -1,4 +1,5 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/shared/api/api-error";
@@ -24,8 +25,8 @@ vi.mock("next/navigation", () => ({
 vi.mock("../lib/submit-listing", () => ({ submitListing }));
 
 const categories = [
-  { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi" },
-  { id: 4, slug: "dien-tu", name: "Điện tử" },
+  { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food" },
+  { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
 ];
 
 const saved = (overrides: object = {}) => ({
@@ -39,7 +40,7 @@ const saved = (overrides: object = {}) => ({
 async function renderForm(
   props: Partial<Parameters<typeof ListingForm>[0]> = {},
 ) {
-  render(
+  renderWithIntl(
     <QueryProvider>
       <ListingForm mode="in_stock" initialValues={emptyListing()} {...props} />
     </QueryProvider>,
@@ -130,6 +131,31 @@ describe("ListingForm", () => {
         ]),
       );
       expect(field("Tiêu đề")).toHaveAttribute("aria-invalid", "true");
+      expect(submitListing).not.toHaveBeenCalled();
+    });
+
+    it("labels the form and explains errors in English", async () => {
+      renderWithIntl(
+        <QueryProvider>
+          <ListingForm mode="in_stock" initialValues={emptyListing()} />
+        </QueryProvider>,
+        { locale: "en" },
+      );
+      await screen.findByRole("option", { name: "Electronics" });
+
+      await click("Publish");
+
+      await screen.findByText("The title has 5–120 characters");
+      const messages = screen
+        .getAllByRole("alert")
+        .map((alert) => alert.textContent);
+      expect(messages).toEqual(
+        expect.arrayContaining([
+          "Choose a category",
+          "The unit price is from 1,000 VND to 1,000,000,000 VND",
+        ]),
+      );
+      expect(field("Unit price (VND)")).toBeInTheDocument();
       expect(submitListing).not.toHaveBeenCalled();
     });
 

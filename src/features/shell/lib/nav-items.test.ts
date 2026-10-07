@@ -3,12 +3,12 @@ import { isActive, NAV_ITEMS, PROFILE_ITEM } from "./nav-items";
 
 describe("navigation items", () => {
   it("lists the three main destinations and the profile", () => {
-    expect(NAV_ITEMS.map((item) => [item.label, item.href])).toEqual([
-      ["Trang chủ", "/"],
-      ["Đơn mua", "/orders"],
-      ["Bán hàng", "/sell"],
+    expect(NAV_ITEMS.map((item) => [item.labelKey, item.href])).toEqual([
+      ["home", "/"],
+      ["orders", "/orders"],
+      ["selling", "/sell"],
     ]);
-    expect([PROFILE_ITEM.label, PROFILE_ITEM.href]).toEqual(["Tôi", "/profile"]);
+    expect([PROFILE_ITEM.labelKey, PROFILE_ITEM.href]).toEqual(["me", "/profile"]);
   });
 
   it.each([

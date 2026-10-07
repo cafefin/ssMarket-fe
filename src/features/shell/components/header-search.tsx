@@ -1,6 +1,7 @@
 "use client";
 
 import { SearchIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { Input } from "@/shared/ui/atoms/shadcn/input";
@@ -11,6 +12,7 @@ import { Input } from "@/shared/ui/atoms/shadcn/input";
  */
 export function HeaderSearch({ className }: { className?: string }) {
   const router = useRouter();
+  const t = useTranslations("shell");
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const current = searchParams.get("q") ?? "";
@@ -43,8 +45,8 @@ export function HeaderSearch({ className }: { className?: string }) {
           name="q"
           defaultValue={current}
           maxLength={100}
-          placeholder="Tìm loa, hoa quả, bàn phím…"
-          aria-label="Tìm kiếm bài đăng"
+          placeholder={t("searchPlaceholder")}
+          aria-label={t("searchLabel")}
           className="h-11 rounded-full bg-surface pl-9"
         />
       </div>

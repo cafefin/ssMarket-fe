@@ -21,3 +21,4 @@ export {
   useReopenListing,
 } from "./api/use-my-listings";
 export type { ListingStatus } from "./api/use-my-listings";
+export { categoryName } from "./lib/category-name";

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Bricolage_Grotesque, Geist_Mono, Inter } from "next/font/google";
 import { Toaster } from "@/shared/ui/atoms/shadcn/sonner";
 import { QueryProvider } from "@/shared/api/query-provider";
@@ -20,20 +22,24 @@ const bricolage = Bricolage_Grotesque({
   subsets: ["latin", "vietnamese"],
 });
 
-export const metadata: Metadata = {
-  title: "ssMarket",
-  description: "Sàn mua bán nội bộ dành cho nhân viên.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata");
+  return { title: t("title"), description: t("description") };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // From the NEXT_LOCALE cookie; see src/shared/i18n/request.ts.
+  const locale = await getLocale();
   return (
     <html
-      lang="vi"
+      lang={locale}
       className={`${inter.variable} ${geistMono.variable} ${bricolage.variable}`}
     >
       <body>
-        <QueryProvider>{children}</QueryProvider>
-        <Toaster position="top-center" />
+        <NextIntlClientProvider>
+          <QueryProvider>{children}</QueryProvider>
+          <Toaster position="top-center" />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryProvider } from "@/shared/api/query-provider";
@@ -31,7 +32,7 @@ function serve(items: ReturnType<typeof preorder>[]) {
 }
 
 function renderShelf() {
-  render(
+  renderWithIntl(
     <QueryProvider>
       <ClosingSoonShelf />
     </QueryProvider>,

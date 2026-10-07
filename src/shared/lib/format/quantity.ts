@@ -1,11 +1,11 @@
-const quantityFormatter = new Intl.NumberFormat("vi-VN", {
-  maximumFractionDigits: 3,
-});
+import type { Locale } from "@/shared/i18n/config";
 
-/**
- * Format a quantity value using Vietnamese number format.
- * Decimal quantities like 2.5 are formatted as "2,5" with comma as decimal separator.
- */
-export function formatQuantity(value: number): string {
-  return quantityFormatter.format(value);
+const FORMATTERS: Record<Locale, Intl.NumberFormat> = {
+  vi: new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 3 }),
+  en: new Intl.NumberFormat("en-US", { maximumFractionDigits: 3 }),
+};
+
+/** 2.5 -> "2,5" (vi) or "2.5" (en); at most three decimals. */
+export function formatQuantity(value: number, locale: Locale): string {
+  return FORMATTERS[locale].format(value);
 }

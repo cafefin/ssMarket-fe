@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ModeBadge, type ListingDetail, type ListingStatus, useCloseListing, useMyListings, usePublishListing, useReopenListing } from "@/features/listings";
@@ -17,37 +18,41 @@ import {
 } from "@/shared/ui/atoms/shadcn/alert-dialog";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
-import { userMessage } from "@/shared/api/api-error";
+import { useUserMessage } from "@/shared/api/use-user-message";
+import type { Translator } from "@/shared/i18n/translator";
 import { formatDateTime } from "@/shared/lib/format/datetime";
-import { formatMoney } from "@/shared/lib/format/money";
+import { useFormat } from "@/shared/lib/format/use-format";
 import { cn } from "@/shared/lib/utils";
 
-const TABS: { status: ListingStatus; label: string; empty: string }[] = [
-  { status: "open", label: "Đang mở", empty: "Bạn chưa có bài đăng nào đang mở." },
-  { status: "draft", label: "Nháp", empty: "Bạn không có bản nháp nào." },
-  { status: "closed", label: "Đã đóng", empty: "Bạn chưa đóng bài đăng nào." },
-];
+const TABS: readonly ListingStatus[] = ["open", "draft", "closed"];
 
-function cheapest(listing: ListingDetail): string {
-  const item = listing.items.reduce((low, current) =>
+function cheapest(listing: ListingDetail) {
+  return listing.items.reduce((low, current) =>
     current.unitPrice < low.unitPrice ? current : low,
   );
-  return `từ ${formatMoney(item.unitPrice)}/${item.unit}`;
 }
 
-function when(listing: ListingDetail): string | null {
+function when(
+  listing: ListingDetail,
+  t: Translator<"sell.mine">,
+): string | null {
   if (listing.orderDeadline) {
-    return `Chốt đơn ${formatDateTime(listing.orderDeadline)}`;
+    return t("closes", { time: formatDateTime(listing.orderDeadline) });
   }
   return listing.publishedAt
-    ? `Đăng lúc ${formatDateTime(listing.publishedAt)}`
+    ? t("publishedAt", { time: formatDateTime(listing.publishedAt) })
     : null;
 }
 
 export function MyListings() {
   const requested = useSearchParams().get("tab");
-  const tab = TABS.find((candidate) => candidate.status === requested) ?? TABS[0];
-  const listings = useMyListings(tab.status);
+  const tab = TABS.find((candidate) => candidate === requested) ?? TABS[0];
+  const listings = useMyListings(tab);
+  const t = useTranslations("sell.mine");
+  const ts = useTranslations("sell");
+  const tc = useTranslations("common");
+  const format = useFormat();
+  const userMessage = useUserMessage();
   const publish = usePublishListing();
   const close = useCloseListing();
   const reopen = useReopenListing();
@@ -83,20 +88,20 @@ export function MyListings() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[28px] leading-tight font-semibold">
-          Bài đăng của tôi
+          {t("title")}
         </h1>
         <Link href="/sell/new" className={buttonVariants()}>
-          Đăng bán
+          {ts("title")}
         </Link>
       </div>
 
-      <nav aria-label="Trạng thái bài đăng" className="flex gap-6 border-b border-border">
+      <nav aria-label={t("tabs")} className="flex gap-6 border-b border-border">
         {TABS.map((candidate) => {
-          const active = candidate.status === tab.status;
+          const active = candidate === tab;
           return (
             <Link
-              key={candidate.status}
-              href={`/sell?tab=${candidate.status}`}
+              key={candidate}
+              href={`/sell?tab=${candidate}`}
               aria-current={active ? "page" : undefined}
               className={cn(
                 "-mb-px border-b-2 py-3 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
@@ -105,14 +110,14 @@ export function MyListings() {
                   : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >
-              {candidate.label}
+              {t(`tab.${candidate}`)}
             </Link>
           );
         })}
       </nav>
 
       {listings.isPending && (
-        <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang tải bài đăng">
+        <div className="flex flex-col gap-3" aria-busy="true" aria-label={t("loading")}>
           <Skeleton className="h-20 w-full rounded-lg" />
           <Skeleton className="h-20 w-full rounded-lg" />
         </div>
@@ -120,18 +125,18 @@ export function MyListings() {
 
       {listings.isError && (
         <div role="alert" className="flex flex-col items-center gap-3 py-12">
-          <p className="text-error-deep">Không tải được bài đăng của bạn.</p>
+          <p className="text-error-deep">{t("loadFailed")}</p>
           <Button variant="outline" onClick={() => void listings.refetch()}>
-            Thử lại
+            {tc("retry")}
           </Button>
         </div>
       )}
 
       {listings.data?.length === 0 && (
         <div className="flex flex-col items-center gap-3 py-12 text-center">
-          <p className="text-muted-foreground">{tab.empty}</p>
+          <p className="text-muted-foreground">{t(`empty.${tab}`)}</p>
           <Link href="/sell/new" className={buttonVariants({ variant: "outline" })}>
-            Đăng bán
+            {ts("title")}
           </Link>
         </div>
       )}
@@ -140,6 +145,8 @@ export function MyListings() {
         <ul className="flex flex-col gap-3">
           {listings.data.map((listing) => {
             const expired = listing.status === "open" && !listing.isOpen;
+            const low = cheapest(listing);
+            const time = when(listing, t);
             return (
               <li
                 key={listing.id}
@@ -152,12 +159,16 @@ export function MyListings() {
                     <ModeBadge mode={listing.mode} />
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {listing.items.length} mặt hàng · {cheapest(listing)}
-                    {when(listing) && ` · ${when(listing)}`}
+                    {t("itemCount", { count: listing.items.length })} ·{" "}
+                    {t("from", {
+                      price: format.money(low.unitPrice),
+                      unit: low.unit,
+                    })}
+                    {time && ` · ${time}`}
                   </p>
                   {expired && (
                     <p className="text-sm text-warn-deep">
-                      Đã quá hạn chốt. Người mua không còn nhìn thấy bài này.
+                      {t("expired")}
                     </p>
                   )}
                 </div>
@@ -167,14 +178,14 @@ export function MyListings() {
                     href={`/listings/${listing.id}`}
                     className={buttonVariants({ ...small, variant: "ghost" })}
                   >
-                    Xem
+                    {t("view")}
                   </Link>
                   {listing.status !== "draft" && (
                     <Link
                       href={`/sell/listings/${listing.id}`}
                       className={buttonVariants({ ...small, variant: "ghost" })}
                     >
-                      Tổng hợp
+                      {t("summary")}
                     </Link>
                   )}
                   {listing.status !== "closed" && (
@@ -182,16 +193,18 @@ export function MyListings() {
                       href={`/listings/${listing.id}/edit`}
                       className={buttonVariants({ ...small, variant: "outline" })}
                     >
-                      Sửa
+                      {tc("edit")}
                     </Link>
                   )}
                   {listing.status === "draft" && (
                     <Button
                       {...small}
                       disabled={publish.isPending}
-                      onClick={() => void run(publish, listing.id, "Đã đăng bán")}
+                      onClick={() =>
+                        void run(publish, listing.id, ts("form.published"))
+                      }
                     >
-                      Đăng bán
+                      {ts("form.publish")}
                     </Button>
                   )}
                   {listing.mode === "preorder" &&
@@ -201,7 +214,7 @@ export function MyListings() {
                         disabled={reopen.isPending}
                         onClick={() => void reopenRound(listing.id)}
                       >
-                        Mở lại
+                        {t("reopen")}
                       </Button>
                     )}
                   {listing.status === "open" && (
@@ -210,7 +223,7 @@ export function MyListings() {
                       variant="outline"
                       onClick={() => setClosing(listing)}
                     >
-                      Đóng bài
+                      {t("close")}
                     </Button>
                   )}
                 </div>
@@ -230,24 +243,23 @@ export function MyListings() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Đóng bài đăng?</AlertDialogTitle>
+            <AlertDialogTitle>{t("closeTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              “{closing?.title}” sẽ không còn hiện với người mua. Bài đã đóng
-              không mở lại và không sửa được.
+              {t("closeBody", { title: closing?.title ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Không</AlertDialogCancel>
+            <AlertDialogCancel>{tc("no")}</AlertDialogCancel>
             <AlertDialogAction
               disabled={close.isPending}
               onClick={() => {
                 if (closing) {
-                  void run(close, closing.id, "Đã đóng bài đăng");
+                  void run(close, closing.id, t("closed"));
                 }
                 setClosing(null);
               }}
             >
-              Đóng bài
+              {t("close")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

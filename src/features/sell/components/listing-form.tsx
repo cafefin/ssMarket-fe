@@ -4,16 +4,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Field, selectClassName } from "@/shared/ui/molecules/field";
 import { Button } from "@/shared/ui/atoms/shadcn/button";
 import { Input } from "@/shared/ui/atoms/shadcn/input";
 import { Textarea } from "@/shared/ui/atoms/shadcn/textarea";
-import { ApiError, userMessage } from "@/shared/api/api-error";
+import { ApiError } from "@/shared/api/api-error";
+import { useUserMessage } from "@/shared/api/use-user-message";
 import { api } from "@/shared/api/client";
-import { useCategories, MY_LISTINGS_QUERY_KEY, type ListingDetail, LISTINGS_QUERY_KEY, listingQueryKey } from "@/features/listings";
+import { categoryName, useCategories, MY_LISTINGS_QUERY_KEY, type ListingDetail, LISTINGS_QUERY_KEY, listingQueryKey } from "@/features/listings";
 import {
   type ListingFormValues,
   type ListingMode,
@@ -36,11 +38,6 @@ interface ListingFormProps {
   onSaved?: () => void;
 }
 
-const MODE_LABEL: Record<ListingMode, string> = {
-  in_stock: "Hàng có sẵn",
-  preorder: "Đặt trước",
-};
-
 export function ListingForm({
   mode,
   initialValues,
@@ -51,6 +48,13 @@ export function ListingForm({
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const t = useTranslations("sell.form");
+  const tv = useTranslations("sell.validation");
+  const tm = useTranslations("sell.modeStep");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const userMessage = useUserMessage();
+  const schema = useMemo(() => listingSchema(mode, tv), [mode, tv]);
   const { data: categories = [], isSuccess: categoriesLoaded } =
     useCategories();
   const [addedImages, setAddedImages] = useState<File[]>([]);
@@ -67,7 +71,7 @@ export function ListingForm({
     setValue,
     formState: { errors },
   } = useForm<ListingFormValues>({
-    resolver: zodResolver(listingSchema(mode)),
+    resolver: zodResolver(schema),
     defaultValues: initialValues,
   });
 
@@ -122,19 +126,19 @@ export function ListingForm({
 
         if (result.failedImages.length > 0) {
           toast.error(
-            `Đã lưu bài đăng nhưng chưa tải được ảnh: ${result.failedImages.join(", ")}. Hãy thử thêm lại ảnh.`,
+            t("imagesFailed", { files: result.failedImages.join(", ") }),
           );
           router.replace(`/listings/${result.id}/edit`);
         } else if (result.publishError) {
           toast.error(
-            `Đã lưu bản nháp nhưng chưa đăng được. ${userMessage(result.publishError)}`,
+            t("publishFailed", { reason: userMessage(result.publishError) }),
           );
           router.replace(`/listings/${result.id}/edit`);
         } else if (result.published || isOpen) {
-          toast.success(result.published ? "Đã đăng bán" : "Đã lưu thay đổi");
+          toast.success(result.published ? t("published") : t("changesSaved"));
           router.push(`/listings/${result.id}`);
         } else {
-          toast.success("Đã lưu bản nháp");
+          toast.success(t("draftSaved"));
           router.push("/sell?tab=draft");
         }
       } catch (error) {
@@ -156,23 +160,24 @@ export function ListingForm({
       className="flex flex-col gap-8"
     >
       <p className="text-sm text-muted-foreground">
-        Hình thức: <span className="font-medium text-foreground">{MODE_LABEL[mode]}</span>
+        {t("modeLabel")}{" "}
+        <span className="font-medium text-foreground">
+          {tm(`${mode}.title`)}
+        </span>
       </p>
 
       <section className="flex flex-col gap-4">
-        <Field htmlFor="title" label="Tiêu đề" error={errors.title?.message}>
+        <Field htmlFor="title" label={t("title")} error={errors.title?.message}>
           <Input
             id="title"
-            placeholder={
-              mode === "preorder" ? "Hoa quả tuần này" : "Loa bluetooth JBL cũ"
-            }
+            placeholder={t(`titlePlaceholder.${mode}`)}
             aria-invalid={Boolean(errors.title)}
             {...register("title")}
           />
         </Field>
         <Field
           htmlFor="categoryId"
-          label="Loại hàng"
+          label={t("category")}
           error={errors.categoryId?.message}
         >
           <select
@@ -181,22 +186,24 @@ export function ListingForm({
             aria-invalid={Boolean(errors.categoryId)}
             {...register("categoryId")}
           >
-            <option value="">Chọn loại hàng</option>
+            <option value="">{t("chooseCategory")}</option>
             {categories.map((category) => (
               <option key={category.id} value={String(category.id)}>
-                {category.name}
+                {categoryName(category, locale)}
               </option>
             ))}
             {hiddenCategory && (
               <option value={String(hiddenCategory.id)}>
-                {hiddenCategory.name} (đã ẩn)
+                {t("hiddenCategory", {
+                  name: categoryName(hiddenCategory, locale),
+                })}
               </option>
             )}
           </select>
         </Field>
         <Field
           htmlFor="description"
-          label="Mô tả"
+          label={t("description")}
           error={errors.description?.message}
         >
           <Textarea id="description" rows={4} {...register("description")} />
@@ -207,8 +214,8 @@ export function ListingForm({
         <section className="grid gap-4 sm:grid-cols-2">
           <Field
             htmlFor="orderDeadline"
-            label="Hạn chốt đơn"
-            hint="Sau thời điểm này không ai đặt thêm được."
+            label={t("deadline")}
+            hint={t("deadlineHint")}
             error={errors.orderDeadline?.message}
           >
             <Input
@@ -220,7 +227,7 @@ export function ListingForm({
           </Field>
           <Field
             htmlFor="deliveryDate"
-            label="Ngày giao"
+            label={t("deliveryDate")}
             error={errors.deliveryDate?.message}
           >
             <Input
@@ -248,7 +255,7 @@ export function ListingForm({
       />
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="text-lg font-semibold">Thanh toán</legend>
+        <legend className="text-lg font-semibold">{t("payment")}</legend>
         <label className="flex items-start gap-3">
           <input
             type="checkbox"
@@ -256,9 +263,9 @@ export function ListingForm({
             {...register("acceptsPayOnDelivery")}
           />
           <span>
-            Trả tiền khi nhận hàng
+            {tc("paymentMethods.pay_on_delivery")}
             <span className="block text-sm text-muted-foreground">
-              Bạn giao hàng rồi thu tiền trực tiếp hoặc nhận chuyển khoản sau.
+              {t("payOnDeliveryHint")}
             </span>
           </span>
         </label>
@@ -269,10 +276,9 @@ export function ListingForm({
             {...register("acceptsPrepaidQr")}
           />
           <span>
-            Chuyển khoản trước qua mã QR
+            {tc("paymentMethods.prepaid_qr")}
             <span className="block text-sm text-muted-foreground">
-              Người mua quét mã có sẵn số tiền. Cần thông tin ngân hàng trong hồ
-              sơ của bạn.
+              {t("prepaidQrHint")}
             </span>
           </span>
         </label>
@@ -286,14 +292,14 @@ export function ListingForm({
             role="alert"
             className="rounded-md border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn-deep"
           >
-            Bạn cần thêm thông tin ngân hàng trước khi nhận thanh toán qua QR.{" "}
+            {t("bankRequired")}{" "}
             <Link
               href={`/profile?next=${encodeURIComponent(pathname)}`}
               className="font-medium underline"
             >
-              Thêm thông tin ngân hàng
+              {t("addBank")}
             </Link>
-            {!listing && ". Nội dung bạn đã nhập sẽ được giữ lại, trừ ảnh."}
+            {!listing && t("keptExceptImages")}
           </p>
         )}
       </fieldset>
@@ -305,7 +311,7 @@ export function ListingForm({
             disabled={submitting !== null}
             onClick={() => void save(false)()}
           >
-            {submitting ? "Đang lưu…" : "Lưu thay đổi"}
+            {submitting ? tc("saving") : t("saveChanges")}
           </Button>
         ) : (
           <>
@@ -314,7 +320,7 @@ export function ListingForm({
               disabled={submitting !== null}
               onClick={() => void save(true)()}
             >
-              {submitting === "publish" ? "Đang đăng…" : "Đăng bán"}
+              {submitting === "publish" ? t("publishing") : t("publish")}
             </Button>
             <Button
               type="button"
@@ -322,7 +328,7 @@ export function ListingForm({
               disabled={submitting !== null}
               onClick={() => void save(false)()}
             >
-              {submitting === "draft" ? "Đang lưu…" : "Lưu nháp"}
+              {submitting === "draft" ? tc("saving") : t("saveDraft")}
             </Button>
           </>
         )}

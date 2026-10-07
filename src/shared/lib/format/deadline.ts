@@ -1,17 +1,10 @@
-const WEEKDAYS: Record<string, string> = {
-  Mon: "thứ Hai",
-  Tue: "thứ Ba",
-  Wed: "thứ Tư",
-  Thu: "thứ Năm",
-  Fri: "thứ Sáu",
-  Sat: "thứ Bảy",
-  Sun: "Chủ nhật",
-};
+import type { Locale } from "@/shared/i18n/config";
+import { MESSAGES } from "@/shared/i18n/messages";
 
 function parts(date: Date, timeZone?: string): Record<string, string> {
   const result: Record<string, string> = {};
-  // en-GB only supplies stable part values; the Vietnamese words come from
-  // WEEKDAYS so the output does not depend on the runtime's locale data.
+  // en-GB only supplies stable part values; the words come from the message
+  // files so the output does not depend on the runtime's locale data.
   for (const part of new Intl.DateTimeFormat("en-GB", {
     timeZone,
     hour: "2-digit",
@@ -39,18 +32,22 @@ export function closesToday(
 }
 
 /**
- * A closing time for cards: "17:00 hôm nay", or "17:00 thứ Sáu, 9/10" on any
- * other day. The year is left out because pre-orders close within weeks.
+ * A closing time for cards: "17:00 today", or "17:00 Fri, 9/10" on any other
+ * day (in the words of `locale`). The year is left out because pre-orders
+ * close within weeks.
  */
 export function formatDeadline(
   iso: string,
+  locale: Locale,
   now: Date = new Date(),
   timeZone?: string,
 ): string {
+  const words = MESSAGES[locale].format;
   const d = parts(new Date(iso), timeZone);
   const time = `${d.hour}:${d.minute}`;
   if (closesToday(iso, now, timeZone)) {
-    return `${time} hôm nay`;
+    return `${time} ${words.today}`;
   }
-  return `${time} ${WEEKDAYS[d.weekday]}, ${Number(d.day)}/${Number(d.month)}`;
+  const weekday = words.weekdays[d.weekday as keyof typeof words.weekdays];
+  return `${time} ${weekday}, ${Number(d.day)}/${Number(d.month)}`;
 }

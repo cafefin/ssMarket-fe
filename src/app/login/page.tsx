@@ -1,13 +1,18 @@
+import { getTranslations } from "next-intl/server";
 import { Wordmark } from "@/shared/ui/atoms/wordmark";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 
-const GENERIC_ERROR = "Đăng nhập không thành công. Vui lòng thử lại.";
+// Only these fixed messages are ever rendered; the query value itself is not.
+const ERROR_KEYS = {
+  domain_not_allowed: "errors.domainNotAllowed",
+  login_failed: "errors.generic",
+} as const;
 
-// Only these fixed strings are ever rendered; the query value itself is not.
-const ERROR_MESSAGES: Record<string, string> = {
-  domain_not_allowed: "Chỉ email công ty mới đăng nhập được.",
-  login_failed: GENERIC_ERROR,
-};
+function errorKey(error: string) {
+  return Object.hasOwn(ERROR_KEYS, error)
+    ? ERROR_KEYS[error as keyof typeof ERROR_KEYS]
+    : "errors.generic";
+}
 
 interface LoginPageProps {
   searchParams: Promise<{ error?: string }>;
@@ -15,7 +20,8 @@ interface LoginPageProps {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { error } = await searchParams;
-  const errorMessage = error ? (ERROR_MESSAGES[error] ?? GENERIC_ERROR) : null;
+  const t = await getTranslations("login");
+  const errorMessage = error ? t(errorKey(error)) : null;
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-surface-soft px-4">
@@ -24,7 +30,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <Wordmark className="text-[28px] leading-tight" />
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Sàn mua bán nội bộ dành cho nhân viên.
+          {t("tagline")}
         </p>
 
         {errorMessage && (
@@ -42,7 +48,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           href="/api/auth/google"
           className={buttonVariants({ size: "lg", className: "mt-6 w-full" })}
         >
-          Đăng nhập với Google
+          {t("signInWithGoogle")}
         </a>
       </section>
     </main>

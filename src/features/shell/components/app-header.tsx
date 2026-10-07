@@ -2,6 +2,7 @@
 
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import { LogoMark } from "@/shared/ui/atoms/logo-mark";
@@ -10,12 +11,15 @@ import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { useCurrentUser } from "@/shared/api/use-current-user";
 import { cn } from "@/shared/lib/utils";
 import { HeaderSearch } from "./header-search";
+import { LocaleSwitch } from "./locale-switch";
+import { LocaleSync } from "./locale-sync";
 import { isActive, NAV_ITEMS } from "../lib/nav-items";
 import { UserMenu } from "./user-menu";
 
 export function AppHeader() {
   const { data: user } = useCurrentUser();
   const pathname = usePathname();
+  const t = useTranslations("shell");
 
   return (
     // h-16 is relied on by the sticky filter bar (top-16).
@@ -32,7 +36,7 @@ export function AppHeader() {
 
         {/* Phones use the tab bar at the bottom instead. */}
         <nav
-          aria-label="Điều hướng chính"
+          aria-label={t("mainNavigation")}
           className="hidden items-center gap-1 md:flex"
         >
           {NAV_ITEMS.map((item) => {
@@ -49,7 +53,7 @@ export function AppHeader() {
                     : "text-muted-foreground hover:bg-surface hover:text-foreground",
                 )}
               >
-                {item.label}
+                {t(`nav.${item.labelKey}`)}
               </Link>
             );
           })}
@@ -63,7 +67,7 @@ export function AppHeader() {
         <div className="flex shrink-0 items-center gap-3">
           <Link
             href="/sell/new"
-            aria-label="Đăng bán"
+            aria-label={t("sell")}
             className={buttonVariants({
               size: "icon-lg",
               className: "size-11 max-md:hidden",
@@ -71,7 +75,10 @@ export function AppHeader() {
           >
             <PlusIcon aria-hidden="true" className="size-5" />
           </Link>
+          {/* Phones switch from the account menu. */}
+          <LocaleSwitch className="max-md:hidden" />
           {user && <UserMenu user={user} />}
+          <LocaleSync />
         </div>
       </div>
     </header>

@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ListingSummary } from "../api/use-listings";
 import { ListingCard } from "./listing-card";
@@ -26,7 +27,7 @@ describe("ListingCard", () => {
   });
 
   it("is one link to the listing with title, price and seller", () => {
-    render(<ListingCard listing={listing()} />);
+    renderWithIntl(<ListingCard listing={listing()} />);
 
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute("href", "/listings/abc");
@@ -36,7 +37,7 @@ describe("ListingCard", () => {
   });
 
   it("sets the price in the heading typeface at its normal width", () => {
-    render(<ListingCard listing={listing()} />);
+    renderWithIntl(<ListingCard listing={listing()} />);
 
     const price = screen.getByText("500.000 đ");
     expect(price).toHaveClass("font-heading");
@@ -45,7 +46,7 @@ describe("ListingCard", () => {
   });
 
   it("keeps the seller's initials out of the link's name", () => {
-    render(<ListingCard listing={listing()} />);
+    renderWithIntl(<ListingCard listing={listing()} />);
 
     const link = screen.getByRole("link");
     const avatar = link.querySelector('[data-slot="avatar"]');
@@ -54,7 +55,7 @@ describe("ListingCard", () => {
   });
 
   it("says Đặt trước for a pre-order without a closing time", () => {
-    render(
+    renderWithIntl(
       <ListingCard listing={listing({ mode: "preorder", orderDeadline: null })} />,
     );
 
@@ -62,7 +63,7 @@ describe("ListingCard", () => {
   });
 
   it("marks an in-stock listing in green and shows its photo", () => {
-    const { container } = render(<ListingCard listing={listing()} />);
+    const { container } = renderWithIntl(<ListingCard listing={listing()} />);
 
     expect(screen.getByText("Có sẵn")).toHaveClass("text-positive-deep");
     const image = container.querySelector("img");
@@ -76,7 +77,7 @@ describe("ListingCard", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-10-06T12:00:00.000Z"));
 
-    render(
+    renderWithIntl(
       <ListingCard
         listing={listing({
           mode: "preorder",
@@ -100,7 +101,7 @@ describe("ListingCard", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-10-06T12:00:00.000Z"));
 
-    render(
+    renderWithIntl(
       <ListingCard
         listing={listing({
           mode: "preorder",
@@ -115,8 +116,37 @@ describe("ListingCard", () => {
     ).toHaveClass("bg-deadline", "text-foreground");
   });
 
+  it("speaks English when the page is in English", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-06T12:00:00.000Z"));
+
+    const { rerender } = renderWithIntl(
+      <ListingCard listing={listing({ stockQuantity: 0 })} />,
+      { locale: "en" },
+    );
+    expect(screen.getByRole("link")).toHaveTextContent("from 500,000 VND/cái");
+    expect(screen.getByText("Sold out")).toBeInTheDocument();
+
+    rerender(
+      <ListingCard
+        listing={listing({
+          mode: "preorder",
+          orderDeadline: "2026-10-06T12:01:00.000Z",
+          orderCount: 1,
+        })}
+      />,
+    );
+    expect(screen.getByText(/^Closes \d{2}:\d{2} today$/)).toBeInTheDocument();
+    expect(screen.getByText("1 person ordered")).toBeInTheDocument();
+
+    rerender(
+      <ListingCard listing={listing({ mode: "preorder", orderCount: 7 })} />,
+    );
+    expect(screen.getByText("7 people ordered")).toBeInTheDocument();
+  });
+
   it("stacks the photo above the text when asked, for the carousel", () => {
-    const { rerender } = render(<ListingCard listing={listing()} />);
+    const { rerender } = renderWithIntl(<ListingCard listing={listing()} />);
     expect(screen.getByRole("link")).toHaveClass("grid");
 
     rerender(<ListingCard listing={listing()} layout="stacked" />);
@@ -125,7 +155,7 @@ describe("ListingCard", () => {
   });
 
   it("shows how many people ordered a pre-order, but not zero and not for in-stock", () => {
-    const { rerender } = render(
+    const { rerender } = renderWithIntl(
       <ListingCard
         listing={listing({ mode: "preorder", orderCount: 7 })}
       />,
@@ -140,7 +170,7 @@ describe("ListingCard", () => {
   });
 
   it("shows a placeholder when there is no photo", () => {
-    const { container } = render(
+    const { container } = renderWithIntl(
       <ListingCard listing={listing({ thumbnailUrl: null })} />,
     );
 
@@ -149,7 +179,7 @@ describe("ListingCard", () => {
   });
 
   it("shows how much is left of a single in-stock item", () => {
-    render(
+    renderWithIntl(
       <ListingCard
         listing={listing({ stockQuantity: 24, minPriceUnit: "hũ" })}
       />,
@@ -159,7 +189,7 @@ describe("ListingCard", () => {
   });
 
   it("writes decimal stock the Vietnamese way", () => {
-    render(
+    renderWithIntl(
       <ListingCard
         listing={listing({ stockQuantity: 2.5, minPriceUnit: "kg" })}
       />,
@@ -168,7 +198,7 @@ describe("ListingCard", () => {
   });
 
   it("says Hết hàng, not in green, when nothing is left", () => {
-    render(<ListingCard listing={listing({ stockQuantity: 0 })} />);
+    renderWithIntl(<ListingCard listing={listing({ stockQuantity: 0 })} />);
     const foot = screen.getByText("Hết hàng");
     expect(foot.closest("p")).not.toHaveClass("text-positive-deep");
     expect(foot.closest("p")).toHaveClass("text-muted-foreground");
@@ -176,7 +206,7 @@ describe("ListingCard", () => {
   });
 
   it("shows only Có sẵn when the stock is not known", () => {
-    render(<ListingCard listing={listing({ stockQuantity: null })} />);
+    renderWithIntl(<ListingCard listing={listing({ stockQuantity: null })} />);
     expect(screen.getByText("Có sẵn").closest("p")).toHaveTextContent(/^Có sẵn$/);
   });
 });

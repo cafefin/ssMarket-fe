@@ -1,9 +1,10 @@
 "use client";
 
 import { QRCodeSVG } from "qrcode.react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import type { OrderQr as Qr } from "../api/use-orders";
-import { formatMoney } from "@/shared/lib/format/money";
+import { useFormat } from "@/shared/lib/format/use-format";
 
 function CopyRow({
   label,
@@ -17,6 +18,7 @@ function CopyRow({
   value: string;
   mono?: boolean;
 }) {
+  const t = useTranslations("orders.qr");
   const [copied, setCopied] = useState(false);
 
   async function copy(): Promise<void> {
@@ -36,10 +38,10 @@ function CopyRow({
       <button
         type="button"
         onClick={() => void copy()}
-        aria-label={`Sao chép ${label.toLowerCase()}`}
+        aria-label={t("copyNamed", { label: label.toLowerCase() })}
         className="shrink-0 rounded-full border border-border px-3 py-1.5 text-[13px] font-medium outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
       >
-        <span aria-live="polite">{copied ? "Đã sao chép" : "Sao chép"}</span>
+        <span aria-live="polite">{copied ? t("copied") : t("copy")}</span>
       </button>
     </div>
   );
@@ -47,9 +49,11 @@ function CopyRow({
 
 /** The VietQR code for one order, with the same details as text to copy. */
 export function OrderQr({ qr, code }: { qr: Qr; code: string }) {
+  const t = useTranslations("orders.qr");
+  const format = useFormat();
   return (
     <section
-      aria-label="Thông tin chuyển khoản"
+      aria-label={t("section")}
       className="rounded-lg border border-border p-4"
     >
       <div className="flex flex-col items-center gap-2">
@@ -58,34 +62,36 @@ export function OrderQr({ qr, code }: { qr: Qr; code: string }) {
           size={220}
           marginSize={2}
           role="img"
-          aria-label={`Mã QR chuyển khoản cho đơn ${code}`}
+          aria-label={t("code", { code })}
         />
         <p className="text-center text-sm text-muted-foreground">
-          Quét bằng app ngân hàng. Số tiền và nội dung đã được điền sẵn.
+          {t("hint")}
         </p>
       </div>
       <dl className="mt-3">
         <div className="border-t border-hairline-soft py-2">
-          <dt className="text-[13px] text-muted-foreground">Ngân hàng</dt>
+          <dt className="text-[13px] text-muted-foreground">{t("bank")}</dt>
           <dd className="font-medium">{qr.bankName}</dd>
         </div>
         <CopyRow
-          label="Số tài khoản"
+          label={t("accountNumber")}
           display={qr.accountNumber}
           value={qr.accountNumber}
           mono
         />
         <div className="border-t border-hairline-soft py-2">
-          <dt className="text-[13px] text-muted-foreground">Chủ tài khoản</dt>
+          <dt className="text-[13px] text-muted-foreground">
+            {t("accountName")}
+          </dt>
           <dd className="font-medium">{qr.accountName}</dd>
         </div>
         <CopyRow
-          label="Số tiền"
-          display={formatMoney(qr.amount)}
+          label={t("amount")}
+          display={format.money(qr.amount)}
           value={String(qr.amount)}
         />
         <CopyRow
-          label="Nội dung"
+          label={t("content")}
           display={qr.content}
           value={qr.content}
           mono

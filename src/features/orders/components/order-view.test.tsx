@@ -1,4 +1,5 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Order } from "../api/use-orders";
@@ -48,16 +49,20 @@ const order = (overrides: Partial<Order> = {}): Order => ({
 
 const ok = (data: unknown) => ({ data, response: new Response() });
 
-function renderView(value: Order | { status: number }) {
+function renderView(
+  value: Order | { status: number },
+  locale: "vi" | "en" = "vi",
+) {
   api.GET.mockResolvedValue(
     "status" in value
       ? { error: { code: "X" }, response: new Response(null, { status: value.status }) }
       : ok(value),
   );
-  render(
+  renderWithIntl(
     <QueryProvider>
       <OrderView id="o1" />
     </QueryProvider>,
+    { locale },
   );
 }
 
@@ -123,6 +128,25 @@ describe("OrderView", () => {
     expect(screen.getByText("Tầng 7")).toBeInTheDocument();
     expect(screen.getByText("12/10/2026")).toBeInTheDocument();
     expect(screen.getByText("Giao sau 14h")).toBeInTheDocument();
+  });
+
+  it("shows the order in English", async () => {
+    renderView(order(), "en");
+
+    expect(
+      await screen.findByRole("heading", { name: "Order SSM7K2Q9X" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Unpaid")).toBeInTheDocument();
+    expect(screen.getByText("To deliver")).toBeInTheDocument();
+    expect(
+      screen.getByText("Scan the QR code to pay, then press “I have paid”."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "I have paid" })).toBeInTheDocument();
+    const cam = screen.getByRole("row", { name: /Cam sành/ });
+    expect(within(cam).getByText(/1\.5 kg × 35,000 VND/)).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("row", { name: /Total/ })).getByText("122,500 VND"),
+    ).toBeInTheDocument();
   });
 
   it("copies the raw amount and the transfer content", async () => {

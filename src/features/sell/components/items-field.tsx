@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   type Control,
   type FieldErrors,
@@ -29,14 +30,13 @@ interface ItemsFieldProps {
 export function ItemsField({ mode, control, register, errors }: ItemsFieldProps) {
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
   const showStock = mode === "in_stock";
+  const t = useTranslations("sell.items");
 
   return (
     <fieldset className="flex flex-col gap-4">
-      <legend className="text-lg font-semibold">Mặt hàng</legend>
+      <legend className="text-lg font-semibold">{t("title")}</legend>
       <p className="-mt-2 text-sm text-muted-foreground">
-        {showStock
-          ? "Mỗi dòng là một món, kèm số lượng bạn đang có."
-          : "Mỗi dòng là một lựa chọn, ví dụ cam ngọt và cam vắt. Không cần nhập số lượng."}
+        {t(`hint.${mode}`)}
       </p>
 
       {fields.map((field, index) => {
@@ -46,12 +46,12 @@ export function ItemsField({ mode, control, register, errors }: ItemsFieldProps)
           <div
             key={field.id}
             role="group"
-            aria-label={`Mặt hàng ${number}`}
+            aria-label={t("item", { number })}
             className="grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-[minmax(0,2fr)_7rem_minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-start"
           >
             <Field
               htmlFor={`items.${index}.name`}
-              label="Tên"
+              label={t("name")}
               error={itemErrors?.name?.message}
             >
               <Input
@@ -60,7 +60,7 @@ export function ItemsField({ mode, control, register, errors }: ItemsFieldProps)
                 {...register(`items.${index}.name`)}
               />
             </Field>
-            <Field htmlFor={`items.${index}.unit`} label="Đơn vị">
+            <Field htmlFor={`items.${index}.unit`} label={t("unit")}>
               <select
                 id={`items.${index}.unit`}
                 className={selectClassName}
@@ -75,7 +75,7 @@ export function ItemsField({ mode, control, register, errors }: ItemsFieldProps)
             </Field>
             <Field
               htmlFor={`items.${index}.unitPrice`}
-              label="Đơn giá (đ)"
+              label={t("unitPrice")}
               error={itemErrors?.unitPrice?.message}
             >
               <Input
@@ -89,7 +89,7 @@ export function ItemsField({ mode, control, register, errors }: ItemsFieldProps)
             {showStock ? (
               <Field
                 htmlFor={`items.${index}.stockQuantity`}
-                label="Số lượng có"
+                label={t("stock")}
                 error={itemErrors?.stockQuantity?.message}
               >
                 <Input
@@ -106,7 +106,7 @@ export function ItemsField({ mode, control, register, errors }: ItemsFieldProps)
               type="button"
               variant="ghost"
               size="icon"
-              aria-label={`Xóa mặt hàng ${number}`}
+              aria-label={t("remove", { number })}
               // A listing always has at least one item.
               disabled={fields.length === 1}
               onClick={() => remove(index)}
@@ -131,7 +131,7 @@ export function ItemsField({ mode, control, register, errors }: ItemsFieldProps)
           disabled={fields.length >= MAX_ITEMS}
           onClick={() => append(emptyItem())}
         >
-          Thêm mặt hàng
+          {t("add")}
         </Button>
       </div>
     </fieldset>

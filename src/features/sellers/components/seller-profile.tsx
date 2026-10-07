@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ListingCard, LISTING_GRID, useSellerListings } from "@/features/listings";
 import { UserAvatar } from "@/shared/ui/molecules/user-avatar";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
-import { ApiError, userMessage } from "@/shared/api/api-error";
+import { ApiError } from "@/shared/api/api-error";
+import { useUserMessage } from "@/shared/api/use-user-message";
 import { usePublicUser } from "@/shared/api/use-public-user";
 
 const WRAPPER = "mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-8";
@@ -14,6 +16,10 @@ const WRAPPER = "mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-8";
 export function SellerProfile({ sellerId }: { sellerId: string }) {
   const user = usePublicUser(sellerId);
   const listings = useSellerListings(sellerId);
+  const t = useTranslations("sellers");
+  const tc = useTranslations("common");
+  const tl = useTranslations("listings.browser");
+  const userMessage = useUserMessage();
 
   if (user.isError) {
     const notFound =
@@ -23,16 +29,16 @@ export function SellerProfile({ sellerId }: { sellerId: string }) {
         <div className="flex flex-col items-center gap-3 py-16">
           <p role="alert" className="text-error-deep">
             {notFound
-              ? "Không tìm thấy người bán này."
+              ? t("notFound")
               : userMessage(user.error)}
           </p>
           {!notFound && (
             <Button variant="outline" onClick={() => void user.refetch()}>
-              Thử lại
+              {tc("retry")}
             </Button>
           )}
           <Link href="/" className={buttonVariants({ variant: "outline" })}>
-            Về trang chủ
+            {tc("backHome")}
           </Link>
         </div>
       </div>
@@ -44,7 +50,7 @@ export function SellerProfile({ sellerId }: { sellerId: string }) {
   return (
     <div className={WRAPPER}>
       {user.isPending ? (
-        <Skeleton className="h-16 w-64" aria-label="Đang tải người bán" />
+        <Skeleton className="h-16 w-64" aria-label={t("loading")} />
       ) : (
         <header className="flex items-center gap-4">
           <UserAvatar
@@ -58,7 +64,7 @@ export function SellerProfile({ sellerId }: { sellerId: string }) {
             </h1>
             {user.data.deliveryLocation && (
               <p className="text-muted-foreground">
-                Giao tại {user.data.deliveryLocation}
+                {t("deliversAt", { location: user.data.deliveryLocation })}
               </p>
             )}
           </div>
@@ -70,14 +76,14 @@ export function SellerProfile({ sellerId }: { sellerId: string }) {
         className="flex flex-col gap-6"
       >
         <h2 id="selling-heading" className="text-[22px] font-bold">
-          Đang bán
+          {t("selling")}
         </h2>
 
         {listings.isPending && (
           <div
             className={LISTING_GRID}
             aria-busy="true"
-            aria-label="Đang tải bài đăng"
+            aria-label={tl("loading")}
           >
             {Array.from({ length: 4 }, (_, index) => (
               <Skeleton
@@ -91,17 +97,17 @@ export function SellerProfile({ sellerId }: { sellerId: string }) {
         {listings.isError && (
           <div role="alert" className="flex flex-col items-center gap-3 py-16">
             <p className="text-error-deep">
-              Không tải được danh sách bài đăng.
+              {tl("loadFailed")}
             </p>
             <Button variant="outline" onClick={() => void listings.refetch()}>
-              Thử lại
+              {tc("retry")}
             </Button>
           </div>
         )}
 
         {listings.isSuccess && items.length === 0 && (
           <p className="py-16 text-center text-muted-foreground">
-            Người bán này chưa có món nào đang bán.
+            {t("empty")}
           </p>
         )}
 
@@ -122,7 +128,7 @@ export function SellerProfile({ sellerId }: { sellerId: string }) {
               disabled={listings.isFetchingNextPage}
               onClick={() => void listings.fetchNextPage()}
             >
-              Xem thêm
+              {tc("loadMore")}
             </Button>
           </div>
         )}

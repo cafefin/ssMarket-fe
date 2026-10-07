@@ -1,4 +1,6 @@
+import { createTranslator } from "next-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { MESSAGES } from "@/shared/i18n/messages";
 import {
   emptyItem,
   imageProblem,
@@ -32,8 +34,14 @@ const preorder = (overrides: Partial<ListingFormValues> = {}): ListingFormValues
   ...overrides,
 });
 
+const t = createTranslator({
+  locale: "vi",
+  messages: MESSAGES.vi,
+  namespace: "sell.validation",
+});
+
 function problems(mode: ListingMode, values: ListingFormValues): Record<string, string> {
-  const result = listingSchema(mode).safeParse(values);
+  const result = listingSchema(mode, t).safeParse(values);
   if (result.success) {
     return {};
   }
@@ -231,12 +239,10 @@ describe("imageProblem", () => {
   });
 
   it("rejects other types and larger files", () => {
-    expect(imageProblem({ type: "image/gif", size: 10 })).toBe(
-      "Ảnh phải là file JPEG, PNG hoặc WebP.",
-    );
+    expect(imageProblem({ type: "image/gif", size: 10 })).toBe("INVALID_IMAGE");
     expect(imageProblem({ type: "application/pdf", size: 10 })).not.toBeNull();
     expect(imageProblem({ type: "image/jpeg", size: 5 * 1024 * 1024 + 1 })).toBe(
-      "Ảnh lớn hơn 5 MB.",
+      "PAYLOAD_TOO_LARGE",
     );
   });
 });

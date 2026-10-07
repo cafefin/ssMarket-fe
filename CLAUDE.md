@@ -39,20 +39,23 @@ src/
 │   │   │   └── shadcn/   shadcn/ui primitives (Base UI); change only to apply design tokens
 │   │   └── molecules/    field (and shared control styles), user-avatar
 │   ├── api/              typed client, session refresh, ApiError, schema.d.ts,
-│   │                     query provider, use-current-user, use-public-user
-│   └── lib/              utils.ts, format/ (money, dates, quantities, initials), theme/
+│   │                     query provider, use-current-user, use-public-user, use-user-message
+│   ├── i18n/             locales, request config (cookie), messages/vi.json and en.json,
+│   │                     locale cookie, Translator type, test-utils (renderWithIntl)
+│   └── lib/              utils.ts, format/ (money, dates, quantities, initials, useFormat), theme/
 └── features/
     ├── listings/         components/ (card, grid, filters, carousel, detail view, gallery,
     │                     item table), api/ (listing and category hooks), lib/ (URL filters)
     ├── profile/          components/, api/ (banks, update profile), lib/ (schema)
-    ├── shell/            components/ (header, search box, user menu, phone tab bar),
-    │                     lib/ (nav-items)
+    ├── shell/            components/ (header, search box, user menu, phone tab bar,
+    │                     language switch and sync), api/ (update locale),
+    │                     lib/ (nav-items, use-switch-locale)
     ├── sellers/          components/ (seller page)
     ├── admin/            components/ (category admin), api/
     ├── orders/           components/ (panel, order page, editor, QR block, actions, lists,
     │                     summary), api/ (use-orders), lib/ (order-math)
     └── sell/             components/ (mode step, listing form, my listings),
-                          lib/ (form schema, draft store, save sequence)
+                          lib/ (form schema, units, draft store, save sequence)
 ```
 
 Each feature has `components/`, `api/`, `lib/` (only the ones it needs) and an
@@ -85,9 +88,42 @@ which holds the behaviour and has the tests.
 
 - Hooks throw `ApiError` (built with `toApiError`), which carries the
   backend's `code`.
-- Show `userMessage(error)` to people. Backend messages are English text for
-  developers and must never be rendered. Add new codes to the map in
-  `src/shared/api/api-error.ts`.
+- Show `useUserMessage()(error)` to people. Backend messages are English text
+  for developers and must never be rendered. Add new codes to `errors.codes` in
+  **both** `vi.json` and `en.json`.
+
+## Languages
+
+The app speaks Vietnamese (default) and English, through `next-intl` without
+locale routing: URLs never carry a language.
+
+- `users.locale` is the source of truth. The `NEXT_LOCALE` cookie is a copy
+  that `src/shared/i18n/request.ts` reads on every request, so the server
+  renders the right language first time. No cookie means Vietnamese;
+  `Accept-Language` is never read.
+- `LocaleSwitch` (header, from `md`) and the user menu item (phones) save the
+  choice with `PATCH /users/me`, write the cookie, then `router.refresh()`.
+  `LocaleSync` corrects a stale cookie once when the account loads. The login
+  page has no switch: it only follows the cookie.
+- Every piece of UI text, `aria-label`, placeholder, toast and validation
+  message lives in `src/shared/i18n/messages/{vi,en}.json`, grouped by
+  namespace (`common`, `errors`, `format`, `shell`, `listings`, `sell`,
+  `orders`, `profile`, `sellers`, `admin`, `login`, `metadata`). Keys are
+  English camelCase; numbers and names are ICU arguments, counts use `plural`.
+  Add every key to both files; `messages.test.ts` checks keys and arguments.
+- `no-hardcoded-vietnamese.test.ts` fails on Vietnamese letters in any source
+  file except tests, the message files, `schema.d.ts` and
+  `features/sell/lib/units.ts` (units are stored data, shown as written).
+- Components use `useTranslations("<namespace>")`; server components use
+  `getTranslations`. Pure functions never hold text: schemas take a
+  `Translator<"namespace">` (`listingSchema(mode, t)`), other helpers return
+  codes or keys (`quantityProblem`, `imageProblem`, `editBlockedReason`,
+  `NAV_ITEMS[].labelKey`).
+- Format with `useFormat()` (money, quantities, deadlines in the page's
+  language). Dates stay day/month and 24-hour in both languages.
+- Show a category with `categoryName(category, locale)` (`nameEn` in English).
+- User-entered content (titles, descriptions, item names, notes) and units are
+  never translated.
 
 ## State
 
@@ -206,6 +242,10 @@ already serves a 400px thumbnail and a 1600px full size.
 - Write the test first. Tests sit next to the code as `*.test.ts(x)`.
 - Test behaviour through the DOM (roles and visible text), not implementation.
 - Mock `@/shared/api/client` in component tests; never call the network.
+- Render with `renderWithIntl(ui, { locale })` from `@/shared/i18n/test-utils`
+  (Vietnamese by default); hooks use `intlWrapper(locale)`. Server components
+  get Vietnamese messages from the `next-intl/server` mock in
+  `vitest.setup.ts`.
 - Coverage must stay at or above 80% for lines, branches, functions and
   statements. Add tests rather than exclusions.
 
@@ -240,5 +280,6 @@ Copy `.env.example` to `.env.local`. Never commit `.env.local`.
 
 - TypeScript strict. Server components by default; add `"use client"` only when
   a component needs state, effects or browser APIs.
-- User-facing text in Vietnamese; code, comments and commits in English.
+- User-facing text in Vietnamese and English, from the message files; code,
+  comments and commits in English.
 - Conventional Commits. Work on `feat/...`, `fix/...` or `chore/...` branches.

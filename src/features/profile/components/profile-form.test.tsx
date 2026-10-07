@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentUser } from "@/shared/api/client";
@@ -39,7 +40,7 @@ const user = (overrides: Partial<CurrentUser> = {}): CurrentUser => ({
 });
 
 async function renderForm(current: CurrentUser = user()) {
-  render(
+  renderWithIntl(
     <QueryProvider>
       <ProfileForm user={current} />
     </QueryProvider>,

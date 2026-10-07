@@ -2,13 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Field, selectClassName } from "@/shared/ui/molecules/field";
 import { Button } from "@/shared/ui/atoms/shadcn/button";
 import { Input } from "@/shared/ui/atoms/shadcn/input";
-import { userMessage } from "@/shared/api/api-error";
+import { useUserMessage } from "@/shared/api/use-user-message";
 import type { CurrentUser } from "@/shared/api/client";
 import { useBanks } from "../api/use-banks";
 import { useUpdateProfile } from "../api/use-update-profile";
@@ -24,6 +25,11 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
   const next = safeNextPath(useSearchParams().get("next"));
   const { data: banks = [] } = useBanks();
   const updateProfile = useUpdateProfile();
+  const t = useTranslations("profile");
+  const tv = useTranslations("profile.validation");
+  const tc = useTranslations("common");
+  const userMessage = useUserMessage();
+  const schema = useMemo(() => profileSchema(tv), [tv]);
   const {
     register,
     handleSubmit,
@@ -31,7 +37,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
     setValue,
     formState: { errors },
   } = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       deliveryLocation: user.deliveryLocation ?? "",
       bankBin: user.bankBin ?? "",
@@ -49,7 +55,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
   const onSubmit = handleSubmit(async (values) => {
     try {
       await updateProfile.mutateAsync(toProfileUpdate(values));
-      toast.success("Đã lưu hồ sơ");
+      toast.success(t("saved"));
       if (next) {
         router.push(next);
       }
@@ -61,11 +67,11 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-8">
       <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold">Nhận hàng</h2>
+        <h2 className="text-lg font-semibold">{t("delivery.title")}</h2>
         <Field
           htmlFor="deliveryLocation"
-          label="Vị trí nhận hàng"
-          hint="Ví dụ: Tầng 7, khu A. Người bán sẽ giao tới đây."
+          label={t("delivery.location")}
+          hint={t("delivery.locationHint")}
           error={errors.deliveryLocation?.message}
         >
           <Input id="deliveryLocation" {...register("deliveryLocation")} />
@@ -74,15 +80,14 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
 
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Tài khoản nhận tiền</h2>
+          <h2 className="text-lg font-semibold">{t("bank.title")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Chỉ cần khi bạn bán hàng và muốn nhận chuyển khoản qua mã QR. Người
-            mua sẽ thấy thông tin này trên đơn hàng của họ.
+            {t("bank.hint")}
           </p>
         </div>
         <Field
           htmlFor="bankBin"
-          label="Ngân hàng"
+          label={t("bank.bank")}
           error={errors.bankBin?.message}
         >
           <select
@@ -91,7 +96,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
             aria-invalid={Boolean(errors.bankBin)}
             {...register("bankBin")}
           >
-            <option value="">Chưa chọn</option>
+            <option value="">{t("bank.none")}</option>
             {/* Keeps the saved bank selectable while the list is loading. */}
             {user.bankBin && banks.length === 0 && (
               <option value={user.bankBin}>{user.bankBin}</option>
@@ -105,7 +110,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
         </Field>
         <Field
           htmlFor="bankAccountNumber"
-          label="Số tài khoản"
+          label={t("bank.accountNumber")}
           error={errors.bankAccountNumber?.message}
         >
           <Input
@@ -119,8 +124,8 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
         </Field>
         <Field
           htmlFor="bankAccountName"
-          label="Tên chủ tài khoản"
-          hint="Hệ thống tự chuyển thành chữ in hoa không dấu, như trên thẻ ngân hàng."
+          label={t("bank.accountName")}
+          hint={t("bank.accountNameHint")}
           error={errors.bankAccountName?.message}
         >
           <Input
@@ -134,7 +139,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
 
       <div>
         <Button type="submit" disabled={updateProfile.isPending}>
-          {updateProfile.isPending ? "Đang lưu…" : "Lưu hồ sơ"}
+          {updateProfile.isPending ? tc("saving") : t("save")}
         </Button>
       </div>
     </form>

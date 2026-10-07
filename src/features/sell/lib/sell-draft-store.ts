@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type { ListingFormValues, ListingMode } from "./listing-schema";
 
 interface SellDraftState {
-  /** Chosen in the first step of "Đăng bán"; null until then. */
+  /** Chosen in the first step of selling; null until then. */
   mode: ListingMode | null;
   /** What has been typed so far, so it survives a detour to the profile page. */
   values: ListingFormValues | null;

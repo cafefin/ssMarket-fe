@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { selectClassName } from "@/shared/ui/molecules/field";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
-import { ApiError, userMessage } from "@/shared/api/api-error";
+import { ApiError } from "@/shared/api/api-error";
+import { useUserMessage } from "@/shared/api/use-user-message";
 import {
   type BulkAction,
   type SummaryRow,
@@ -14,37 +16,32 @@ import {
   useSummary,
 } from "../api/use-orders";
 import { formatDate, formatDateTime } from "@/shared/lib/format/datetime";
-import { formatMoney } from "@/shared/lib/format/money";
-import { formatQuantity } from "../lib/order-math";
+import { useFormat } from "@/shared/lib/format/use-format";
 import { cn } from "@/shared/lib/utils";
 import { OrderStatusBadges } from "./status-badges";
 
 type Sort = "time" | "buyer" | "location";
 type Filter = "all" | "unpaid" | "reported" | "undelivered";
 
-const FILTERS: { value: Filter; label: string; test: (row: SummaryRow) => boolean }[] = [
-  { value: "all", label: "Tất cả", test: () => true },
-  { value: "unpaid", label: "Chưa trả", test: (row) => row.paymentStatus === "unpaid" },
-  {
-    value: "reported",
-    label: "Chờ xác nhận",
-    test: (row) => row.paymentStatus === "reported",
-  },
-  {
-    value: "undelivered",
-    label: "Chưa giao",
-    test: (row) => row.fulfillmentStatus === "pending",
-  },
+const FILTERS: { value: Filter; test: (row: SummaryRow) => boolean }[] = [
+  { value: "all", test: () => true },
+  { value: "unpaid", test: (row) => row.paymentStatus === "unpaid" },
+  { value: "reported", test: (row) => row.paymentStatus === "reported" },
+  { value: "undelivered", test: (row) => row.fulfillmentStatus === "pending" },
 ];
 
-const FAILURES: Record<string, string> = {
-  INVALID_ORDER_STATE: "đã ở trạng thái này hoặc đã hủy",
-  NOT_IN_LISTING: "không thuộc bài đăng này",
-};
+/** Bulk failure codes with their own explanation in `orders.summary.failures`. */
+const KNOWN_FAILURES = ["INVALID_ORDER_STATE", "NOT_IN_LISTING"] as const;
 
-const collator = new Intl.Collator("vi", { numeric: true, sensitivity: "base" });
+function failureKey(code: string | undefined | null) {
+  return KNOWN_FAILURES.find((known) => known === code) ?? "other";
+}
 
-function sortRows(rows: SummaryRow[], sort: Sort): SummaryRow[] {
+function sortRows(
+  rows: SummaryRow[],
+  sort: Sort,
+  collator: Intl.Collator,
+): SummaryRow[] {
   const sorted = [...rows];
   if (sort === "buyer") {
     sorted.sort((a, b) => collator.compare(a.buyer.name, b.buyer.name));
@@ -54,7 +51,10 @@ function sortRows(rows: SummaryRow[], sort: Sort): SummaryRow[] {
   return sorted;
 }
 
-function groupByLocation(rows: SummaryRow[]): { location: string; rows: SummaryRow[] }[] {
+function groupByLocation(
+  rows: SummaryRow[],
+  collator: Intl.Collator,
+): { location: string; rows: SummaryRow[] }[] {
   const groups = new Map<string, SummaryRow[]>();
   for (const row of rows) {
     const key = row.deliveryLocation.trim();
@@ -74,10 +74,20 @@ export function SalesSummary({ listingId }: { listingId: string }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [failures, setFailures] = useState<string[]>([]);
+  const t = useTranslations("orders.summary");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const format = useFormat();
+  const userMessage = useUserMessage();
+  // Names and places sort the way the language of the page expects.
+  const collator = useMemo(
+    () => new Intl.Collator(locale, { numeric: true, sensitivity: "base" }),
+    [locale],
+  );
 
   if (summary.isPending) {
     return (
-      <div className="flex flex-col gap-4" aria-busy="true" aria-label="Đang tải bảng tổng hợp">
+      <div className="flex flex-col gap-4" aria-busy="true" aria-label={t("loading")}>
         <Skeleton className="h-9 w-1/2" />
         <Skeleton className="h-20 w-full" />
         <Skeleton className="h-64 w-full" />
@@ -91,15 +101,15 @@ export function SalesSummary({ listingId }: { listingId: string }) {
     return (
       <div role="alert" className="flex flex-col items-center gap-3 py-24 text-center">
         <h1 className="text-[22px] font-semibold">
-          {hidden ? "Không tìm thấy bài đăng" : "Không tải được bảng tổng hợp"}
+          {hidden ? t("notFound") : t("loadFailed")}
         </h1>
         {hidden ? (
           <Link href="/sell" className={buttonVariants({ variant: "outline" })}>
-            Về bài đăng của tôi
+            {t("backToMine")}
           </Link>
         ) : (
           <Button variant="outline" onClick={() => void summary.refetch()}>
-            Thử lại
+            {tc("retry")}
           </Button>
         )}
       </div>
@@ -110,9 +120,10 @@ export function SalesSummary({ listingId }: { listingId: string }) {
   const visible = sortRows(
     rows.filter(FILTERS.find((option) => option.value === filter)!.test),
     grouped ? "location" : sort,
+    collator,
   );
   const groups = grouped
-    ? groupByLocation(visible)
+    ? groupByLocation(visible, collator)
     : [{ location: "", rows: visible }];
   const codeOf = new Map(rows.map((row) => [row.orderId, row.code]));
   const visibleSelected = visible.filter((row) => selected.has(row.orderId));
@@ -134,16 +145,16 @@ export function SalesSummary({ listingId }: { listingId: string }) {
       const results = await bulk.mutateAsync({ action, orderIds });
       const done = results.filter((result) => result.ok).length;
       if (done > 0) {
-        toast.success(`Đã cập nhật ${done} đơn`);
+        toast.success(t("updated", { count: done }));
       }
       setFailures(
         results
           .filter((result) => !result.ok)
-          .map(
-            (result) =>
-              `${codeOf.get(result.orderId) ?? result.orderId}: ${
-                FAILURES[result.code ?? ""] ?? "không cập nhật được"
-              }`,
+          .map((result) =>
+            t("failure", {
+              code: codeOf.get(result.orderId) ?? result.orderId,
+              reason: t(`failures.${failureKey(result.code)}`),
+            }),
           ),
       );
       setSelected(new Set());
@@ -165,7 +176,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
-        <p className="text-sm text-muted-foreground">Bảng tổng hợp đơn hàng</p>
+        <p className="text-sm text-muted-foreground">{t("eyebrow")}</p>
         <h1 className="text-[28px] leading-tight font-semibold">
           <Link href={`/listings/${listing.id}`} className="hover:text-primary">
             {listing.title}
@@ -173,25 +184,31 @@ export function SalesSummary({ listingId }: { listingId: string }) {
         </h1>
         {listing.orderDeadline && listing.deliveryDate && (
           <p className="text-sm text-muted-foreground">
-            Chốt đơn {formatDateTime(listing.orderDeadline)} · Giao ngày{" "}
-            {formatDate(listing.deliveryDate)}
+            {t("dates", {
+              deadline: formatDateTime(listing.orderDeadline),
+              delivery: formatDate(listing.deliveryDate),
+            })}
           </p>
         )}
       </header>
 
       <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {figure("Số đơn", String(totals.orderCount))}
-        {figure("Tổng tiền", formatMoney(totals.totalAmount))}
-        {figure("Đã thu", formatMoney(totals.paidAmount), "text-positive-deep")}
+        {figure(t("figures.orders"), String(totals.orderCount))}
+        {figure(t("figures.total"), format.money(totals.totalAmount))}
         {figure(
-          "Còn phải thu",
-          formatMoney(totals.outstandingAmount),
+          t("figures.paid"),
+          format.money(totals.paidAmount),
+          "text-positive-deep",
+        )}
+        {figure(
+          t("figures.outstanding"),
+          format.money(totals.outstandingAmount),
           totals.outstandingAmount > 0 ? "text-warn-deep" : undefined,
         )}
       </dl>
 
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div role="group" aria-label="Lọc đơn" className="flex flex-wrap gap-2">
+        <div role="group" aria-label={t("filterGroup")} className="flex flex-wrap gap-2">
           {FILTERS.map((option) => (
             <button
               key={option.value}
@@ -205,7 +222,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                   : "border-border text-muted-foreground hover:text-foreground",
               )}
             >
-              {option.label}
+              {t(`filters.${option.value}`)}
             </button>
           ))}
         </div>
@@ -217,19 +234,19 @@ export function SalesSummary({ listingId }: { listingId: string }) {
               checked={grouped}
               onChange={(event) => setGrouped(event.target.checked)}
             />
-            Gom theo nơi giao
+            {t("groupByLocation")}
           </label>
           <label className="flex items-center gap-2 text-sm">
-            Sắp xếp
+            {t("sort")}
             <select
               className={cn(selectClassName, "h-9 w-auto")}
               value={grouped ? "location" : sort}
               disabled={grouped}
               onChange={(event) => setSort(event.target.value as Sort)}
             >
-              <option value="time">Thời điểm đặt</option>
-              <option value="buyer">Người mua</option>
-              <option value="location">Nơi giao</option>
+              <option value="time">{t("sortBy.time")}</option>
+              <option value="buyer">{t("sortBy.buyer")}</option>
+              <option value="location">{t("sortBy.location")}</option>
             </select>
           </label>
           <a
@@ -237,7 +254,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
             download
             className={buttonVariants({ variant: "outline", size: "sm" })}
           >
-            Xuất CSV
+            {t("exportCsv")}
           </a>
         </div>
       </div>
@@ -245,7 +262,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
       {visibleSelected.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-md bg-primary-soft px-4 py-3">
           <span className="text-sm font-medium">
-            Đã chọn {visibleSelected.length} đơn
+            {t("selected", { count: visibleSelected.length })}
           </span>
           <Button
             size="sm"
@@ -257,7 +274,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
               )
             }
           >
-            Xác nhận đã nhận tiền
+            {t("confirmPaid")}
           </Button>
           <Button
             size="sm"
@@ -270,7 +287,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
               )
             }
           >
-            Đánh dấu đã giao
+            {t("markDelivered")}
           </Button>
         </div>
       )}
@@ -280,7 +297,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
           role="alert"
           className="rounded-md border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn-deep"
         >
-          <p className="font-medium">Một số đơn không cập nhật được:</p>
+          <p className="font-medium">{t("someFailed")}</p>
           <ul className="mt-1 list-disc pl-5">
             {failures.map((failure) => (
               <li key={failure}>{failure}</li>
@@ -291,7 +308,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
 
       {rows.length === 0 ? (
         <p className="py-12 text-center text-muted-foreground">
-          Chưa có ai đặt hàng ở bài này.
+          {t("empty")}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border">
@@ -302,7 +319,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                   <input
                     type="checkbox"
                     className="size-4 accent-primary"
-                    aria-label="Chọn tất cả đơn đang hiện"
+                    aria-label={t("selectAll")}
                     checked={allSelected}
                     onChange={() =>
                       setSelected(
@@ -314,26 +331,26 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                   />
                 </th>
                 <th scope="col" className={cn(th, "sticky left-0 z-10 bg-surface")}>
-                  Người mua
+                  {t("columns.buyer")}
                 </th>
                 <th scope="col" className={th}>
-                  Nơi giao
+                  {t("columns.location")}
                 </th>
                 {items.map((item) => (
                   <th key={item.id} scope="col" className={cn(th, "text-right")}>
-                    {item.name} ({item.unit})
+                    {t("columns.item", { name: item.name, unit: item.unit })}
                     {!item.isActive && (
                       <span className="block font-normal normal-case">
-                        đã ngừng bán
+                        {t("columns.discontinued")}
                       </span>
                     )}
                   </th>
                 ))}
                 <th scope="col" className={cn(th, "text-right")}>
-                  Tổng tiền
+                  {t("columns.total")}
                 </th>
                 <th scope="col" className={th}>
-                  Trạng thái
+                  {t("columns.status")}
                 </th>
               </tr>
             </thead>
@@ -344,7 +361,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                     colSpan={columnCount}
                     className="px-3 py-8 text-center text-muted-foreground"
                   >
-                    Không có đơn nào khớp bộ lọc này.
+                    {t("noMatch")}
                   </td>
                 </tr>
               )}
@@ -365,8 +382,8 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                             <span>
                               {group.location}{" "}
                               <span className="font-normal text-muted-foreground">
-                                · {group.rows.length} đơn ·{" "}
-                                {formatMoney(
+                                {t("groupCount", { count: group.rows.length })}{" "}
+                                {format.money(
                                   group.rows.reduce(
                                     (sum, row) => sum + row.totalAmount,
                                     0,
@@ -379,7 +396,9 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                                 size="sm"
                                 variant="outline"
                                 disabled={bulk.isPending}
-                                aria-label={`Đánh dấu đã giao cả nhóm ${group.location}`}
+                                aria-label={t("markGroupDeliveredNamed", {
+                                  location: group.location,
+                                })}
                                 onClick={() =>
                                   void run(
                                     "deliver",
@@ -387,7 +406,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                                   )
                                 }
                               >
-                                Đánh dấu đã giao cả nhóm
+                                {t("markGroupDelivered")}
                               </Button>
                             )}
                           </div>
@@ -400,7 +419,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                           <input
                             type="checkbox"
                             className="size-4 accent-primary"
-                            aria-label={`Chọn đơn ${row.code}`}
+                            aria-label={t("selectOrder", { code: row.code })}
                             checked={selected.has(row.orderId)}
                             onChange={() => toggle(row.orderId)}
                           />
@@ -430,12 +449,12 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                         {items.map((item) => (
                           <td key={item.id} className="px-3 py-2 text-right">
                             {row.quantities[item.id] !== undefined
-                              ? formatQuantity(row.quantities[item.id])
+                              ? format.quantity(row.quantities[item.id])
                               : ""}
                           </td>
                         ))}
                         <td className="px-3 py-2 text-right font-medium whitespace-nowrap">
-                          {formatMoney(row.totalAmount)}
+                          {format.money(row.totalAmount)}
                         </td>
                         <td className="px-3 py-2">
                           <OrderStatusBadges
@@ -456,15 +475,15 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                   colSpan={2}
                   className="sticky left-0 bg-surface px-3 py-2 text-left"
                 >
-                  Tổng {totals.orderCount} đơn
+                  {t("totalRow", { count: totals.orderCount })}
                 </th>
                 {items.map((item) => (
                   <td key={item.id} className="px-3 py-2 text-right">
-                    {formatQuantity(totals.quantities[item.id] ?? 0)}
+                    {format.quantity(totals.quantities[item.id] ?? 0)}
                   </td>
                 ))}
                 <td className="px-3 py-2 text-right whitespace-nowrap">
-                  {formatMoney(totals.totalAmount)}
+                  {format.money(totals.totalAmount)}
                 </td>
                 <td />
               </tr>

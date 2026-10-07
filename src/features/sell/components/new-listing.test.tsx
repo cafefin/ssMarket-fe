@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { emptyListing } from "../lib/listing-schema";
@@ -32,7 +33,7 @@ describe("NewListing", () => {
   });
 
   it("starts by asking how the person wants to sell", () => {
-    render(<NewListing />);
+    renderWithIntl(<NewListing />);
 
     expect(screen.getByText("Bạn muốn bán theo cách nào?")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Hàng có sẵn/ })).toHaveTextContent(
@@ -45,7 +46,7 @@ describe("NewListing", () => {
   });
 
   it("shows the form for the chosen mode", async () => {
-    render(<NewListing />);
+    renderWithIntl(<NewListing />);
 
     await userEvent.click(screen.getByRole("button", { name: /Đặt trước/ }));
 
@@ -56,7 +57,7 @@ describe("NewListing", () => {
   it("goes back to the choice without losing what was typed", async () => {
     useSellDraftStore.getState().setMode("in_stock");
     useSellDraftStore.getState().setValues({ ...emptyListing(), title: "Loa cũ" });
-    render(<NewListing />);
+    renderWithIntl(<NewListing />);
     expect(screen.getByText("form:in_stock:Loa cũ")).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Đổi hình thức" }));
@@ -68,7 +69,7 @@ describe("NewListing", () => {
   it("clears the draft once the listing is saved", async () => {
     useSellDraftStore.getState().setMode("in_stock");
     useSellDraftStore.getState().setValues({ ...emptyListing(), title: "Loa cũ" });
-    render(<NewListing />);
+    renderWithIntl(<NewListing />);
 
     await userEvent.click(screen.getByRole("button", { name: "saved" }));
 

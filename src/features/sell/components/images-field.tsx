@@ -1,6 +1,7 @@
 "use client";
 
 import { XIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import type { ListingDetail } from "@/features/listings";
 import { imageProblem, MAX_IMAGES } from "../lib/listing-schema";
@@ -22,6 +23,8 @@ export function ImagesField({
   onRemoveExisting,
   onRemoveAdded,
 }: ImagesFieldProps) {
+  const t = useTranslations("sell.images");
+  const te = useTranslations("errors.codes");
   const [problem, setProblem] = useState<string | null>(null);
   const previews = useMemo(
     () => added.map((file) => URL.createObjectURL(file)),
@@ -38,12 +41,16 @@ export function ImagesField({
     const accepted: File[] = [];
     let firstProblem: string | null = null;
     for (const file of files) {
+      const code = imageProblem(file);
       const fileProblem =
         total + accepted.length >= MAX_IMAGES
-          ? `Mỗi bài đăng có tối đa ${MAX_IMAGES} ảnh.`
-          : imageProblem(file);
+          ? t("tooMany", { max: MAX_IMAGES })
+          : code && te(code);
       if (fileProblem) {
-        firstProblem ??= `${file.name}: ${fileProblem}`;
+        firstProblem ??= t("fileProblem", {
+          file: file.name,
+          problem: fileProblem,
+        });
       } else {
         accepted.push(file);
       }
@@ -61,10 +68,9 @@ export function ImagesField({
 
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className="text-lg font-semibold">Ảnh</legend>
+      <legend className="text-lg font-semibold">{t("title")}</legend>
       <p className="-mt-1 text-sm text-muted-foreground">
-        Tối đa {MAX_IMAGES} ảnh JPEG, PNG hoặc WebP, mỗi ảnh không quá 5 MB.
-        Ảnh đầu tiên là ảnh đại diện.
+        {t("hint", { max: MAX_IMAGES })}
       </p>
 
       {total > 0 && (
@@ -75,12 +81,12 @@ export function ImagesField({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={image.thumbnailUrl}
-                alt={`Ảnh ${index + 1}`}
+                alt={t("photo", { number: index + 1 })}
                 className="size-full object-cover"
               />
               <button
                 type="button"
-                aria-label={`Xóa ảnh ${index + 1}`}
+                aria-label={t("remove", { number: index + 1 })}
                 onClick={() => onRemoveExisting(image.id)}
                 className={removeButton}
               >
@@ -95,12 +101,12 @@ export function ImagesField({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={previews[index]}
-                  alt={`Ảnh ${number}: ${file.name}`}
+                  alt={t("newPhoto", { number, file: file.name })}
                   className="size-full object-cover"
                 />
                 <button
                   type="button"
-                  aria-label={`Xóa ảnh ${number}`}
+                  aria-label={t("remove", { number })}
                   onClick={() => onRemoveAdded(index)}
                   className={removeButton}
                 >
@@ -117,7 +123,7 @@ export function ImagesField({
           htmlFor="listing-images"
           className="mb-2 block text-sm font-medium"
         >
-          Thêm ảnh
+          {t("add")}
         </label>
         <input
           id="listing-images"

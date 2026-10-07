@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type {
   FulfillmentStatus,
   Order,
@@ -14,16 +15,16 @@ const TONES: Record<Tone, string> = {
   error: "bg-error-soft text-error-deep",
 };
 
-const PAYMENT: Record<PaymentStatus, { label: string; tone: Tone }> = {
-  unpaid: { label: "Chưa thanh toán", tone: "warn" },
-  reported: { label: "Chờ xác nhận tiền", tone: "info" },
-  paid: { label: "Đã thanh toán", tone: "positive" },
+const PAYMENT: Record<PaymentStatus, Tone> = {
+  unpaid: "warn",
+  reported: "info",
+  paid: "positive",
 };
 
-const FULFILLMENT: Record<FulfillmentStatus, { label: string; tone: Tone }> = {
-  pending: { label: "Chờ giao", tone: "warn" },
-  delivered: { label: "Đã giao", tone: "positive" },
-  cancelled: { label: "Đã hủy", tone: "error" },
+const FULFILLMENT: Record<FulfillmentStatus, Tone> = {
+  pending: "warn",
+  delivered: "positive",
+  cancelled: "error",
 };
 
 function Badge({ tone, children }: { tone: Tone; children: string }) {
@@ -48,18 +49,19 @@ export function OrderStatusBadges({
 }: {
   order: Pick<Order, "paymentStatus" | "fulfillmentStatus" | "refundNeeded">;
 }) {
+  const t = useTranslations("orders.status");
   const cancelled = order.fulfillmentStatus === "cancelled";
   return (
     <span className="inline-flex flex-wrap gap-1.5">
       {!cancelled && (
-        <Badge tone={PAYMENT[order.paymentStatus].tone}>
-          {PAYMENT[order.paymentStatus].label}
+        <Badge tone={PAYMENT[order.paymentStatus]}>
+          {t(`payment.${order.paymentStatus}`)}
         </Badge>
       )}
-      <Badge tone={FULFILLMENT[order.fulfillmentStatus].tone}>
-        {FULFILLMENT[order.fulfillmentStatus].label}
+      <Badge tone={FULFILLMENT[order.fulfillmentStatus]}>
+        {t(`fulfillment.${order.fulfillmentStatus}`)}
       </Badge>
-      {order.refundNeeded && <Badge tone="error">Cần hoàn tiền</Badge>}
+      {order.refundNeeded && <Badge tone="error">{t("refundNeeded")}</Badge>}
     </span>
   );
 }
