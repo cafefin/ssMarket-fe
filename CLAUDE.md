@@ -30,6 +30,8 @@ src/
 │       ├── listings/[id]/        detail and edit
 │       ├── sell/                 my listings, new listing, received orders, summary
 │       ├── orders/               my orders, order page
+│       ├── cart/                 the cart, grouped by seller
+│       ├── checkout/             one checkout, one order per seller
 │       ├── sellers/[id]/         a seller's public page
 │       ├── admin/categories/     category management (admins only)
 │       └── profile/
@@ -45,7 +47,8 @@ src/
 │   └── lib/              utils.ts, format/ (money, dates, quantities, initials, useFormat), theme/
 └── features/
     ├── listings/         components/ (card, grid, filters, carousel, detail view, gallery,
-    │                     item table), api/ (listing and category hooks), lib/ (URL filters)
+    │                     item table), api/ (listing and category hooks), lib/ (URL filters,
+    │                     pricing and combos, condition)
     ├── profile/          components/, api/ (banks, update profile), lib/ (schema)
     ├── shell/            components/ (header, search box, user menu, phone tab bar,
     │                     language switch and sync), api/ (update locale),
@@ -54,14 +57,17 @@ src/
     ├── admin/            components/ (category admin), api/
     ├── orders/           components/ (panel, order page, editor, QR block, actions, lists,
     │                     summary), api/ (use-orders), lib/ (order-math)
-    └── sell/             components/ (mode step, listing form, my listings),
-                          lib/ (form schema, units, draft store, save sequence)
+    ├── sell/             components/ (mode step, listing form, my listings),
+    │                     lib/ (form schema, units, draft store, save sequence)
+    └── cart/             components/ (card actions, stepper, cart button, cart page,
+                          checkout page, add to cart), api/ (use-cart), lib/ (checkout link)
 ```
 
 Each feature has `components/`, `api/`, `lib/` (only the ones it needs) and an
 `index.ts`, its public entry point. `shared` never imports features;
 features import each other only through `index.ts`, and only
-`orders`, `sell`, `sellers` and `admin` may import `listings`; `app/` is the
+`orders`, `sell`, `sellers`, `admin` and `cart` may import `listings` (`cart`
+also imports `orders`); `app/` is the
 one place that joins two features. ESLint enforces this (`FEATURE_DEPS` in
 `eslint.config.mjs`). See `docs/architecture.md` for the rules, the atom and
 molecule definitions, and how to add a feature.
@@ -155,6 +161,36 @@ locale routing: URLs never carry a language.
 Listing images come from `/api/media/...` behind the session cookie, so use a
 plain `<img>` (the Next.js image optimizer cannot fetch them). The backend
 already serves a 400px thumbnail and a 1600px full size.
+
+## Products, condition and combos
+
+- A listing is one product with up to 10 options ("Phân loại", `MAX_ITEMS`).
+  With one option the form names it after the title and the card and detail
+  hide the option name.
+- Condition (`CONDITIONS` in `features/listings/lib/condition.ts`) is chosen
+  for in-stock goods outside perishable categories (`category.isPerishable`)
+  and never for pre-orders; `needsCondition` in the form schema decides.
+- Combos ("N for a set price", at most 3 per option) are priced by
+  `lineTotalWithCombos` in `features/listings/lib/pricing.ts`, a mirror of the
+  backend's function tested with the same table. Combos never add up across
+  options. `nextCombo` gives the "buy N more" hint.
+- Price and condition filters are URL params (`minPrice`, `maxPrice`,
+  `minCondition`) handled by `parseListingFilters` / `listingsHref`.
+
+## Cart and checkout
+
+- The cart lives on the server (`/cart`); the header shows `CartButton` with
+  `useCartCount`. The cart never reserves stock.
+- `listings` may not import `cart`, so cards and the detail page receive cart
+  buttons from `app/` (`renderCardActions`, `renderSecondaryAction`).
+- `/checkout?items=<itemId>:<qty>,...` (built by `checkoutHref`) asks
+  `POST /checkout/preview` how the lines split into orders: one per seller,
+  one per listing for pre-orders. Each block picks its own payment method and
+  delivery place; the page holds one idempotency key for its lifetime, and
+  `CHECKOUT_CHANGED` refetches the preview.
+- "Đặt hàng" on the detail page still places one order directly
+  (`OrderPanel`); "Thêm vào giỏ" sits next to it.
+- After a checkout invalidate the cart, `["orders"]` and `["listings"]`.
 
 ## Orders
 

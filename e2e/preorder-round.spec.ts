@@ -117,7 +117,9 @@ test("a seller runs a whole pre-order round from the summary table and reopens i
   await expect(seller.page.getByText(/Kiểm tra hạn chốt, ngày giao và giá/)).toBeVisible();
   await expect(seller.page.getByLabel("Tiêu đề")).toHaveValue(title);
   await expect(
-    seller.page.getByRole("group", { name: "Mặt hàng 3" }).getByLabel("Tên"),
+    seller.page
+      .getByRole("group", { name: "Phân loại 3" })
+      .getByLabel(/^Tên phân loại/),
   ).toHaveValue("Bưởi");
 
   await seller.page.getByRole("button", { name: "Đăng bán" }).click();

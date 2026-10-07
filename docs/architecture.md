@@ -72,6 +72,7 @@ Rules:
    | `admin` | `shared`, `listings` |
    | `orders` | `shared`, `listings` |
    | `sell` | `shared`, `listings` |
+   | `cart` | `shared`, `listings`, `orders` |
 
 4. `app` may import everything, and it is the only place that joins two peer
    features. It also goes through each feature's `index.ts`.
