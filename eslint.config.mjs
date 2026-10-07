@@ -12,6 +12,7 @@ const FEATURE_DEPS = {
   admin: ["listings"],
   orders: ["listings"],
   sell: ["listings"],
+  cart: ["listings", "orders"],
 };
 const FEATURES = Object.keys(FEATURE_DEPS);
 

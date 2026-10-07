@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useRef, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Price } from "@/shared/ui/atoms/price";
 import { Button } from "@/shared/ui/atoms/shadcn/button";
@@ -33,7 +33,19 @@ interface Shortage {
 }
 
 /** Quantities, payment method and delivery location for one order. */
-export function OrderPanel({ listing }: { listing: ListingDetail }) {
+export function OrderPanel({
+  listing,
+  renderSecondaryAction,
+}: {
+  listing: ListingDetail;
+  /**
+   * Another action for the quantities typed so far, such as adding them to
+   * the cart. Gets only the lines that can be ordered as typed.
+   */
+  renderSecondaryAction?: (
+    lines: { itemId: string; quantity: string }[],
+  ) => ReactNode;
+}) {
   const router = useRouter();
   const { data: me } = useCurrentUser();
   const queryClient = useQueryClient();
@@ -313,9 +325,16 @@ export function OrderPanel({ listing }: { listing: ListingDetail }) {
         </p>
       )}
 
-      <Button type="submit" disabled={placeOrder.isPending}>
-        {placeOrder.isPending ? t("placing") : t("place")}
-      </Button>
+      <div className="flex flex-wrap gap-2 [&>*]:flex-1">
+        {renderSecondaryAction?.(
+          chosen
+            .filter((line) => !line.problem)
+            .map((line) => ({ itemId: line.item.id, quantity: line.quantity })),
+        )}
+        <Button type="submit" disabled={placeOrder.isPending}>
+          {placeOrder.isPending ? t("placing") : t("place")}
+        </Button>
+      </div>
     </form>
   );
 }
