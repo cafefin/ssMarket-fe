@@ -31,7 +31,10 @@ src/
 │   │   │   └── shadcn/       generated shadcn/ui primitives
 │   │   └── molecules/        field, user-avatar
 │   ├── api/                  client, auth-fetch, api-error, schema.d.ts,
-│   │                         query-provider, use-current-user, use-public-user
+│   │                         query-provider, use-current-user, use-public-user,
+│   │                         use-user-message
+│   ├── i18n/                 locales, request config, messages/{vi,en}.json,
+│   │                         locale cookie, Translator type, test-utils
 │   └── lib/                  utils.ts, format/, theme/
 └── features/
     ├── listings/             browse, search and read listings
@@ -141,3 +144,9 @@ are used in one feature each and stay there.
 3. `app/` imports features through their `index.ts` too (the original spec
    only said `app` may import everything). Every public export is then one
    that someone really uses.
+4. Phase 2e added `shared/i18n/`: the locale config, the request config that
+   reads the `NEXT_LOCALE` cookie, the message files and test helpers. It is
+   infrastructure like `shared/api`, so every feature may use it. The
+   language switch lives in `shell`, which may only import `shared`, so it
+   has its own `useUpdateLocale` instead of reusing `profile`'s
+   `useUpdateProfile`.
