@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { Field, selectClassName } from "@/shared/ui/molecules/field";
 import { Button } from "@/shared/ui/atoms/shadcn/button";
@@ -15,11 +15,12 @@ import { Textarea } from "@/shared/ui/atoms/shadcn/textarea";
 import { ApiError } from "@/shared/api/api-error";
 import { useUserMessage } from "@/shared/api/use-user-message";
 import { api } from "@/shared/api/client";
-import { categoryName, useCategories, MY_LISTINGS_QUERY_KEY, type ListingDetail, LISTINGS_QUERY_KEY, listingQueryKey } from "@/features/listings";
+import { CONDITION_PERCENT, CONDITIONS, categoryName, useCategories, MY_LISTINGS_QUERY_KEY, type ListingDetail, LISTINGS_QUERY_KEY, listingQueryKey } from "@/features/listings";
 import {
   type ListingFormValues,
   type ListingMode,
   listingSchema,
+  needsCondition,
   toListingBody,
 } from "../lib/listing-schema";
 import { submitListing } from "../lib/submit-listing";
@@ -54,9 +55,28 @@ export function ListingForm({
   const tc = useTranslations("common");
   const locale = useLocale();
   const userMessage = useUserMessage();
-  const schema = useMemo(() => listingSchema(mode, tv), [mode, tv]);
   const { data: categories = [], isSuccess: categoriesLoaded } =
     useCategories();
+  const tl = useTranslations("listings");
+  // The listing's own category counts too: it may have been hidden since.
+  const ownCategory = listing?.category;
+  const perishableIds = useMemo(
+    () =>
+      new Set(
+        [...categories, ...(ownCategory ? [ownCategory] : [])]
+          .filter((category) => category.isPerishable)
+          .map((category) => String(category.id)),
+      ),
+    [categories, ownCategory],
+  );
+  const isPerishable = useMemo(
+    () => (categoryId: string) => perishableIds.has(categoryId),
+    [perishableIds],
+  );
+  const schema = useMemo(
+    () => listingSchema(mode, tv, isPerishable),
+    [mode, tv, isPerishable],
+  );
   const [addedImages, setAddedImages] = useState<File[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
   const [bankRequired, setBankRequired] = useState(false);
@@ -74,6 +94,8 @@ export function ListingForm({
     resolver: zodResolver(schema),
     defaultValues: initialValues,
   });
+
+  const categoryId = useWatch({ control, name: "categoryId" });
 
   useEffect(() => {
     if (!onValuesChange) {
@@ -112,7 +134,7 @@ export function ListingForm({
         const result = await submitListing({
           api,
           listingId: listing?.id,
-          body: toListingBody(mode, values),
+          body: toListingBody(mode, values, isPerishable),
           newImages: addedImages,
           removedImageIds,
           publish,
@@ -209,6 +231,32 @@ export function ListingForm({
           <Textarea id="description" rows={4} {...register("description")} />
         </Field>
       </section>
+
+      {needsCondition(mode, categoryId, isPerishable) && (
+        <Field
+          htmlFor="condition"
+          label={t("condition")}
+          hint={t("conditionHint")}
+          error={errors.condition?.message}
+        >
+          <select
+            id="condition"
+            className={selectClassName}
+            aria-invalid={Boolean(errors.condition)}
+            {...register("condition")}
+          >
+            <option value="">{t("chooseCondition")}</option>
+            {CONDITIONS.map((condition) => (
+              <option key={condition} value={condition}>
+                {tl("conditionLabel", {
+                  level: tl(`condition.${condition}`),
+                  percent: CONDITION_PERCENT[condition],
+                })}
+              </option>
+            ))}
+          </select>
+        </Field>
+      )}
 
       {mode === "preorder" && (
         <section className="grid gap-4 sm:grid-cols-2">

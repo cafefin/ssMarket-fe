@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { ListingCard, LISTING_GRID, useSellerListings } from "@/features/listings";
+import type { ReactNode } from "react";
+import {
+  ListingCard,
+  LISTING_GRID,
+  type ListingSummary,
+  useSellerListings,
+} from "@/features/listings";
 import { UserAvatar } from "@/shared/ui/molecules/user-avatar";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
@@ -13,7 +19,14 @@ import { usePublicUser } from "@/shared/api/use-public-user";
 const WRAPPER = "mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-8";
 
 /** A seller's public page: who they are and what they have open. */
-export function SellerProfile({ sellerId }: { sellerId: string }) {
+export function SellerProfile({
+  sellerId,
+  renderCardActions,
+}: {
+  sellerId: string;
+  /** Controls under each card; the page passes the cart's, see app/. */
+  renderCardActions?: (listing: ListingSummary) => ReactNode;
+}) {
   const user = usePublicUser(sellerId);
   const listings = useSellerListings(sellerId);
   const t = useTranslations("sellers");
@@ -115,7 +128,10 @@ export function SellerProfile({ sellerId }: { sellerId: string }) {
           <ul className={LISTING_GRID}>
             {items.map((listing) => (
               <li key={listing.id} className="flex">
-                <ListingCard listing={listing} />
+                <ListingCard
+                  listing={listing}
+                  actions={renderCardActions?.(listing)}
+                />
               </li>
             ))}
           </ul>

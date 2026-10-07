@@ -153,6 +153,11 @@ export function OrderView({ id }: { id: string }) {
             {order.lines.map((line) => (
               <tr key={line.itemId} className="border-t border-hairline-soft">
                 <th scope="row" className="py-2 pr-3 text-left font-normal">
+                  {order.listingCount > 1 && (
+                    <span className="block text-[13px] text-muted-foreground">
+                      {line.listingTitle}
+                    </span>
+                  )}
                   {line.itemName}
                   <span className="block text-[13px] text-muted-foreground">
                     {format.quantity(line.quantity)} {line.unit} ×{" "}
@@ -161,6 +166,18 @@ export function OrderView({ id }: { id: string }) {
                 </th>
                 <td className="py-2 text-right whitespace-nowrap">
                   {format.money(line.lineTotal)}
+                  {line.listTotal > line.lineTotal && (
+                    <span className="block text-[13px] text-muted-foreground line-through">
+                      <span className="sr-only">
+                        {t("savedWithCombos", {
+                          listTotal: format.money(line.listTotal),
+                        })}
+                      </span>
+                      <span aria-hidden="true">
+                        {format.money(line.listTotal)}
+                      </span>
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}

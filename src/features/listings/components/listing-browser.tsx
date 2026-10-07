@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { useCategories } from "../api/use-categories";
-import { useListings } from "../api/use-listings";
+import { type ListingSummary, useListings } from "../api/use-listings";
 import { parseListingFilters } from "../lib/filters";
 import { ListingCard } from "./listing-card";
 import { ClosingSoonShelf } from "./closing-soon-shelf";
@@ -14,7 +15,12 @@ import { ListingFilters } from "./listing-filters";
 import { LISTING_GRID } from "./listing-grid";
 
 /** The home page: filters from the URL, then the matching listings. */
-export function ListingBrowser() {
+export function ListingBrowser({
+  renderCardActions,
+}: {
+  /** Controls under each card; the page passes the cart's, see app/. */
+  renderCardActions?: (listing: ListingSummary) => ReactNode;
+} = {}) {
   const t = useTranslations("listings.browser");
   const tc = useTranslations("common");
   const filters = parseListingFilters(useSearchParams());
@@ -22,7 +28,14 @@ export function ListingBrowser() {
   const listings = useListings(filters);
 
   const items = listings.data?.pages.flatMap((page) => page.items) ?? [];
-  const filtered = Boolean(filters.q || filters.category || filters.mode);
+  const filtered = Boolean(
+    filters.q ||
+      filters.category ||
+      filters.mode ||
+      filters.minPrice !== null ||
+      filters.maxPrice !== null ||
+      filters.minCondition,
+  );
 
   return (
     <>
@@ -90,7 +103,10 @@ export function ListingBrowser() {
           <ul className={LISTING_GRID}>
             {items.map((listing) => (
               <li key={listing.id} className="flex">
-                <ListingCard listing={listing} />
+                <ListingCard
+                  listing={listing}
+                  actions={renderCardActions?.(listing)}
+                />
               </li>
             ))}
           </ul>

@@ -91,7 +91,8 @@
       "loading": "Đang tải đơn hàng",
       "loadFailed": "Không tải được danh sách đơn hàng.",
       "order": "Đơn {code}",
-      "seller": "Người bán: {name}"
+      "seller": "Người bán: {name}",
+      "moreListings": "{title} và {count} sản phẩm khác"
     },
     "mine": {
       "title": "Đơn của tôi",
@@ -139,7 +140,9 @@
       "note": "Ghi chú (không bắt buộc)",
       "noItems": "Nhập số lượng cho ít nhất một mặt hàng",
       "placing": "Đang đặt…",
-      "place": "Đặt hàng"
+      "place": "Đặt hàng",
+      "comboHint": "Mua thêm {missing} {unit} để được combo {quantity} {unit} giá {price}",
+      "withCombos": "Đã áp dụng combo"
     },
     "editor": {
       "blocked": {
@@ -208,7 +211,8 @@
       "deliverTo": "Giao đến",
       "payment": "Thanh toán",
       "deliveryDate": "Ngày giao dự kiến",
-      "note": "Ghi chú"
+      "note": "Ghi chú",
+      "savedWithCombos": "Giá lẻ {listTotal}"
     },
     "summary": {
       "filters": {
@@ -307,12 +311,23 @@
       "modeGroup": "Hình thức bán",
       "allModes": "Tất cả",
       "categoryGroup": "Loại hàng",
-      "allCategories": "Mọi loại hàng"
+      "allCategories": "Mọi loại hàng",
+      "price": "Giá",
+      "anyPrice": "Mọi mức giá",
+      "under": "Dưới {max}",
+      "between": "{min} – {max}",
+      "over": "Từ {min}",
+      "condition": "Độ mới",
+      "anyCondition": "Mọi độ mới",
+      "atLeast": "Từ {percent}% ({level})"
     },
     "items": {
       "item": "Mặt hàng",
       "unitPrice": "Đơn giá",
-      "remaining": "Còn lại"
+      "remaining": "Còn lại",
+      "combos": "Combo",
+      "combo": "{quantity} {unit}: {price}",
+      "option": "Phân loại"
     },
     "shelf": {
       "title": "Sắp chốt đơn",
@@ -353,8 +368,19 @@
       "payment": "Thanh toán",
       "description": "Mô tả",
       "edit": "Sửa bài đăng",
-      "summary": "Bảng tổng hợp đơn hàng"
-    }
+      "summary": "Bảng tổng hợp đơn hàng",
+      "condition": "Độ mới"
+    },
+    "condition": {
+      "new": "Mới",
+      "like_new": "Như mới",
+      "excellent": "Rất tốt",
+      "good": "Tốt",
+      "fair": "Khá",
+      "worn": "Đã dùng nhiều"
+    },
+    "conditionLabel": "{level} {percent}%",
+    "hasCombos": "Có combo"
   },
   "sellers": {
     "notFound": "Không tìm thấy người bán này.",
@@ -401,7 +427,9 @@
       "name": "Tên danh mục",
       "shortName": "Tên",
       "nameEn": "Tên tiếng Anh",
-      "sortOrder": "Thứ tự"
+      "sortOrder": "Thứ tự",
+      "perishable": "Thực phẩm",
+      "perishableHint": "Thực phẩm (không hỏi độ mới)"
     },
     "table": {
       "caption": "Danh sách danh mục",
@@ -427,6 +455,10 @@
       "nameEnRequired": "Nhập tên tiếng Anh",
       "maxLength": "Tối đa {max} ký tự",
       "sortOrder": "Thứ tự là số nguyên từ 0"
+    },
+    "perishable": {
+      "yes": "Có",
+      "no": "Không"
     }
   },
   "sell": {
@@ -473,21 +505,32 @@
       "publishFailed": "Đã lưu bản nháp nhưng chưa đăng được. {reason}",
       "published": "Đã đăng bán",
       "changesSaved": "Đã lưu thay đổi",
-      "draftSaved": "Đã lưu bản nháp"
+      "draftSaved": "Đã lưu bản nháp",
+      "condition": "Độ mới",
+      "chooseCondition": "Chọn độ mới",
+      "conditionHint": "Người mua lọc được theo độ mới."
     },
     "items": {
-      "title": "Mặt hàng",
+      "title": "Phân loại",
       "hint": {
-        "in_stock": "Mỗi dòng là một món, kèm số lượng bạn đang có.",
-        "preorder": "Mỗi dòng là một lựa chọn, ví dụ cam ngọt và cam vắt. Không cần nhập số lượng."
+        "in_stock": "Mỗi bài là một sản phẩm. Thêm phân loại nếu có nhiều cỡ, màu hoặc loại, kèm số lượng bạn đang có.",
+        "preorder": "Mỗi bài là một sản phẩm. Thêm phân loại nếu có nhiều loại, ví dụ cam ngọt và cam vắt. Không cần nhập số lượng."
       },
-      "item": "Mặt hàng {number}",
-      "name": "Tên",
+      "item": "Phân loại {number}",
+      "name": "Tên phân loại",
       "unit": "Đơn vị",
       "unitPrice": "Đơn giá (đ)",
       "stock": "Số lượng có",
-      "remove": "Xóa mặt hàng {number}",
-      "add": "Thêm mặt hàng"
+      "remove": "Xóa phân loại {number}",
+      "add": "Thêm phân loại",
+      "nameOptional": "Tên phân loại (không bắt buộc)",
+      "combos": "Combo",
+      "combosHint": "Bán theo gói giá tốt hơn, ví dụ 100 cái giá 900.000 đ. Tối đa {max} combo.",
+      "comboQuantity": "Số lượng combo {number}",
+      "comboPrice": "Giá cả combo {number} (đ)",
+      "comboPerUnit": "≈ {price}/{unit}",
+      "addCombo": "Thêm combo",
+      "removeCombo": "Xóa combo {number}"
     },
     "images": {
       "title": "Ảnh",
@@ -504,16 +547,20 @@
       "category": "Chọn loại hàng",
       "description": "Mô tả tối đa 5000 ký tự",
       "payment": "Chọn ít nhất một hình thức thanh toán",
-      "itemCount": "Bài đăng cần 1–{max} mặt hàng",
+      "itemCount": "Bài đăng cần 1–{max} phân loại",
       "deadlineRequired": "Chọn hạn chốt đơn",
       "deadlineFuture": "Hạn chốt đơn phải ở tương lai",
       "deliveryRequired": "Chọn ngày giao",
       "deliveryBeforeDeadline": "Ngày giao không được trước hạn chốt đơn",
-      "itemName": "Tên mặt hàng gồm 1–120 ký tự",
+      "itemName": "Tên phân loại gồm 1–120 ký tự",
       "unit": "Chọn đơn vị",
       "unitPrice": "Đơn giá từ 1.000 đ đến 1.000.000.000 đ",
       "stockPositive": "Nhập số lượng lớn hơn 0",
-      "stockWhole": "Chỉ đơn vị kg được nhập số lẻ"
+      "stockWhole": "Chỉ đơn vị kg được nhập số lẻ",
+      "condition": "Chọn độ mới",
+      "comboQuantity": "Số lượng combo phải lớn hơn 1 và chia hết cho bước bán (kg: bước 0,1)",
+      "comboPrice": "Giá combo từ 1.000 đ và rẻ hơn mua lẻ cùng số lượng",
+      "comboDuplicate": "Đã có combo với số lượng này"
     },
     "edit": {
       "title": "Sửa bài đăng",
@@ -538,7 +585,7 @@
       },
       "loading": "Đang tải bài đăng",
       "loadFailed": "Không tải được bài đăng của bạn.",
-      "itemCount": "{count} mặt hàng",
+      "itemCount": "{count} phân loại",
       "from": "từ {price}/{unit}",
       "closes": "Chốt đơn {time}",
       "publishedAt": "Đăng lúc {time}",

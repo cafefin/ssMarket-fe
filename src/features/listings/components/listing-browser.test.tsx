@@ -18,8 +18,8 @@ vi.mock("./closing-soon-shelf", () => ({
 }));
 
 const categories = [
-  { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food" },
-  { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
+  { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food", isPerishable: true },
+  { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", isPerishable: false },
 ];
 
 const summary = (id: string, title: string) => ({
@@ -128,6 +128,30 @@ describe("ListingBrowser", () => {
       await within(kinds).findByRole("button", { name: "Electronics" }),
     ).toBeInTheDocument();
     expect(within(kinds).queryByText("Điện tử")).not.toBeInTheDocument();
+  });
+
+  it("offers price and condition filters as links", async () => {
+    location.search = "minPrice=50000&maxPrice=200000";
+    serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
+
+    renderBrowser();
+
+    expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Dưới 50.000 đ" }),
+    ).toHaveAttribute("href", "/?maxPrice=50000");
+    expect(
+      screen.getByRole("link", { name: "50.000 đ – 200.000 đ" }),
+    ).toHaveAttribute("aria-current", "true");
+    expect(
+      screen.getByRole("link", { name: "Từ 90% (Tốt)" }),
+    ).toHaveAttribute(
+      "href",
+      "/?minPrice=50000&maxPrice=200000&minCondition=good",
+    );
+    expect(listingCalls()[0][1]).toMatchObject({
+      params: { query: { minPrice: 50000, maxPrice: 200000 } },
+    });
   });
 
   it("sends the filters from the URL to the API", async () => {

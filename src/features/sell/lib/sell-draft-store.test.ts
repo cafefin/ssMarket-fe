@@ -29,7 +29,7 @@ describe("sell draft store", () => {
       title: "Cam sành",
       orderDeadline: "2026-10-09T17:00",
       deliveryDate: "2026-10-12",
-      items: [{ name: "Cam", unit: "kg", unitPrice: "35000", stockQuantity: "10" }],
+      items: [{ name: "Cam", unit: "kg", unitPrice: "35000", stockQuantity: "10", combos: [] }],
     });
 
     store().setMode("preorder");
@@ -38,7 +38,7 @@ describe("sell draft store", () => {
       title: "Cam sành",
       orderDeadline: "",
       deliveryDate: "",
-      items: [{ name: "Cam", unit: "kg", unitPrice: "35000", stockQuantity: "" }],
+      items: [{ name: "Cam", unit: "kg", unitPrice: "35000", stockQuantity: "", combos: [] }],
     });
   });
 
@@ -46,7 +46,7 @@ describe("sell draft store", () => {
     store().setMode("in_stock");
     const values = {
       ...emptyListing(),
-      items: [{ name: "Loa", unit: "cái", unitPrice: "5000", stockQuantity: "2" }],
+      items: [{ name: "Loa", unit: "cái", unitPrice: "5000", stockQuantity: "2", combos: [] }],
     };
     store().setValues(values);
 

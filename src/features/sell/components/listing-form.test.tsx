@@ -25,8 +25,8 @@ vi.mock("next/navigation", () => ({
 vi.mock("../lib/submit-listing", () => ({ submitListing }));
 
 const categories = [
-  { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food" },
-  { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
+  { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food", isPerishable: true },
+  { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", isPerishable: false },
 ];
 
 const saved = (overrides: object = {}) => ({
@@ -49,14 +49,15 @@ async function renderForm(
 }
 
 const field = (name: string | RegExp) => screen.getByLabelText(name);
-const item = (n: number) => screen.getByRole("group", { name: `Mặt hàng ${n}` });
+const item = (n: number) => screen.getByRole("group", { name: `Phân loại ${n}` });
 const click = (name: string) =>
   userEvent.click(screen.getByRole("button", { name }));
 
 async function fillInStock() {
   await userEvent.type(field("Tiêu đề"), "Loa bluetooth cũ");
   await userEvent.selectOptions(field("Loại hàng"), "4");
-  await userEvent.type(within(item(1)).getByLabelText("Tên"), "Loa JBL");
+  await userEvent.type(within(item(1)).getByLabelText(/^Tên phân loại/), "Loa JBL");
+  await userEvent.selectOptions(field("Độ mới"), "like_new");
   await userEvent.type(within(item(1)).getByLabelText("Đơn giá (đ)"), "500.000");
   await userEvent.type(within(item(1)).getByLabelText("Số lượng có"), "1");
 }
@@ -100,14 +101,14 @@ describe("ListingForm", () => {
     it("adds rows and never removes the last one", async () => {
       await renderForm();
 
-      expect(screen.getByRole("button", { name: "Xóa mặt hàng 1" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Xóa phân loại 1" })).toBeDisabled();
 
-      await click("Thêm mặt hàng");
+      await click("Thêm phân loại");
 
       expect(item(2)).toBeInTheDocument();
-      await click("Xóa mặt hàng 1");
-      expect(screen.queryByRole("group", { name: "Mặt hàng 2" })).not.toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Xóa mặt hàng 1" })).toBeDisabled();
+      await click("Xóa phân loại 1");
+      expect(screen.queryByRole("group", { name: "Phân loại 2" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Xóa phân loại 1" })).toBeDisabled();
     });
   });
 
@@ -125,7 +126,6 @@ describe("ListingForm", () => {
         expect.arrayContaining([
           "Tiêu đề gồm 5–120 ký tự",
           "Chọn loại hàng",
-          "Tên mặt hàng gồm 1–120 ký tự",
           "Đơn giá từ 1.000 đ đến 1.000.000.000 đ",
           "Nhập số lượng lớn hơn 0",
         ]),
@@ -180,7 +180,7 @@ describe("ListingForm", () => {
             categoryId: 4,
             orderDeadline: null,
             items: [
-              { name: "Loa JBL", unit: "cái", unitPrice: 500000, stockQuantity: "1" },
+              { name: "Loa JBL", unit: "cái", unitPrice: 500000, stockQuantity: "1", combos: [] },
             ],
           }),
         }),
@@ -340,7 +340,8 @@ describe("ListingForm", () => {
       ...emptyListing(),
       title: "Loa bluetooth cũ",
       categoryId: "4",
-      items: [{ name: "Loa JBL", unit: "cái", unitPrice: "500.000", stockQuantity: "2" }],
+      condition: "good",
+      items: [{ name: "Loa JBL", unit: "cái", unitPrice: "500.000", stockQuantity: "2", combos: [] }],
     };
     const images = [
       { id: "img-1", url: "/api/media/a.webp", thumbnailUrl: "/api/media/a_thumb.webp" },
@@ -376,7 +377,7 @@ describe("ListingForm", () => {
           id: "l1",
           status: "open",
           images: [],
-          category: { id: 9, slug: "sach", name: "Sách", nameEn: "Books" },
+          category: { id: 9, slug: "sach", name: "Sách", nameEn: "Books", isPerishable: false },
         },
       });
 
@@ -402,7 +403,7 @@ describe("ListingForm", () => {
           id: "l1",
           status: "open",
           images: [],
-          category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
+          category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", isPerishable: false },
         },
       });
 

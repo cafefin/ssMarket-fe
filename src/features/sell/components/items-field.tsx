@@ -7,7 +7,9 @@ import {
   type FieldErrors,
   type UseFormRegister,
   useFieldArray,
+  useWatch,
 } from "react-hook-form";
+import { useFormat } from "@/shared/lib/format/use-format";
 import { Field, selectClassName } from "@/shared/ui/molecules/field";
 import { Button } from "@/shared/ui/atoms/shadcn/button";
 import { Input } from "@/shared/ui/atoms/shadcn/input";
@@ -16,8 +18,109 @@ import {
   LISTING_UNITS,
   type ListingFormValues,
   type ListingMode,
+  MAX_COMBOS,
   MAX_ITEMS,
+  parsePrice,
+  parseQuantity,
 } from "../lib/listing-schema";
+
+/**
+ * The combos of one option: "N units for a set price", with the price per
+ * unit shown so the seller sees the discount.
+ */
+function CombosField({
+  index,
+  control,
+  register,
+  errors,
+}: Omit<ItemsFieldProps, "mode"> & { index: number }) {
+  const t = useTranslations("sell.items");
+  const format = useFormat();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: `items.${index}.combos`,
+  });
+  const combos = useWatch({ control, name: `items.${index}.combos` });
+  const unit = useWatch({ control, name: `items.${index}.unit` });
+  const comboErrors = errors.items?.[index]?.combos;
+
+  return (
+    <div className="flex flex-col gap-3 sm:col-span-full">
+      {fields.length > 0 && (
+        <p className="text-sm font-medium">{t("combos")}</p>
+      )}
+      {fields.map((field, comboIndex) => {
+        const number = comboIndex + 1;
+        const quantity = parseQuantity(combos?.[comboIndex]?.quantity ?? "");
+        const price = parsePrice(combos?.[comboIndex]?.price ?? "");
+        const perUnit =
+          quantity !== null && Number(quantity) > 0 && !Number.isNaN(price)
+            ? Math.round(price / Number(quantity))
+            : null;
+        return (
+          <div
+            key={field.id}
+            className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-start gap-3"
+          >
+            <Field
+              htmlFor={`items.${index}.combos.${comboIndex}.quantity`}
+              label={t("comboQuantity", { number })}
+              error={comboErrors?.[comboIndex]?.quantity?.message}
+            >
+              <Input
+                id={`items.${index}.combos.${comboIndex}.quantity`}
+                inputMode="decimal"
+                placeholder="100"
+                {...register(`items.${index}.combos.${comboIndex}.quantity`)}
+              />
+            </Field>
+            <Field
+              htmlFor={`items.${index}.combos.${comboIndex}.price`}
+              label={t("comboPrice", { number })}
+              hint={
+                perUnit === null
+                  ? undefined
+                  : t("comboPerUnit", { price: format.money(perUnit), unit })
+              }
+              error={comboErrors?.[comboIndex]?.price?.message}
+            >
+              <Input
+                id={`items.${index}.combos.${comboIndex}.price`}
+                inputMode="numeric"
+                placeholder="900.000"
+                {...register(`items.${index}.combos.${comboIndex}.price`)}
+              />
+            </Field>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={t("removeCombo", { number })}
+              onClick={() => remove(comboIndex)}
+              className="mt-7"
+            >
+              <TrashIcon aria-hidden="true" />
+            </Button>
+          </div>
+        );
+      })}
+      <div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={fields.length >= MAX_COMBOS}
+          onClick={() => append({ quantity: "", price: "" })}
+        >
+          {t("addCombo")}
+        </Button>
+        <span className="ml-2 text-[13px] text-muted-foreground">
+          {t("combosHint", { max: MAX_COMBOS })}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 interface ItemsFieldProps {
   mode: ListingMode;
@@ -51,7 +154,7 @@ export function ItemsField({ mode, control, register, errors }: ItemsFieldProps)
           >
             <Field
               htmlFor={`items.${index}.name`}
-              label={t("name")}
+              label={fields.length === 1 ? t("nameOptional") : t("name")}
               error={itemErrors?.name?.message}
             >
               <Input
@@ -114,6 +217,12 @@ export function ItemsField({ mode, control, register, errors }: ItemsFieldProps)
             >
               <TrashIcon aria-hidden="true" />
             </Button>
+            <CombosField
+              index={index}
+              control={control}
+              register={register}
+              errors={errors}
+            />
           </div>
         );
       })}

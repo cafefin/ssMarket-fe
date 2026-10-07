@@ -23,7 +23,7 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   mode: "in_stock",
   status: "open",
   isOpen: true,
-  category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
+  category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", isPerishable: false },
   seller: { id: "seller", name: "Chị Lan", avatarUrl: null },
   acceptsPrepaidQr: true,
   acceptsPayOnDelivery: true,
@@ -32,10 +32,12 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   publishedAt: "2026-10-05T03:00:00.000Z",
   orderCount: 0,
   reopenedFromId: null,
+  condition: null,
+  conditionPercent: null,
   items: [
-    { id: "loa", name: "Loa", unit: "cái", unitPrice: 500000, stockQuantity: 3 },
-    { id: "cam", name: "Cam", unit: "kg", unitPrice: 35000, stockQuantity: 10 },
-    { id: "day", name: "Dây sạc", unit: "cái", unitPrice: 20000, stockQuantity: 0 },
+    { id: "loa", name: "Loa", unit: "cái", unitPrice: 500000, stockQuantity: 3, combos: [] },
+    { id: "cam", name: "Cam", unit: "kg", unitPrice: 35000, stockQuantity: 10, combos: [] },
+    { id: "day", name: "Dây sạc", unit: "cái", unitPrice: 20000, stockQuantity: 0, combos: [] },
   ],
   images: [],
   ...overrides,
@@ -108,6 +110,32 @@ describe("OrderPanel", () => {
     await userEvent.type(quantity(/^Cam/), "1,5");
 
     expect(total()).toHaveTextContent("1.052.500 đ");
+  });
+
+  it("charges combo prices and suggests the next combo", async () => {
+    await renderPanel(
+      listing({
+        items: [
+          {
+            id: "but",
+            name: "Bút bi",
+            unit: "cái",
+            unitPrice: 10000,
+            stockQuantity: 500,
+            combos: [{ quantity: "100", price: 900000 }],
+          },
+        ],
+      }),
+    );
+
+    await userEvent.type(quantity(/^Bút bi/), "90");
+    expect(total()).toHaveTextContent("900.000 đ");
+    expect(
+      screen.getByText("Mua thêm 10 cái để được combo 100 cái giá 900.000 đ"),
+    ).toBeInTheDocument();
+
+    await userEvent.type(quantity(/^Bút bi/), "{backspace}{backspace}230");
+    expect(total()).toHaveTextContent("2.100.000 đ");
   });
 
   it("places the order with the typed lines and one idempotency key", async () => {

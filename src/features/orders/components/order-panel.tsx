@@ -17,7 +17,8 @@ import { type ListingDetail, LISTINGS_QUERY_KEY, listingQueryKey } from "@/featu
 import { type PaymentMethod, usePlaceOrder } from "../api/use-orders";
 import { useFormat } from "@/shared/lib/format/use-format";
 import {
-  lineTotal,
+  lineTotalWithCombos,
+  nextCombo,
   MAX_ORDER_QUANTITY,
   normalizeQuantity,
   quantityProblem,
@@ -87,7 +88,12 @@ export function OrderPanel({ listing }: { listing: ListingDetail }) {
       quantity,
       soldOut,
       problem,
-      total: quantity !== "" && !problem ? lineTotal(item.unitPrice, quantity) : 0,
+      total:
+        quantity !== "" && !problem
+          ? lineTotalWithCombos(item.unitPrice, item.combos, quantity)
+          : 0,
+      hint:
+        quantity !== "" && !problem ? nextCombo(item.combos, quantity) : null,
     };
   });
   const chosen = lines.filter((line) => line.quantity !== "");
@@ -163,7 +169,7 @@ export function OrderPanel({ listing }: { listing: ListingDetail }) {
       <h2 className="text-lg font-semibold">{t("title")}</h2>
 
       <ul className="flex flex-col gap-3">
-        {lines.map(({ item, soldOut, problem }) => {
+        {lines.map(({ item, soldOut, problem, hint }) => {
           const inputId = `quantity-${item.id}`;
           return (
             <li key={item.id} className="flex flex-col gap-1">
@@ -204,6 +210,16 @@ export function OrderPanel({ listing }: { listing: ListingDetail }) {
               {showProblems && problem && (
                 <p role="alert" className="text-right text-[13px] text-error-deep">
                   {t("lineProblem", { item: item.name, problem })}
+                </p>
+              )}
+              {hint && (
+                <p className="text-right text-[13px] text-primary-deep">
+                  {t("comboHint", {
+                    missing: format.quantity(hint.missing),
+                    quantity: format.quantity(Number(hint.combo.quantity)),
+                    unit: item.unit,
+                    price: format.money(hint.combo.price),
+                  })}
                 </p>
               )}
             </li>

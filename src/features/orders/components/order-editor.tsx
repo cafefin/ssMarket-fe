@@ -12,7 +12,7 @@ import { useListing } from "@/features/listings";
 import { type Order, useEditOrder } from "../api/use-orders";
 import { useFormat } from "@/shared/lib/format/use-format";
 import {
-  lineTotal,
+  lineTotalWithCombos,
   MAX_ORDER_QUANTITY,
   normalizeQuantity,
   quantityProblem,
@@ -94,13 +94,21 @@ export function OrderEditor({
     name: line.itemName,
     unit: line.unit,
     unitPrice: line.unitPrice,
+    // The combos the line was priced with stay with it, like the price.
+    combos: line.combos,
   }));
   const orderedIds = new Set(ordered.map((item) => item.id));
   const items = [
     ...ordered,
     ...listing.items
       .filter((item) => !orderedIds.has(item.id))
-      .map(({ id, name, unit, unitPrice }) => ({ id, name, unit, unitPrice })),
+      .map(({ id, name, unit, unitPrice, combos }) => ({
+        id,
+        name,
+        unit,
+        unitPrice,
+        combos,
+      })),
   ];
 
   const lines = items.map((item) => {
@@ -114,7 +122,10 @@ export function OrderEditor({
       item,
       quantity,
       problem,
-      total: quantity !== "" && !problem ? lineTotal(item.unitPrice, quantity) : 0,
+      total:
+        quantity !== "" && !problem
+          ? lineTotalWithCombos(item.unitPrice, item.combos, quantity)
+          : 0,
     };
   });
   const chosen = lines.filter((line) => line.quantity !== "");

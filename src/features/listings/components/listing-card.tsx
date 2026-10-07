@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Price } from "@/shared/ui/atoms/price";
 import { UserAvatar } from "@/shared/ui/molecules/user-avatar";
@@ -72,12 +73,41 @@ function Foot({ listing }: { listing: ListingSummary }) {
   );
 }
 
+/** Condition ("Like new 99%") and combo deals, in neutral text: information, not a status. */
+function Facts({ listing }: { listing: ListingSummary }) {
+  const t = useTranslations("listings");
+  if (!listing.condition && !listing.hasCombos) {
+    return null;
+  }
+  return (
+    <p className="flex flex-wrap gap-x-2 text-[13px] text-muted-foreground">
+      {listing.condition && listing.conditionPercent !== null && (
+        <span>
+          {t("conditionLabel", {
+            level: t(`condition.${listing.condition}`),
+            percent: listing.conditionPercent,
+          })}
+        </span>
+      )}
+      {listing.hasCombos && (
+        <span className="font-medium text-primary-deep">{t("hasCombos")}</span>
+      )}
+    </p>
+  );
+}
+
 export function ListingCard({
   listing,
   layout = "responsive",
+  actions,
 }: {
   listing: ListingSummary;
   layout?: CardLayout;
+  /**
+   * Controls under the card, such as adding to the cart. They sit outside
+   * the link, so pressing them never opens the listing.
+   */
+  actions?: ReactNode;
 }) {
   const stacked = layout === "stacked";
   // On phones a responsive card is a row: photo on the left, so long
@@ -86,11 +116,12 @@ export function ListingCard({
     ? "aspect-[4/3] w-full"
     : "row-span-2 h-full min-h-28 w-full min-[560px]:aspect-[4/3] min-[560px]:h-auto min-[560px]:min-h-0";
 
-  return (
+  const card = (
     <Link
       href={`/listings/${listing.id}`}
       className={cn(
-        "group w-full overflow-hidden rounded-lg border border-border bg-card outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        "group w-full overflow-hidden border border-border bg-card outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        actions ? "rounded-t-lg" : "rounded-lg",
         stacked
           ? "flex flex-col"
           : "grid grid-cols-[112px_minmax(0,1fr)] min-[560px]:flex min-[560px]:flex-col",
@@ -122,6 +153,7 @@ export function ListingCard({
             unit={listing.minPriceUnit}
           />
         </p>
+        <Facts listing={listing} />
         <p className="mt-1 flex items-center gap-2 text-[13px] text-muted-foreground">
           <UserAvatar
             name={listing.seller.name}
@@ -134,5 +166,17 @@ export function ListingCard({
 
       <Foot listing={listing} />
     </Link>
+  );
+
+  if (!actions) {
+    return card;
+  }
+  return (
+    <div className="flex w-full flex-col">
+      {card}
+      <div className="rounded-b-lg border-x border-b border-border bg-card px-3 py-2">
+        {actions}
+      </div>
+    </div>
   );
 }
