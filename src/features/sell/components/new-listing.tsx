@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { ListingForm } from "./listing-form";
 import { ModeStep } from "./mode-step";
-import { emptyListing } from "../lib/listing-schema";
+import { emptyListing, withListingDefaults } from "../lib/listing-schema";
 import { useSellDraftStore } from "../lib/sell-draft-store";
 
 /** Selling: choose the mode, then fill in the form for that mode. */
@@ -34,7 +34,9 @@ export function NewListing() {
         // A different mode means different rules, so start a fresh form.
         key={mode}
         mode={mode}
-        initialValues={useSellDraftStore.getState().values ?? emptyListing()}
+        initialValues={withListingDefaults(
+          useSellDraftStore.getState().values ?? emptyListing(),
+        )}
         onValuesChange={setValues}
         onSaved={reset}
       />

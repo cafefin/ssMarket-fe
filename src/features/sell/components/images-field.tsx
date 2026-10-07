@@ -1,6 +1,6 @@
 "use client";
 
-import { XIcon } from "lucide-react";
+import { XIcon } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import type { ListingDetail } from "@/features/listings";

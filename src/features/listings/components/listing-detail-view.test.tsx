@@ -19,7 +19,7 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   mode: "in_stock",
   status: "open",
   isOpen: true,
-  category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
+  category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", isPerishable: false },
   seller: SELLER,
   acceptsPrepaidQr: true,
   acceptsPayOnDelivery: true,
@@ -28,9 +28,11 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   publishedAt: "2026-10-05T03:00:00.000Z",
   orderCount: 0,
   reopenedFromId: null,
+  condition: null,
+  conditionPercent: null,
   items: [
-    { id: "i1", name: "Loa JBL Go 3", unit: "cái", unitPrice: 500000, stockQuantity: 2 },
-    { id: "i2", name: "Dây sạc", unit: "cái", unitPrice: 20000, stockQuantity: 0 },
+    { id: "i1", name: "Loa JBL Go 3", unit: "cái", unitPrice: 500000, stockQuantity: 2, combos: [] },
+    { id: "i2", name: "Dây sạc", unit: "cái", unitPrice: 20000, stockQuantity: 0, combos: [] },
   ],
   images: [],
   ...overrides,
@@ -116,6 +118,30 @@ describe("ListingDetailView", () => {
     expect(screen.queryByText("Chốt đơn")).not.toBeInTheDocument();
   });
 
+  it("shows the condition and each option's combos", async () => {
+    serve(
+      listing({
+        condition: "good",
+        conditionPercent: 90,
+        items: [
+          {
+            id: "i1",
+            name: "Bút bi",
+            unit: "cái",
+            unitPrice: 10000,
+            stockQuantity: 500,
+            combos: [{ quantity: "100", price: 900000 }],
+          },
+        ],
+      }),
+    );
+
+    renderView();
+
+    expect(await screen.findByText("Tốt 90%")).toBeInTheDocument();
+    expect(screen.getByText("100 cái: 900.000 đ")).toBeInTheDocument();
+  });
+
   it("shows the listing in English, with the English category name", async () => {
     serve(listing());
 
@@ -142,7 +168,7 @@ describe("ListingDetailView", () => {
         orderDeadline: "2026-10-09T10:00:00.000Z",
         deliveryDate: "2026-10-12",
         items: [
-          { id: "i1", name: "Cam sành", unit: "kg", unitPrice: 35000, stockQuantity: null },
+          { id: "i1", name: "Cam sành", unit: "kg", unitPrice: 35000, stockQuantity: null, combos: [] },
         ],
       }),
     );

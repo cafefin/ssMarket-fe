@@ -32,6 +32,7 @@ export function toFormValues(
       ? toDateTimeLocal(listing.orderDeadline)
       : "",
     deliveryDate: listing.deliveryDate ?? "",
+    condition: listing.condition ?? "",
     items: listing.items.map((item) => ({
       // Keeping the id lets the backend update the item in place, so orders
       // that already reference it stay valid.
@@ -41,6 +42,10 @@ export function toFormValues(
       unitPrice: PRICE_FORMATTERS[locale].format(item.unitPrice),
       stockQuantity:
         item.stockQuantity === null ? "" : String(item.stockQuantity),
+      combos: item.combos.map((combo) => ({
+        quantity: combo.quantity,
+        price: PRICE_FORMATTERS[locale].format(combo.price),
+      })),
     })),
   };
 }

@@ -436,6 +436,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CartController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cart/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CartController_count"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cart/lines/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["CartController_setLine"];
+        post?: never;
+        delete: operations["CartController_removeLine"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/checkout/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CheckoutController_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CheckoutController_checkout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -473,6 +553,8 @@ export interface components {
             name: string;
             /** @example Fresh food */
             nameEn: string;
+            /** @description Food and other goods that go off; no condition is asked */
+            isPerishable: boolean;
         };
         AdminCategoryDto: {
             id: number;
@@ -482,6 +564,8 @@ export interface components {
             name: string;
             /** @example Fresh food */
             nameEn: string;
+            /** @description Food and other goods that go off; no condition is asked */
+            isPerishable: boolean;
             sortOrder: number;
             /** @description False when hidden from browsing and selling */
             isActive: boolean;
@@ -491,6 +575,8 @@ export interface components {
             name: string;
             /** @example Books */
             nameEn: string;
+            /** @description Food: listings have no condition */
+            isPerishable?: boolean;
             /** @description Defaults to the end of the list */
             sortOrder?: number;
         };
@@ -499,6 +585,8 @@ export interface components {
             nameEn?: string;
             sortOrder?: number;
             isActive?: boolean;
+            /** @description Food: listings have no condition */
+            isPerishable?: boolean;
         };
         /** @enum {string} */
         UserRole: "user" | "admin";
@@ -535,6 +623,23 @@ export interface components {
         };
         /** @enum {string} */
         ListingMode: "in_stock" | "preorder";
+        /**
+         * @description Required for in-stock goods outside food categories; null otherwise
+         * @enum {string}
+         */
+        ListingCondition: "new" | "like_new" | "excellent" | "good" | "fair" | "worn";
+        ComboInputDto: {
+            /**
+             * @description Decimal string
+             * @example 100
+             */
+            quantity: string;
+            /**
+             * @description Price of the whole combo, integer VND
+             * @example 900000
+             */
+            price: number;
+        };
         ListingItemInputDto: {
             /**
              * Format: uuid
@@ -558,6 +663,8 @@ export interface components {
              * @example 2.5
              */
             stockQuantity?: string | null;
+            /** @description "N units for a set price"; at most 3 */
+            combos?: components["schemas"]["ComboInputDto"][];
         };
         ListingInputDto: {
             mode: components["schemas"]["ListingMode"];
@@ -579,6 +686,8 @@ export interface components {
              * @description Pre-order only, YYYY-MM-DD
              */
             deliveryDate?: string | null;
+            /** @description Required for in-stock goods outside food categories; null otherwise */
+            condition?: components["schemas"]["ListingCondition"] | null;
             items: components["schemas"]["ListingItemInputDto"][];
         };
         /** @enum {string} */
@@ -589,6 +698,15 @@ export interface components {
             name: string;
             avatarUrl: string | null;
         };
+        ComboDto: {
+            /**
+             * @description Decimal string
+             * @example 100
+             */
+            quantity: string;
+            /** @description Price of the whole combo, integer VND */
+            price: number;
+        };
         ListingItemDto: {
             /** Format: uuid */
             id: string;
@@ -598,6 +716,8 @@ export interface components {
             unitPrice: number;
             /** @description Remaining stock; null means unlimited */
             stockQuantity: number | null;
+            /** @description "N units for a set price", smallest first */
+            combos: components["schemas"]["ComboDto"][];
         };
         ListingImageDto: {
             /** Format: uuid */
@@ -626,6 +746,9 @@ export interface components {
             publishedAt: string | null;
             /** @description Orders that have not been cancelled */
             orderCount: number;
+            condition: components["schemas"]["ListingCondition"] | null;
+            /** @description The percentage of `condition`, e.g. 99 */
+            conditionPercent: number | null;
             /**
              * Format: uuid
              * @description The earlier round this listing was reopened from
@@ -655,6 +778,18 @@ export interface components {
             orderCount: number;
             /** @description Remaining stock, only for an in-stock listing with exactly one item that has a stock limit; null otherwise */
             stockQuantity: number | null;
+            /** @description True when some option has a combo price */
+            hasCombos: boolean;
+            /** @description Active options (items) of the listing */
+            itemCount: number;
+            /**
+             * Format: uuid
+             * @description The id of the only option when there is exactly one, so the list can add it to the cart directly; null otherwise
+             */
+            singleItemId: string | null;
+            condition: components["schemas"]["ListingCondition"] | null;
+            /** @example 99 */
+            conditionPercent: number | null;
             /** Format: date-time */
             orderDeadline: string | null;
             /** Format: date */
@@ -709,14 +844,22 @@ export interface components {
         FulfillmentStatus: "pending" | "delivered" | "cancelled";
         OrderLineDto: {
             /** Format: uuid */
+            listingId: string;
+            /** @description Title of the listing the option belongs to */
+            listingTitle: string;
+            /** Format: uuid */
             itemId: string;
             itemName: string;
             unit: string;
             /** @description Integer VND, as it was when the order was placed */
             unitPrice: number;
             quantity: number;
-            /** @description Integer VND */
+            /** @description Integer VND, after combos */
             lineTotal: number;
+            /** @description unit price × quantity before combos; equals lineTotal without them */
+            listTotal: number;
+            /** @description The combos the line was priced with */
+            combos: components["schemas"]["ComboDto"][];
         };
         OrderQrDto: {
             /** @description The text to render as a QR code */
@@ -734,7 +877,10 @@ export interface components {
             id: string;
             /** @example SSM7K2Q9X */
             code: string;
+            /** @description The pre-order round, or for an in-stock order the listing of its first line */
             listing: components["schemas"]["OrderListingDto"];
+            /** @description How many listings the lines come from */
+            listingCount: number;
             buyer: components["schemas"]["OrderPersonDto"];
             seller: components["schemas"]["OrderPersonDto"];
             viewerRole: components["schemas"]["OrderActor"];
@@ -844,6 +990,119 @@ export interface components {
         };
         BulkResponseDto: {
             results: components["schemas"]["BulkResultDto"][];
+        };
+        /** @enum {string} */
+        CartProblem: "LISTING_NOT_OPEN" | "ITEM_REMOVED" | "OUT_OF_STOCK";
+        CartLineDto: {
+            /** Format: uuid */
+            itemId: string;
+            /** Format: uuid */
+            listingId: string;
+            listingTitle: string;
+            mode: components["schemas"]["ListingMode"];
+            /** @description Active options of the listing */
+            itemCount: number;
+            itemName: string;
+            unit: string;
+            /** @description Current price, integer VND */
+            unitPrice: number;
+            combos: components["schemas"]["ComboDto"][];
+            quantity: number;
+            /** @description null: unlimited */
+            stockQuantity: number | null;
+            thumbnailUrl: string | null;
+            /** Format: date-time */
+            orderDeadline: string | null;
+            /** @description Integer VND, with combos applied */
+            lineTotal: number;
+            /** @description Integer VND, unit price × quantity */
+            listTotal: number;
+            problem: components["schemas"]["CartProblem"] | null;
+        };
+        CartGroupDto: {
+            seller: components["schemas"]["ListingSellerDto"];
+            lines: components["schemas"]["CartLineDto"][];
+        };
+        CartDto: {
+            /** @description One group per seller */
+            groups: components["schemas"]["CartGroupDto"][];
+            lineCount: number;
+        };
+        CartCountDto: {
+            count: number;
+        };
+        SetCartLineDto: {
+            /**
+             * @description Decimal string
+             * @example 2
+             */
+            quantity: string;
+        };
+        CheckoutLineDto: {
+            /** Format: uuid */
+            itemId: string;
+            /**
+             * @description Decimal string
+             * @example 1.5
+             */
+            quantity: string;
+        };
+        CheckoutPreviewRequestDto: {
+            lines: components["schemas"]["CheckoutLineDto"][];
+        };
+        CheckoutPreviewLineDto: {
+            /** Format: uuid */
+            itemId: string;
+            /** Format: uuid */
+            listingId: string;
+            listingTitle: string;
+            itemName: string;
+            unit: string;
+            unitPrice: number;
+            quantity: number;
+            combos: components["schemas"]["ComboDto"][];
+            lineTotal: number;
+            listTotal: number;
+        };
+        CheckoutPreviewOrderDto: {
+            /**
+             * @description Identifies this order in POST /checkout
+             * @example seller:6b1f…
+             */
+            key: string;
+            seller: components["schemas"]["ListingSellerDto"];
+            isPreorder: boolean;
+            /** Format: date-time */
+            orderDeadline: string | null;
+            /** Format: date */
+            deliveryDate: string | null;
+            lines: components["schemas"]["CheckoutPreviewLineDto"][];
+            /** @description Integer VND, with combos applied */
+            totalAmount: number;
+            /** @description Integer VND, before combos */
+            listTotal: number;
+            /** @description Methods every listing in this order accepts */
+            paymentMethods: components["schemas"]["PaymentMethod"][];
+        };
+        CheckoutPreviewDto: {
+            orders: components["schemas"]["CheckoutPreviewOrderDto"][];
+        };
+        CheckoutOrderChoiceDto: {
+            /** @description The key from the preview */
+            key: string;
+            paymentMethod: components["schemas"]["PaymentMethod"];
+            /** @example Tầng 7 */
+            deliveryLocation: string;
+            note?: string | null;
+        };
+        CheckoutRequestDto: {
+            lines: components["schemas"]["CheckoutLineDto"][];
+            orders: components["schemas"]["CheckoutOrderChoiceDto"][];
+            /** @description True when buying from the cart: bought lines leave it */
+            fromCart: boolean;
+        };
+        CheckoutResultDto: {
+            orders: components["schemas"]["OrderDetailDto"][];
         };
     };
     responses: never;
@@ -1126,6 +1385,12 @@ export interface operations {
                 sort?: components["schemas"]["ListingSort"];
                 /** @description Only this seller */
                 seller?: string;
+                /** @description Lowest unit price of the listing at least this, integer VND */
+                minPrice?: number;
+                /** @description Lowest unit price of the listing at most this, integer VND */
+                maxPrice?: number;
+                /** @description Only second-hand goods at least this good; leaves out pre-orders, food and listings without a condition */
+                minCondition?: components["schemas"]["ListingCondition"];
                 cursor?: string;
                 limit?: number;
             };
@@ -1649,6 +1914,148 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BulkResponseDto"];
+                };
+            };
+        };
+    };
+    CartController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartDto"];
+                };
+            };
+        };
+    };
+    CartController_count: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartCountDto"];
+                };
+            };
+        };
+    };
+    CartController_setLine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCartLineDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartDto"];
+                };
+            };
+        };
+    };
+    CartController_removeLine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartDto"];
+                };
+            };
+        };
+    };
+    CheckoutController_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckoutPreviewRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutPreviewDto"];
+                };
+            };
+        };
+    };
+    CheckoutController_checkout: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description A UUID generated once per checkout page */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckoutRequestDto"];
+            };
+        };
+        responses: {
+            /** @description The orders this key already created */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutResultDto"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutResultDto"];
                 };
             };
         };

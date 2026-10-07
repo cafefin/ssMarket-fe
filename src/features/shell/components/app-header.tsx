@@ -1,10 +1,10 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
+import { PlusIcon } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
-import { Suspense } from "react";
+import { type ReactNode, Suspense } from "react";
 import { LogoMark } from "@/shared/ui/atoms/logo-mark";
 import { Wordmark } from "@/shared/ui/atoms/wordmark";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
@@ -16,7 +16,7 @@ import { LocaleSync } from "./locale-sync";
 import { isActive, NAV_ITEMS } from "../lib/nav-items";
 import { UserMenu } from "./user-menu";
 
-export function AppHeader() {
+export function AppHeader({ actions }: { actions?: ReactNode } = {}) {
   const { data: user } = useCurrentUser();
   const pathname = usePathname();
   const t = useTranslations("shell");
@@ -76,6 +76,8 @@ export function AppHeader() {
             <PlusIcon aria-hidden="true" className="size-5" />
           </Link>
           {/* Phones switch from the account menu. */}
+          {/* Joined in app/, e.g. the cart, which shell may not import. */}
+          {actions}
           <LocaleSwitch className="max-md:hidden" />
           {user && <UserMenu user={user} />}
           <LocaleSync />

@@ -77,7 +77,14 @@ export function OrderList({
                   >
                     {order.code}
                   </Link>
-                  <p className="truncate text-sm">{order.listing.title}</p>
+                  <p className="truncate text-sm">
+                    {order.listingCount > 1
+                      ? t("moreListings", {
+                          title: order.listing.title,
+                          count: order.listingCount - 1,
+                        })
+                      : order.listing.title}
+                  </p>
                   <p className="text-[13px] text-muted-foreground">
                     {seller
                       ? `${order.buyer.name} · ${order.deliveryLocation}`

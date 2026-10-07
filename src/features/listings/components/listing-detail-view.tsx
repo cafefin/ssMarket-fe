@@ -127,6 +127,15 @@ export function ListingDetailView({
             <span className="text-sm text-muted-foreground">
               {categoryName(listing.category, locale)}
             </span>
+            {listing.condition && listing.conditionPercent !== null && (
+              <span className="rounded-full bg-surface px-2.5 py-0.5 text-[13px] font-semibold text-foreground">
+                <span className="sr-only">{t("condition")}: </span>
+                {tl("conditionLabel", {
+                  level: tl(`condition.${listing.condition}`),
+                  percent: listing.conditionPercent,
+                })}
+              </span>
+            )}
           </div>
           <h1 className="text-[28px] leading-tight font-bold md:text-4xl">
             {listing.title}

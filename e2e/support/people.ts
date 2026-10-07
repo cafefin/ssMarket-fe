@@ -49,12 +49,20 @@ export const tinyPng = Buffer.from(
 export interface NewListing {
   title: string;
   mode: "in_stock" | "preorder";
-  items: { name: string; unit: string; price: string; stock?: string }[];
+  items: {
+    name: string;
+    unit: string;
+    price: string;
+    stock?: string;
+    combos?: { quantity: string; price: string }[];
+  }[];
   acceptQr?: boolean;
   photo?: boolean;
+  /** In-stock only; defaults to like_new. */
+  condition?: string;
 }
 
-/** Posts a listing through the "Đăng bán" form and returns its URL path. */
+/** Posts a listing through the selling form and returns its URL path. */
 export async function postListing(seller: Person, listing: NewListing): Promise<string> {
   const { page } = seller;
   await page.goto("/sell/new");
@@ -69,6 +77,10 @@ export async function postListing(seller: Person, listing: NewListing): Promise<
     .getByLabel("Loại hàng")
     .selectOption({ label: listing.mode === "in_stock" ? "Điện tử" : "Thực phẩm tươi" });
 
+  if (listing.mode === "in_stock") {
+    await page.getByLabel("Độ mới").selectOption(listing.condition ?? "like_new");
+  }
+
   if (listing.mode === "preorder") {
     const deadline = new Date(Date.now() + 3 * 86_400_000);
     const delivery = new Date(Date.now() + 5 * 86_400_000);
@@ -79,14 +91,19 @@ export async function postListing(seller: Person, listing: NewListing): Promise<
 
   for (const [index, item] of listing.items.entries()) {
     if (index > 0) {
-      await page.getByRole("button", { name: "Thêm mặt hàng" }).click();
+      await page.getByRole("button", { name: "Thêm phân loại" }).click();
     }
-    const row = page.getByRole("group", { name: `Mặt hàng ${index + 1}` });
-    await row.getByLabel("Tên").fill(item.name);
+    const row = page.getByRole("group", { name: `Phân loại ${index + 1}` });
+    await row.getByLabel(/^Tên phân loại/).fill(item.name);
     await row.getByLabel("Đơn vị").selectOption(item.unit);
     await row.getByLabel("Đơn giá (đ)").fill(item.price);
     if (item.stock) {
       await row.getByLabel("Số lượng có").fill(item.stock);
+    }
+    for (const [comboIndex, combo] of (item.combos ?? []).entries()) {
+      await row.getByRole("button", { name: "Thêm combo" }).click();
+      await row.getByLabel(`Số lượng combo ${comboIndex + 1}`).fill(combo.quantity);
+      await row.getByLabel(`Giá cả combo ${comboIndex + 1} (đ)`).fill(combo.price);
     }
   }
 

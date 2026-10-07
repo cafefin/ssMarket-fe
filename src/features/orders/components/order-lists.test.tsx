@@ -25,6 +25,7 @@ const order = (overrides: Partial<Order> = {}): Order => ({
   id: "o1",
   code: "SSM7K2Q9X",
   listing: { id: "l1", title: "Hoa quả tuần này", orderDeadline: null, deliveryDate: null },
+  listingCount: 1,
   buyer: { id: "b", name: "Anh Minh" },
   seller: { id: "s", name: "Chị Lan" },
   viewerRole: "buyer",
@@ -75,6 +76,15 @@ describe("MyOrders", () => {
       </QueryProvider>,
     );
   }
+
+  it("names one listing and counts the others of a mixed order", async () => {
+    serve({ "/orders": [page([order({ listingCount: 3 })])] });
+
+    renderList();
+
+    const row = await screen.findByRole("listitem", { name: "Đơn SSM7K2Q9X" });
+    expect(row).toHaveTextContent("Hoa quả tuần này và 2 sản phẩm khác");
+  });
 
   it("lists the buyer's orders with total, seller and status", async () => {
     serve({ "/orders": [page([order()])] });

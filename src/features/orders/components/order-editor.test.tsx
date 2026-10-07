@@ -21,6 +21,7 @@ const order = (overrides: Partial<Order> = {}): Order => ({
   id: "o1",
   code: "SSM7K2Q9X",
   listing: { id: "l1", title: "Hoa quả tuần này", orderDeadline: FUTURE, deliveryDate: "2099-01-03" },
+  listingCount: 1,
   buyer: { id: "b", name: "Anh Minh" },
   seller: { id: "s", name: "Chị Lan" },
   viewerRole: "buyer",
@@ -32,7 +33,7 @@ const order = (overrides: Partial<Order> = {}): Order => ({
   deliveryLocation: "Tầng 7",
   note: null,
   lines: [
-    { itemId: "cam", itemName: "Cam ngọt", unit: "kg", unitPrice: 35000, quantity: 1.5, lineTotal: 52500 },
+    { listingId: "l1", listingTitle: "Hoa quả tuần này", itemId: "cam", itemName: "Cam ngọt", unit: "kg", unitPrice: 35000, quantity: 1.5, lineTotal: 52500, listTotal: 52500, combos: [] },
   ],
   refundNeeded: false,
   cancelledBy: null,
@@ -46,8 +47,8 @@ const order = (overrides: Partial<Order> = {}): Order => ({
 const listing = {
   id: "l1",
   items: [
-    { id: "cam", name: "Cam ngọt", unit: "kg", unitPrice: 40000, stockQuantity: null },
-    { id: "buoi", name: "Bưởi", unit: "cái", unitPrice: 60000, stockQuantity: null },
+    { id: "cam", name: "Cam ngọt", unit: "kg", unitPrice: 40000, stockQuantity: null, combos: [] },
+    { id: "buoi", name: "Bưởi", unit: "cái", unitPrice: 60000, stockQuantity: null, combos: [] },
   ],
 };
 

@@ -12,7 +12,7 @@ const preorder = (id: string, title: string, orderDeadline: string | null) => ({
   id,
   title,
   mode: "preorder",
-  category: { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food" },
+  category: { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food", isPerishable: true },
   seller: { id: "u1", name: "An", avatarUrl: null },
   thumbnailUrl: null,
   stockQuantity: null,

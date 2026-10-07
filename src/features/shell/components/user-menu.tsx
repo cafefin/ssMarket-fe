@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { LanguagesIcon } from "lucide-react";
+import { TranslateIcon } from "@phosphor-icons/react/ssr";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { UserAvatar } from "@/shared/ui/molecules/user-avatar";
@@ -79,7 +79,7 @@ export function UserMenu({ user }: { user: CurrentUser }) {
           disabled={isPending}
           onClick={() => void switchTo(other)}
         >
-          <LanguagesIcon aria-hidden="true" />
+          <TranslateIcon aria-hidden="true" />
           {/* The other language, named in that language. */}
           <span lang={other}>{MESSAGES[other].shell.language.self}</span>
         </DropdownMenuItem>

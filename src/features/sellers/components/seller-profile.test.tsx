@@ -12,7 +12,7 @@ const summary = (id: string, title: string) => ({
   id,
   title,
   mode: "in_stock",
-  category: { id: 2, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
+  category: { id: 2, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", isPerishable: false },
   seller: { id: "u1", name: "Lê Thu Hà", avatarUrl: null },
   thumbnailUrl: null,
   stockQuantity: 3,

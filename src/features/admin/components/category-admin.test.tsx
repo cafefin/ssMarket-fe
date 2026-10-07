@@ -95,7 +95,7 @@ describe("CategoryAdmin", () => {
     await user.click(screen.getByRole("button", { name: "Thêm" }));
     await waitFor(() =>
       expect(api.POST).toHaveBeenCalledWith("/admin/categories", {
-        body: { name: "Sách", nameEn: "Books" },
+        body: { name: "Sách", nameEn: "Books", isPerishable: false },
       }),
     );
     await waitFor(() =>
@@ -190,7 +190,12 @@ describe("CategoryAdmin", () => {
     await waitFor(() =>
       expect(api.PATCH).toHaveBeenCalledWith("/admin/categories/{id}", {
         params: { path: { id: 4 } },
-        body: { name: "Đồ điện tử", nameEn: "Electronics", sortOrder: 4 },
+        body: {
+          name: "Đồ điện tử",
+          nameEn: "Electronics",
+          sortOrder: 4,
+          isPerishable: false,
+        },
       }),
     );
     expect(toast.success).toHaveBeenCalledWith("Đã lưu danh mục");

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isCondition, lineTotal, toThousandths } from "@/features/listings";
 import type { components } from "@/shared/api/schema";
 import type { Translator } from "@/shared/i18n/translator";
 import { DEFAULT_UNIT, LISTING_UNITS } from "./units";
@@ -8,7 +9,8 @@ export { LISTING_UNITS } from "./units";
 export type ListingMode = components["schemas"]["ListingMode"];
 export type ListingInputBody = components["schemas"]["ListingInputDto"];
 
-export const MAX_ITEMS = 20;
+export const MAX_ITEMS = 10;
+export const MAX_COMBOS = 3;
 export const MAX_IMAGES = 5;
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -21,6 +23,8 @@ const itemSchema = z.object({
   /** Text so people can type "35.000"; separators are ignored. */
   unitPrice: z.string(),
   stockQuantity: z.string(),
+  /** "N units for a set price"; text like the unit price. */
+  combos: z.array(z.object({ quantity: z.string(), price: z.string() })),
 });
 
 const baseSchema = z.object({
@@ -33,6 +37,8 @@ const baseSchema = z.object({
   orderDeadline: z.string(),
   /** Value of <input type="date">: YYYY-MM-DD. */
   deliveryDate: z.string(),
+  /** A ListingCondition, or "" when none is chosen or none applies. */
+  condition: z.string(),
   items: z.array(itemSchema),
 });
 
@@ -44,6 +50,7 @@ export const emptyItem = (): ListingItemValues => ({
   unit: DEFAULT_UNIT,
   unitPrice: "",
   stockQuantity: "",
+  combos: [],
 });
 
 export const emptyListing = (): ListingFormValues => ({
@@ -54,8 +61,27 @@ export const emptyListing = (): ListingFormValues => ({
   acceptsPayOnDelivery: true,
   orderDeadline: "",
   deliveryDate: "",
+  condition: "",
   items: [emptyItem()],
 });
+
+/**
+ * Fills fields that a draft saved by an older version of the form lacks, so
+ * a draft kept in sessionStorage across a release still opens.
+ */
+export function withListingDefaults(
+  values: Partial<ListingFormValues>,
+): ListingFormValues {
+  const empty = emptyListing();
+  return {
+    ...empty,
+    ...values,
+    items: (values.items ?? empty.items).map((item) => ({
+      ...emptyItem(),
+      ...item,
+    })),
+  };
+}
 
 /** "35.000" / "35,000" / " 35000 " -> 35000; anything else -> NaN. */
 export function parsePrice(text: string): number {
@@ -77,6 +103,8 @@ export function parseQuantity(text: string): string | null {
 export function listingSchema(
   mode: ListingMode,
   t: Translator<"sell.validation">,
+  /** Whether a category holds food, which has no condition. */
+  isPerishable: (categoryId: string) => boolean = () => false,
 ) {
   return baseSchema.superRefine((value, context) => {
     const issue = (path: (string | number)[], message: string) =>
@@ -98,6 +126,14 @@ export function listingSchema(
     if (value.items.length < 1 || value.items.length > MAX_ITEMS) {
       issue(["items"], t("itemCount", { max: MAX_ITEMS }));
     }
+    if (
+      needsCondition(mode, value.categoryId, isPerishable) &&
+      !isCondition(value.condition)
+    ) {
+      issue(["condition"], t("condition"));
+    }
+    // With one option the name may be left empty: it becomes the title.
+    const single = value.items.length === 1;
 
     if (mode === "preorder") {
       const deadline = new Date(value.orderDeadline);
@@ -118,7 +154,7 @@ export function listingSchema(
 
     value.items.forEach((item, index) => {
       const name = item.name.trim();
-      if (name.length < 1 || name.length > 120) {
+      if ((!single || name !== "") && (name.length < 1 || name.length > 120)) {
         issue(["items", index, "name"], t("itemName"));
       }
       if (!(LISTING_UNITS as readonly string[]).includes(item.unit)) {
@@ -128,6 +164,31 @@ export function listingSchema(
       if (Number.isNaN(price) || price < 1_000 || price > 1_000_000_000) {
         issue(["items", index, "unitPrice"], t("unitPrice"));
       }
+      const step = item.unit === "kg" ? 100 : 1000;
+      const sizes = new Set<number>();
+      item.combos.forEach((combo, comboIndex) => {
+        const path = ["items", index, "combos", comboIndex];
+        const quantity = parseQuantity(combo.quantity);
+        const size = quantity === null ? null : toThousandths(quantity);
+        if (size === null || size <= step || size % step !== 0) {
+          issue([...path, "quantity"], t("comboQuantity"));
+          return;
+        }
+        if (sizes.has(size)) {
+          issue([...path, "quantity"], t("comboDuplicate"));
+        }
+        sizes.add(size);
+        const comboPrice = parsePrice(combo.price);
+        if (
+          Number.isNaN(comboPrice) ||
+          comboPrice < 1_000 ||
+          comboPrice > 1_000_000_000 ||
+          (!Number.isNaN(price) &&
+            comboPrice >= lineTotal(price, quantity as string))
+        ) {
+          issue([...path, "price"], t("comboPrice"));
+        }
+      });
       if (mode === "in_stock") {
         const stock = parseQuantity(item.stockQuantity);
         if (stock === null || Number(stock) <= 0) {
@@ -140,12 +201,23 @@ export function listingSchema(
   });
 }
 
+/** In-stock goods outside food have a condition; nothing else does. */
+export function needsCondition(
+  mode: ListingMode,
+  categoryId: string,
+  isPerishable: (categoryId: string) => boolean,
+): boolean {
+  return mode === "in_stock" && categoryId !== "" && !isPerishable(categoryId);
+}
+
 /** Valid form values -> the request body. Fields of the other mode are dropped. */
 export function toListingBody(
   mode: ListingMode,
   values: ListingFormValues,
+  isPerishable: (categoryId: string) => boolean = () => false,
 ): ListingInputBody {
   const preorder = mode === "preorder";
+  const single = values.items.length === 1;
   return {
     mode,
     title: values.title.trim(),
@@ -157,13 +229,22 @@ export function toListingBody(
       ? new Date(values.orderDeadline).toISOString()
       : null,
     deliveryDate: preorder ? values.deliveryDate : null,
+    condition:
+      needsCondition(mode, values.categoryId, isPerishable) &&
+      isCondition(values.condition)
+        ? values.condition
+        : null,
     items: values.items.map((item) => ({
       ...(item.id ? { id: item.id } : {}),
-      name: item.name.trim(),
+      name: item.name.trim() || (single ? values.title.trim() : ""),
       // Validated against LISTING_UNITS by listingSchema.
       unit: item.unit as ListingInputBody["items"][number]["unit"],
       unitPrice: parsePrice(item.unitPrice),
       stockQuantity: preorder ? null : parseQuantity(item.stockQuantity),
+      combos: item.combos.map((combo) => ({
+        quantity: parseQuantity(combo.quantity) as string,
+        price: parsePrice(combo.price),
+      })),
     })),
   };
 }

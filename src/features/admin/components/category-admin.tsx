@@ -35,6 +35,7 @@ function addSchema(t: Translator<"admin.validation">) {
       .trim()
       .min(1, t("nameEnRequired"))
       .max(40, t("maxLength", { max: 40 })),
+    isPerishable: z.boolean(),
   });
 }
 type AddValues = z.infer<ReturnType<typeof addSchema>>;
@@ -66,7 +67,7 @@ function AddForm() {
     formState: { errors },
   } = useForm<AddValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", nameEn: "" },
+    defaultValues: { name: "", nameEn: "", isPerishable: false },
   });
 
   const onSubmit = handleSubmit(async (values) => {
@@ -104,6 +105,14 @@ function AddForm() {
           <Input id="new-name-en" {...register("nameEn")} />
         </Field>
       </div>
+      <label className="flex items-center gap-2 text-sm sm:mt-9">
+        <input
+          type="checkbox"
+          className="size-4 accent-primary"
+          {...register("isPerishable")}
+        />
+        {t("fields.perishableHint")}
+      </label>
       <Button type="submit" disabled={create.isPending} className="sm:mt-7">
         {t("add.submit")}
       </Button>
@@ -135,6 +144,7 @@ function CategoryRow({ category }: { category: AdminCategory }) {
       name: category.name,
       nameEn: category.nameEn,
       sortOrder: category.sortOrder,
+      isPerishable: category.isPerishable,
     },
   });
 
@@ -173,6 +183,7 @@ function CategoryRow({ category }: { category: AdminCategory }) {
       name: category.name,
       nameEn: category.nameEn,
       sortOrder: category.sortOrder,
+      isPerishable: category.isPerishable,
     });
     setEditing(true);
   }
@@ -212,6 +223,16 @@ function CategoryRow({ category }: { category: AdminCategory }) {
             />
           </Field>
         </td>
+        <td className="p-2">
+          <label className="flex items-center gap-2 pt-9 text-sm">
+            <input
+              type="checkbox"
+              className="size-4 accent-primary"
+              {...register("isPerishable")}
+            />
+            {t("fields.perishable")}
+          </label>
+        </td>
         <td className="p-2" />
         <td className="p-2">
           <div className="flex gap-2 pt-7">
@@ -242,6 +263,9 @@ function CategoryRow({ category }: { category: AdminCategory }) {
       <td className="p-2 font-medium">{category.name}</td>
       <td className="p-2">{category.nameEn}</td>
       <td className="p-2">{category.sortOrder}</td>
+      <td className="p-2">
+        {category.isPerishable ? t("perishable.yes") : t("perishable.no")}
+      </td>
       <td
         className={cn(
           "p-2",
@@ -341,6 +365,7 @@ export function CategoryAdmin() {
                 <th className="p-2 font-medium">{t("fields.shortName")}</th>
                 <th className="p-2 font-medium">{t("fields.nameEn")}</th>
                 <th className="p-2 font-medium">{t("fields.sortOrder")}</th>
+                <th className="p-2 font-medium">{t("fields.perishable")}</th>
                 <th className="p-2 font-medium">{t("table.status")}</th>
                 <th className="p-2">
                   <span className="sr-only">{t("table.actions")}</span>

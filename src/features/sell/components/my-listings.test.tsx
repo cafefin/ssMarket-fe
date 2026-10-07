@@ -26,7 +26,7 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   mode: "in_stock",
   status: "open",
   isOpen: true,
-  category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
+  category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", isPerishable: false },
   seller: { id: "me", name: "Tôi", avatarUrl: null },
   acceptsPrepaidQr: false,
   acceptsPayOnDelivery: true,
@@ -35,9 +35,11 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   publishedAt: "2026-10-05T03:00:00.000Z",
   orderCount: 0,
   reopenedFromId: null,
+  condition: null,
+  conditionPercent: null,
   items: [
-    { id: "i1", name: "Loa", unit: "cái", unitPrice: 500000, stockQuantity: 1 },
-    { id: "i2", name: "Dây sạc", unit: "cái", unitPrice: 20000, stockQuantity: 3 },
+    { id: "i1", name: "Loa", unit: "cái", unitPrice: 500000, stockQuantity: 1, combos: [] },
+    { id: "i2", name: "Dây sạc", unit: "cái", unitPrice: 20000, stockQuantity: 3, combos: [] },
   ],
   images: [],
   ...overrides,
@@ -100,7 +102,7 @@ describe("MyListings", () => {
     renderPage();
 
     const item = await row("Loa bluetooth cũ");
-    expect(item).toHaveTextContent("2 mặt hàng · từ 20.000 đ/cái · Đăng lúc");
+    expect(item).toHaveTextContent("2 phân loại · từ 20.000 đ/cái · Đăng lúc");
     expect(within(item).getByText("Có sẵn")).toBeInTheDocument();
     expect(within(item).getByRole("link", { name: "Xem" })).toHaveAttribute(
       "href",

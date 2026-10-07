@@ -24,7 +24,9 @@ export function Price({
   const locale = useLocale();
   const t = useTranslations("common");
   return (
-    <span className={cn("font-heading font-bold", SIZE[size], className)}>
+    <span
+      className={cn("font-heading font-bold tabular-nums", SIZE[size], className)}
+    >
       {from && <span className={MUTED}>{t("priceFrom")} </span>}
       {formatMoney(amount, locale)}
       {unit &&

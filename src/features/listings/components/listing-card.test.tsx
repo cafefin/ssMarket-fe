@@ -8,7 +8,7 @@ const listing = (overrides: Partial<ListingSummary> = {}): ListingSummary => ({
   id: "abc",
   title: "Loa bluetooth cũ",
   mode: "in_stock",
-  category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics" },
+  category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", isPerishable: false },
   seller: { id: "u1", name: "Nguyen Van A", avatarUrl: null },
   thumbnailUrl: "/api/media/listings/abc/x_thumb.webp",
   minUnitPrice: 500000,
@@ -18,6 +18,11 @@ const listing = (overrides: Partial<ListingSummary> = {}): ListingSummary => ({
   publishedAt: "2026-10-05T03:00:00.000Z",
   orderCount: 0,
   stockQuantity: null,
+  itemCount: 1,
+  singleItemId: "i1",
+  hasCombos: false,
+  condition: null,
+  conditionPercent: null,
   ...overrides,
 });
 
@@ -114,6 +119,27 @@ describe("ListingCard", () => {
     expect(
       screen.getByText(/^Chốt \d{2}:\d{2} hôm nay$/).closest("p"),
     ).toHaveClass("bg-deadline", "text-foreground");
+  });
+
+  it("shows the condition and combo deals in neutral text", () => {
+    renderWithIntl(
+      <ListingCard
+        listing={listing({ condition: "like_new", conditionPercent: 99, hasCombos: true })}
+      />,
+    );
+    expect(screen.getByText("Như mới 99%").closest("p")).toHaveClass(
+      "text-muted-foreground",
+    );
+    expect(screen.getByText("Có combo")).toBeInTheDocument();
+  });
+
+  it("puts actions outside the link", () => {
+    renderWithIntl(
+      <ListingCard listing={listing()} actions={<button type="button">Mua</button>} />,
+    );
+    const link = screen.getByRole("link");
+    expect(link).not.toContainElement(screen.getByRole("button", { name: "Mua" }));
+    expect(link).toHaveClass("rounded-t-lg");
   });
 
   it("speaks English when the page is in English", () => {

@@ -22,7 +22,7 @@ export function ItemTable({
       <thead>
         <tr>
           <th scope="col" className={header}>
-            {t("items.item")}
+            {t("items.option")}
           </th>
           <th scope="col" className={`${header} text-right`}>
             {t("items.unitPrice")}
@@ -39,6 +39,19 @@ export function ItemTable({
           <tr key={item.id} className="border-t border-hairline-soft">
             <th scope="row" className="py-3 pr-3 text-left font-normal">
               {item.name}
+              {item.combos.length > 0 && (
+                <span className="mt-0.5 block text-[13px] font-medium text-primary-deep">
+                  {item.combos
+                    .map((combo) =>
+                      t("items.combo", {
+                        quantity: format.quantity(Number(combo.quantity)),
+                        unit: item.unit,
+                        price: format.money(combo.price),
+                      }),
+                    )
+                    .join(" · ")}
+                </span>
+              )}
             </th>
             <td className="py-3 text-right whitespace-nowrap">
               <Price

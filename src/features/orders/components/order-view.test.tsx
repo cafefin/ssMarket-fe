@@ -18,6 +18,7 @@ const order = (overrides: Partial<Order> = {}): Order => ({
   id: "o1",
   code: "SSM7K2Q9X",
   listing: { id: "l1", title: "Hoa quả tuần này", orderDeadline: null, deliveryDate: "2026-10-12" },
+  listingCount: 1,
   buyer: { id: "b", name: "Anh Minh" },
   seller: { id: "s", name: "Chị Lan" },
   viewerRole: "buyer",
@@ -29,8 +30,8 @@ const order = (overrides: Partial<Order> = {}): Order => ({
   deliveryLocation: "Tầng 7",
   note: "Giao sau 14h",
   lines: [
-    { itemId: "i1", itemName: "Cam sành", unit: "kg", unitPrice: 35000, quantity: 1.5, lineTotal: 52500 },
-    { itemId: "i2", itemName: "Bưởi", unit: "kg", unitPrice: 70000, quantity: 1, lineTotal: 70000 },
+    { listingId: "l1", listingTitle: "Hoa quả tuần này", itemId: "i1", itemName: "Cam sành", unit: "kg", unitPrice: 35000, quantity: 1.5, lineTotal: 52500, listTotal: 52500, combos: [] },
+    { listingId: "l1", listingTitle: "Hoa quả tuần này", itemId: "i2", itemName: "Bưởi", unit: "kg", unitPrice: 70000, quantity: 1, lineTotal: 70000, listTotal: 70000, combos: [] },
   ],
   refundNeeded: false,
   cancelledBy: null,
@@ -147,6 +148,46 @@ describe("OrderView", () => {
     expect(
       within(screen.getByRole("row", { name: /Total/ })).getByText("122,500 VND"),
     ).toBeInTheDocument();
+  });
+
+  it("names each listing and shows the price before combos", async () => {
+    renderView(
+      order({
+        listingCount: 2,
+        isPreorder: false,
+        lines: [
+          {
+            listingId: "l1",
+            listingTitle: "Loa bluetooth",
+            itemId: "i1",
+            itemName: "Loa",
+            unit: "cái",
+            unitPrice: 500000,
+            quantity: 1,
+            lineTotal: 500000,
+            listTotal: 500000,
+            combos: [],
+          },
+          {
+            listingId: "l2",
+            listingTitle: "Bút bi",
+            itemId: "i2",
+            itemName: "Bút bi",
+            unit: "cái",
+            unitPrice: 10000,
+            quantity: 100,
+            lineTotal: 900000,
+            listTotal: 1000000,
+            combos: [{ quantity: "100", price: 900000 }],
+          },
+        ],
+      }),
+    );
+
+    const pens = await screen.findByRole("row", { name: /Bút bi.*100 cái/ });
+    expect(within(pens).getByText("900.000 đ")).toBeInTheDocument();
+    expect(within(pens).getByText("Giá lẻ 1.000.000 đ")).toBeInTheDocument();
+    expect(screen.getByText("Loa bluetooth")).toBeInTheDocument();
   });
 
   it("copies the raw amount and the transfer content", async () => {
