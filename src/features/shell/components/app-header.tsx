@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
+import { PlusIcon } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";

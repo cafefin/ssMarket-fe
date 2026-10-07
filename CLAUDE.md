@@ -226,8 +226,11 @@ already serves a 400px thumbnail and a 1600px full size.
   `Hết hàng` in muted text when it is 0.
 - `ListingCard` is a row (photo left) below 560px and stacked above; pass
   `layout="stacked"` where it must always be stacked, as in the carousel.
-- `font-heading` (Bricolage Grotesque) for h1, h2, prices and the wordmark;
-  Inter for other UI text; Geist Mono for codes people copy.
+- Nunito for all UI text (`font-sans`; `font-heading` is the same family at
+  heavier weights for h1, h2, prices and the wordmark); prices use
+  `tabular-nums`. Geist Mono for codes people copy.
+- Icons come from Phosphor: import from `@phosphor-icons/react/ssr` (works
+  in server and client components); regular weight, fill for the current tab.
 - `h1` and `h2` get `font-heading` from the base layer, and shadcn's
   `AlertDialogTitle` uses `font-heading` too, so changing `--font-heading`
   restyles dialogs.

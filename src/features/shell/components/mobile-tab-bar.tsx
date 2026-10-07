@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
+import { PlusIcon } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
@@ -23,9 +23,11 @@ function Tab({ item, pathname }: { item: NavItem; pathname: string }) {
         active ? "font-semibold text-primary" : "text-muted-foreground",
       )}
     >
+      {/* The current section shows the filled icon. */}
       <Icon
         aria-hidden="true"
-        className={cn("size-6", active && "stroke-[2.5]")}
+        weight={active ? "fill" : "regular"}
+        className="size-6"
       />
       {t(`nav.${item.labelKey}`)}
     </Link>

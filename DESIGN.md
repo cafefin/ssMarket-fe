@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: ssMarket
-description: ssMarket is an internal marketplace for SmartOSC employees. The interface is calm and information-dense, on a white canvas with navy text and hairline borders. Colour carries meaning. SmartOSC blue ({colors.primary}) marks what you can act on. SmartOSC green ({colors.accent}) marks what is good or available (in stock, paid, delivered). Orange ({colors.deadline}) marks a pre-order and its closing time. Bricolage Grotesque carries headings, prices and the wordmark; Inter carries all other UI text; Geist Mono carries codes such as order references. Buttons are pills and cards have 12px corners.
+description: ssMarket is an internal marketplace for SmartOSC employees. The interface is calm and information-dense, on a white canvas with navy text and hairline borders. Colour carries meaning. SmartOSC blue ({colors.primary}) marks what you can act on. SmartOSC green ({colors.accent}) marks what is good or available (in stock, paid, delivered). Orange ({colors.deadline}) marks a pre-order and its closing time. Nunito, a rounded and friendly family, carries all UI text including headings, prices and the wordmark, so digits match the words around them; Geist Mono carries codes such as order references. Icons come from Phosphor. Buttons are pills and cards have 12px corners.
 
 colors:
   primary: "#2B62B2"
@@ -33,69 +33,69 @@ colors:
 
 typography:
   heading-1:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Nunito
     fontSize: 36px
     fontWeight: 700
     lineHeight: 1.20
     letterSpacing: -0.5px
   heading-2:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Nunito
     fontSize: 28px
     fontWeight: 700
     lineHeight: 1.25
   heading-3:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Nunito
     fontSize: 22px
     fontWeight: 700
     lineHeight: 1.30
   heading-4:
-    fontFamily: Inter
+    fontFamily: Nunito
     fontSize: 18px
     fontWeight: 600
     lineHeight: 1.40
   body-md:
-    fontFamily: Inter
+    fontFamily: Nunito
     fontSize: 16px
     fontWeight: 400
     lineHeight: 1.50
   body-md-medium:
-    fontFamily: Inter
+    fontFamily: Nunito
     fontSize: 16px
     fontWeight: 500
     lineHeight: 1.50
   body-sm:
-    fontFamily: Inter
+    fontFamily: Nunito
     fontSize: 14px
     fontWeight: 400
     lineHeight: 1.50
   body-sm-medium:
-    fontFamily: Inter
+    fontFamily: Nunito
     fontSize: 14px
     fontWeight: 500
     lineHeight: 1.50
   caption:
-    fontFamily: Inter
+    fontFamily: Nunito
     fontSize: 13px
     fontWeight: 400
     lineHeight: 1.40
   caption-bold:
-    fontFamily: Inter
+    fontFamily: Nunito
     fontSize: 13px
     fontWeight: 600
     lineHeight: 1.40
   micro-uppercase:
-    fontFamily: Inter
+    fontFamily: Nunito
     fontSize: 11px
     fontWeight: 600
     lineHeight: 1.40
     letterSpacing: 0.5px
   button-md:
-    fontFamily: Inter
+    fontFamily: Nunito
     fontSize: 14px
     fontWeight: 500
     lineHeight: 1.30
   price:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Nunito
     fontSize: 22px
     fontWeight: 700
     lineHeight: 1.20
@@ -294,7 +294,7 @@ grey. Three colours carry meaning, and each has one job:
 - One blue primary action per view
 - Green only where it carries a positive meaning, never as decoration
 - Pill buttons and badges, 12px cards, 8px inputs
-- Bricolage Grotesque for headings, prices and the wordmark; Inter for everything else people read; Geist Mono for codes they copy
+- Nunito for everything people read, headings and prices included; Geist Mono for codes they copy; Phosphor icons
 - Usable from a 360px-wide phone
 
 ## Colors
@@ -383,7 +383,7 @@ introduce one.
 
 ## Typography
 
-**Bricolage Grotesque** is used for headings (h1, h2), prices and the wordmark. **Inter** is used for every other piece of interface text. **Geist Mono** is used only for values people copy or compare character by character: order codes, bank account numbers, transfer references.
+**Nunito** is used for all interface text: headings (h1, h2, weight 700), prices (700, tabular figures so amounts line up), the wordmark (800) and body text. One family keeps digits identical in prices, quantities and sentences; its rounded terminals make the app feel friendly. It covers Vietnamese. **Geist Mono** is used only for values people copy or compare character by character: order codes, bank account numbers, transfer references.
 
 | Token | Size | Weight | Use |
 |---|---|---|---|
@@ -397,11 +397,20 @@ introduce one.
 | `{typography.caption-bold}` | 13px | 600 | Badges |
 | `{typography.micro-uppercase}` | 11px | 600 | Table column headers |
 | `{typography.button-md}` | 14px | 500 | Button labels |
-| `{typography.price}` | 22px | 700 | Prices on cards, in the item table and the order total; Bricolage Grotesque |
+| `{typography.price}` | 22px | 700 | Prices on cards, in the item table and the order total; tabular figures |
 | `{typography.code-sm}` | 13px | 500 | Order codes, account numbers |
 
 Emphasis comes from weight, never from italics. Body text keeps a 1.5 line
 height. Prices are written as `35.000 đ` and never abbreviated to "35k".
+
+## Icons
+
+Icons come from **Phosphor** (`@phosphor-icons/react`, imported from the
+`/ssr` entry so they work in server and client components). Use the regular
+weight; the current tab in the phone tab bar uses the fill weight. Icons
+are 16px next to text, 20px in icon buttons and 24px in the tab bar. An
+icon-only control needs an `aria-label`; decorative icons get
+`aria-hidden="true"`.
 
 ## Layout
 
@@ -504,7 +513,7 @@ with deep text, and `role="alert"` for errors.
 
 ## Wordmark
 
-The product name is set in Inter Bold with tight tracking: "ss" in
+The product name is set in Nunito ExtraBold with tight tracking: "ss" in
 `{colors.primary}` and "Market" in `{colors.accent-deep}`. It echoes the
 two-tone SmartOSC logo. The SmartOSC logo file itself is not part of this
 repository and must not be added to it.

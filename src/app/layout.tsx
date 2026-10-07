@@ -1,25 +1,21 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Bricolage_Grotesque, Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono, Nunito } from "next/font/google";
 import { Toaster } from "@/shared/ui/atoms/shadcn/sonner";
 import { QueryProvider } from "@/shared/api/query-provider";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+// One rounded, friendly family for headings, prices and body text, so digits
+// look the same next to words everywhere.
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin", "vietnamese"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-// Headings, prices and the wordmark.
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
-  subsets: ["latin", "vietnamese"],
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,7 +29,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang={locale}
-      className={`${inter.variable} ${geistMono.variable} ${bricolage.variable}`}
+      className={`${nunito.variable} ${geistMono.variable}`}
     >
       <body>
         <NextIntlClientProvider>

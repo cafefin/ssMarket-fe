@@ -1,6 +1,6 @@
 "use client";
 
-import { ClockIcon, PackageIcon } from "lucide-react";
+import { ClockIcon, PackageIcon } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import type { ListingMode } from "../lib/listing-schema";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchIcon } from "lucide-react";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FormEvent } from "react";
@@ -34,7 +34,7 @@ export function HeaderSearch({ className }: { className?: string }) {
   return (
     <form role="search" onSubmit={onSubmit} className={className}>
       <div className="relative">
-        <SearchIcon
+        <MagnifyingGlassIcon
           aria-hidden="true"
           className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
         />

@@ -1,4 +1,4 @@
-import { ImageIcon } from "lucide-react";
+import { ImageIcon } from "@phosphor-icons/react/ssr";
 import { cn } from "@/shared/lib/utils";
 
 /** Shown where a listing has no photo. */

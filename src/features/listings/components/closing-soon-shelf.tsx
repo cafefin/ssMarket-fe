@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useClosingSoon } from "../api/use-listings";
@@ -80,7 +80,7 @@ export function ClosingSoonShelf() {
               onClick={() => !edge.start && slide(-1)}
               className={ARROW}
             >
-              <ChevronLeftIcon aria-hidden="true" className="size-5" />
+              <CaretLeftIcon aria-hidden="true" className="size-5" />
             </button>
             <button
               type="button"
@@ -89,7 +89,7 @@ export function ClosingSoonShelf() {
               onClick={() => !edge.end && slide(1)}
               className={ARROW}
             >
-              <ChevronRightIcon aria-hidden="true" className="size-5" />
+              <CaretRightIcon aria-hidden="true" className="size-5" />
             </button>
           </div>
         </div>

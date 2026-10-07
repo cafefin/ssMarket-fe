@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2Icon } from "lucide-react";
+import { TrashIcon } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import {
   type Control,
@@ -112,7 +112,7 @@ export function ItemsField({ mode, control, register, errors }: ItemsFieldProps)
               onClick={() => remove(index)}
               className="sm:mt-7"
             >
-              <Trash2Icon aria-hidden="true" />
+              <TrashIcon aria-hidden="true" />
             </Button>
           </div>
         );

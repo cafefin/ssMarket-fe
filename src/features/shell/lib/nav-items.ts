@@ -1,23 +1,23 @@
 import {
   HouseIcon,
-  type LucideIcon,
-  ReceiptTextIcon,
-  StoreIcon,
+  ReceiptIcon,
+  StorefrontIcon,
   UserIcon,
-} from "lucide-react";
+} from "@phosphor-icons/react/ssr";
+import type { Icon } from "@phosphor-icons/react";
 
 export interface NavItem {
   href: string;
   /** A key in the `shell.nav` messages. */
   labelKey: "home" | "orders" | "selling" | "me";
-  icon: LucideIcon;
+  icon: Icon;
 }
 
 /** The destinations shown in the header on wide screens and in the tab bar. */
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/", labelKey: "home", icon: HouseIcon },
-  { href: "/orders", labelKey: "orders", icon: ReceiptTextIcon },
-  { href: "/sell", labelKey: "selling", icon: StoreIcon },
+  { href: "/orders", labelKey: "orders", icon: ReceiptIcon },
+  { href: "/sell", labelKey: "selling", icon: StorefrontIcon },
 ];
 
 export const PROFILE_ITEM: NavItem = {
