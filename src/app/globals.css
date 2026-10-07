@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /* Values come from DESIGN.md. Change a token there first, then here.
-   src/lib/theme/contrast.test.ts fails if a text/background pair drops below AA. */
+   src/shared/lib/theme/contrast.test.ts fails if a text/background pair drops below AA. */
 :root {
   --background: #ffffff;
   --foreground: #16233b;

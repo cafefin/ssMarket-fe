@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { SalesSummary } from "@/components/orders/sales-summary";
+import { SalesSummary } from "@/features/orders";
 
 export default function SalesSummaryPage() {
   const { id } = useParams<{ id: string }>();

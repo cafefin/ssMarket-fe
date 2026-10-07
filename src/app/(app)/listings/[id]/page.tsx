@@ -1,9 +1,16 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { ListingDetailView } from "@/components/listings/listing-detail-view";
+import { ListingDetailView } from "@/features/listings";
+import { OrderPanel } from "@/features/orders";
 
+/** The only place the listing page and the order panel meet. */
 export default function ListingPage() {
   const { id } = useParams<{ id: string }>();
-  return <ListingDetailView id={id} />;
+  return (
+    <ListingDetailView
+      id={id}
+      renderOrderPanel={(listing) => <OrderPanel listing={listing} />}
+    />
+  );
 }

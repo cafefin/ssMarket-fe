@@ -1,9 +1,9 @@
 "use client";
 
 import { Suspense } from "react";
-import { ProfileForm } from "@/components/profile/profile-form";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useCurrentUser } from "@/lib/api/use-current-user";
+import { ProfileForm } from "@/features/profile";
+import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
+import { useCurrentUser } from "@/shared/api/use-current-user";
 
 export default function ProfilePage() {
   const { data: user, isError } = useCurrentUser();

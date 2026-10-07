@@ -15,7 +15,7 @@ export default defineConfig({
       exclude: [
         "src/**/*.test.{ts,tsx}",
         "src/**/*.d.ts",
-        "src/components/ui/**",
+        "src/shared/ui/atoms/shadcn/**",
         "src/app/layout.tsx",
       ],
       thresholds: { lines: 80, branches: 80, functions: 80, statements: 80 },

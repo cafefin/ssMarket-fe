@@ -2,11 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import AppLayout from "./layout";
 
-vi.mock("@/components/layout/app-header", () => ({
+vi.mock("@/features/shell/components/app-header", () => ({
   AppHeader: () => <header>header stub</header>,
 }));
 
-vi.mock("@/components/layout/mobile-tab-bar", () => ({
+vi.mock("@/features/shell/components/mobile-tab-bar", () => ({
   MobileTabBar: () => <nav>tab bar stub</nav>,
 }));
 

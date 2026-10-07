@@ -1,4 +1,4 @@
-import { MyOrders } from "@/components/orders/my-orders";
+import { MyOrders } from "@/features/orders";
 
 export default function MyOrdersPage() {
   return (

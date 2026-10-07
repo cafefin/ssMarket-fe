@@ -69,7 +69,7 @@ pnpm dev                  # http://localhost:3000
 pnpm build                # production build (standalone output)
 pnpm start                # run the production build
 pnpm lint && pnpm typecheck
-pnpm gen:api              # regenerate src/lib/api/schema.d.ts from the backend
+pnpm gen:api              # regenerate src/shared/api/schema.d.ts from the backend
 ```
 
 ## Testing
@@ -92,7 +92,7 @@ The browser only talks to this app. `src/proxy.ts` forwards `/api/*` to the
 backend at `API_URL`, which is read at runtime, so session cookies stay on one
 origin and the same Docker image runs in every environment.
 
-API types in `src/lib/api/schema.d.ts` are generated from the backend's OpenAPI
+API types in `src/shared/api/schema.d.ts` are generated from the backend's OpenAPI
 document with `pnpm gen:api`. An API change is two commits: the backend first,
 then the regenerated types and the matching change here.
 
@@ -103,25 +103,26 @@ src/
 │   ├── globals.css       design tokens
 │   ├── login/            public
 │   └── (app)/            everything that requires a session
-├── components/
-│   ├── ui/               shadcn/ui primitives
-│   ├── brand/            logo mark, wordmark
-│   ├── layout/           header, search, user menu, navigation, phone tab bar
-│   ├── listings/         card, filters, closing-soon carousel, detail view
-│   ├── sell/             listing form, my listings
-│   ├── orders/           order panel, order page, lists, seller summary
-│   └── profile/
-└── lib/
-    ├── api/              typed client, session refresh, query hooks
-    ├── listings/         URL filters, form schema, draft store
-    ├── orders/           order arithmetic shared with the backend's rules
-    ├── theme/            contrast helpers and the palette contrast gate
-    └── format/           money, dates, closing times, initials
+├── shared/               knows nothing about the business
+│   ├── ui/atoms/         logo mark, wordmark, price; shadcn/ holds the shadcn/ui primitives
+│   ├── ui/molecules/     form field, user avatar
+│   ├── api/              typed client, session refresh, errors, generated types, current user
+│   └── lib/              utils, format (money, dates, quantities, initials), theme
+└── features/             one folder per feature: components/, api/, lib/, index.ts
+    ├── listings/         browse, filters, card, closing-soon carousel, detail view
+    ├── sell/             listing form, my listings
+    ├── orders/           order panel, order page, lists, seller summary
+    ├── sellers/          a seller's public page
+    ├── admin/            category management
+    ├── profile/          profile and bank details
+    └── shell/            header, search, user menu, navigation, phone tab bar
 e2e/                      Playwright scenarios
 ```
 
-Pages under `app/` stay thin: each renders one component from `components/`,
-which holds the behaviour and has the tests.
+Pages under `app/` stay thin: each renders a component from a feature, which
+holds the behaviour and has the tests. Features use each other only through
+their `index.ts`, in one direction, and `shared/` never imports a feature;
+`pnpm lint` enforces this. See [docs/architecture.md](./docs/architecture.md).
 
 ## Design system
 
@@ -133,7 +134,7 @@ which holds the behaviour and has the tests.
 - Bricolage Grotesque for headings, prices and the wordmark; Inter for other
   text; Geist Mono for codes people copy.
 - Every text and background pair is checked for WCAG AA contrast by a test
-  (`src/lib/theme/contrast.test.ts`), so a palette change that hurts
+  (`src/shared/lib/theme/contrast.test.ts`), so a palette change that hurts
   readability fails the build.
 
 ## Docker

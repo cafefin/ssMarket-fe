@@ -377,7 +377,7 @@ Body text must reach 4.5:1 (WCAG AA). These are the pairings in use:
 These pairings fail and must not be used for text: white on accent (2.78),
 error on canvas (3.99), warn on canvas (3.35).
 
-`src/lib/theme/contrast.test.ts` recomputes the ratios from `globals.css` and
+`src/shared/lib/theme/contrast.test.ts` recomputes the ratios from `globals.css` and
 fails the build when a pairing drops below 4.5:1. Add a pairing there when you
 introduce one.
 

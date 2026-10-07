@@ -18,7 +18,7 @@ execFileSync(
     "openapi-typescript",
     `${apiUrl}/docs-json`,
     "-o",
-    "src/lib/api/schema.d.ts",
+    "src/shared/api/schema.d.ts",
   ],
   { stdio: "inherit" },
 );

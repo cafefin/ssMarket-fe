@@ -104,3 +104,15 @@ export async function postListing(seller: Person, listing: NewListing): Promise<
   await expect(page.getByRole("heading", { name: listing.title })).toBeVisible();
   return new URL(page.url()).pathname;
 }
+
+/**
+ * Signs in as the suite's one admin. The name is fixed (not unique) because
+ * ADMIN_EMAILS in start-backend.sh names it.
+ */
+export async function signInAsAdmin(browser: Browser): Promise<Person> {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto("/api/auth/dev-login?as=e2e-admin");
+  await expect(page).toHaveURL("/");
+  return { name: "e2e-admin", context, page };
+}
