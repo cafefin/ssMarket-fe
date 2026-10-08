@@ -11,7 +11,7 @@ export function checkoutHref(lines: CheckoutLine[], fromCart: boolean): string {
   const params = new URLSearchParams();
   params.set(
     "items",
-    lines.map((line) => `${line.itemId}:${line.quantity}`).join(","),
+    lines.map((line) => `${line.listingId}:${line.quantity}`).join(","),
   );
   if (fromCart) {
     params.set("from", "cart");
@@ -30,7 +30,7 @@ export function parseCheckoutLink(params: URLSearchParams): {
     const match = LINE.exec(part.trim());
     if (match && !seen.has(match[1])) {
       seen.add(match[1]);
-      lines.push({ itemId: match[1], quantity: match[2] });
+      lines.push({ listingId: match[1], quantity: match[2] });
     }
   }
   return { lines, fromCart: params.get("from") === "cart" };

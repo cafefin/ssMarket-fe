@@ -17,7 +17,6 @@
     }
   },
   "common": {
-    "priceFrom": "từ",
     "retry": "Thử lại",
     "loading": "Đang tải…",
     "loadMore": "Xem thêm",
@@ -121,28 +120,10 @@
       "copied": "Đã sao chép"
     },
     "panel": {
-      "onlyLeft": "Chỉ còn {quantity} {unit}",
-      "alreadyOrdered": "Bạn đã đặt bài này",
-      "oneOrderPerRound": "Mỗi người có một đơn cho mỗi đợt đặt trước.",
-      "viewYourOrder": "Xem đơn của bạn",
-      "title": "Đặt hàng",
-      "soldOut": " · Hết hàng",
-      "left": " · Còn {quantity}",
-      "lineProblem": "{item}: {problem}",
-      "notEnough": "Không còn đủ hàng:",
-      "shortage": "{item}: còn {quantity}",
-      "total": "Tổng tiền",
-      "payment": "Thanh toán",
-      "paymentLabel": "Thanh toán:",
       "deliverTo": "Giao đến",
-      "deliverToPlaceholder": "Ví dụ: Tầng 7, khu A",
       "locationRequired": "Nhập nơi nhận hàng",
       "note": "Ghi chú (không bắt buộc)",
-      "noItems": "Nhập số lượng cho ít nhất một mặt hàng",
-      "placing": "Đang đặt…",
-      "place": "Đặt hàng",
-      "comboHint": "Mua thêm {missing} {unit} để được combo {quantity} {unit} giá {price}",
-      "withCombos": "Đã áp dụng combo"
+      "comboHint": "Mua thêm {missing} {unit} để được combo {quantity} {unit} giá {price}"
     },
     "editor": {
       "blocked": {
@@ -154,7 +135,7 @@
       "updated": "Đã cập nhật đơn",
       "title": "Sửa đơn",
       "newTotal": "Tổng tiền mới",
-      "noItems": "Đơn cần ít nhất một mặt hàng. Muốn bỏ hết, hãy hủy đơn.",
+      "noItems": "Nhập số lượng. Muốn bỏ hẳn, hãy hủy đơn.",
       "saveChanges": "Lưu thay đổi",
       "dismiss": "Thôi"
     },
@@ -212,7 +193,8 @@
       "payment": "Thanh toán",
       "deliveryDate": "Ngày giao dự kiến",
       "note": "Ghi chú",
-      "savedWithCombos": "Giá lẻ {listTotal}"
+      "savedWithCombos": "Giá lẻ {listTotal}",
+      "products": "Sản phẩm"
     },
     "summary": {
       "filters": {
@@ -258,8 +240,7 @@
       "columns": {
         "buyer": "Người mua",
         "location": "Nơi giao",
-        "item": "{name} ({unit})",
-        "discontinued": "đã ngừng bán",
+        "quantity": "Số lượng ({unit})",
         "total": "Tổng tiền",
         "status": "Trạng thái"
       },
@@ -304,14 +285,14 @@
     "outOfStock": "Hết hàng",
     "orderCount": "{count} người đã đặt",
     "card": {
-      "remaining": "còn {quantity} {unit}",
-      "closes": "Chốt {deadline}"
+      "remaining": "Còn {quantity} {unit}",
+      "closes": "Chốt {deadline}",
+      "seller": "@{handle}"
     },
     "filters": {
       "modeGroup": "Hình thức bán",
-      "allModes": "Tất cả",
-      "categoryGroup": "Loại hàng",
-      "allCategories": "Mọi loại hàng",
+      "categoryGroup": "Danh mục",
+      "allCategories": "Mọi danh mục",
       "price": "Giá",
       "anyPrice": "Mọi mức giá",
       "under": "Dưới {max}",
@@ -319,15 +300,14 @@
       "over": "Từ {min}",
       "condition": "Độ mới",
       "anyCondition": "Mọi độ mới",
-      "atLeast": "Từ {percent}% ({level})"
-    },
-    "items": {
-      "item": "Mặt hàng",
-      "unitPrice": "Đơn giá",
-      "remaining": "Còn lại",
-      "combos": "Combo",
-      "combo": "{quantity} {unit}: {price}",
-      "option": "Phân loại"
+      "atLeast": "Từ {percent}% ({level})",
+      "category": "Danh mục",
+      "clear": "Bỏ lọc {name}",
+      "modes": {
+        "in_stock": "Có sẵn",
+        "preorder": "Đặt trước",
+        "all": "Tất cả"
+      }
     },
     "shelf": {
       "title": "Sắp chốt đơn",
@@ -369,7 +349,10 @@
       "description": "Mô tả",
       "edit": "Sửa bài đăng",
       "summary": "Bảng tổng hợp đơn hàng",
-      "condition": "Độ mới"
+      "condition": "Độ mới",
+      "perUnit": "/ {unit}",
+      "combos": "Mua nhiều giá tốt",
+      "combo": "{quantity} {unit}: {price}"
     },
     "condition": {
       "new": "Mới",
@@ -510,20 +493,15 @@
       "chooseCondition": "Chọn độ mới",
       "conditionHint": "Người mua lọc được theo độ mới."
     },
-    "items": {
-      "title": "Phân loại",
+    "product": {
+      "title": "Giá và số lượng",
       "hint": {
-        "in_stock": "Mỗi bài là một sản phẩm. Thêm phân loại nếu có nhiều cỡ, màu hoặc loại, kèm số lượng bạn đang có.",
-        "preorder": "Mỗi bài là một sản phẩm. Thêm phân loại nếu có nhiều loại, ví dụ cam ngọt và cam vắt. Không cần nhập số lượng."
+        "in_stock": "Mỗi bài là một sản phẩm. Có nhiều loại hoặc cỡ thì đăng mỗi loại một bài.",
+        "preorder": "Mỗi bài là một sản phẩm, người mua đặt đến hạn chốt. Không cần nhập số lượng."
       },
-      "item": "Phân loại {number}",
-      "name": "Tên phân loại",
       "unit": "Đơn vị",
       "unitPrice": "Đơn giá (đ)",
       "stock": "Số lượng có",
-      "remove": "Xóa phân loại {number}",
-      "add": "Thêm phân loại",
-      "nameOptional": "Tên phân loại (không bắt buộc)",
       "combos": "Combo",
       "combosHint": "Bán theo gói giá tốt hơn, ví dụ 100 cái giá 900.000 đ. Tối đa {max} combo.",
       "comboQuantity": "Số lượng combo {number}",
@@ -547,12 +525,10 @@
       "category": "Chọn loại hàng",
       "description": "Mô tả tối đa 5000 ký tự",
       "payment": "Chọn ít nhất một hình thức thanh toán",
-      "itemCount": "Bài đăng cần 1–{max} phân loại",
       "deadlineRequired": "Chọn hạn chốt đơn",
       "deadlineFuture": "Hạn chốt đơn phải ở tương lai",
       "deliveryRequired": "Chọn ngày giao",
       "deliveryBeforeDeadline": "Ngày giao không được trước hạn chốt đơn",
-      "itemName": "Tên phân loại gồm 1–120 ký tự",
       "unit": "Chọn đơn vị",
       "unitPrice": "Đơn giá từ 1.000 đ đến 1.000.000.000 đ",
       "stockPositive": "Nhập số lượng lớn hơn 0",
@@ -560,7 +536,8 @@
       "condition": "Chọn độ mới",
       "comboQuantity": "Số lượng combo phải lớn hơn 1 và chia hết cho bước bán (kg: bước 0,1)",
       "comboPrice": "Giá combo từ 1.000 đ và rẻ hơn mua lẻ cùng số lượng",
-      "comboDuplicate": "Đã có combo với số lượng này"
+      "comboDuplicate": "Đã có combo với số lượng này",
+      "comboCount": "Tối đa {max} combo"
     },
     "edit": {
       "title": "Sửa bài đăng",
@@ -585,8 +562,6 @@
       },
       "loading": "Đang tải bài đăng",
       "loadFailed": "Không tải được bài đăng của bạn.",
-      "itemCount": "{count} phân loại",
-      "from": "từ {price}/{unit}",
       "closes": "Chốt đơn {time}",
       "publishedAt": "Đăng lúc {time}",
       "expired": "Đã quá hạn chốt. Người mua không còn nhìn thấy bài này.",
@@ -596,7 +571,8 @@
       "close": "Đóng bài",
       "closed": "Đã đóng bài đăng",
       "closeTitle": "Đóng bài đăng?",
-      "closeBody": "“{title}” sẽ không còn hiện với người mua. Bài đã đóng không mở lại và không sửa được."
+      "closeBody": "“{title}” sẽ không còn hiện với người mua. Bài đã đóng không mở lại và không sửa được.",
+      "price": "{price}/{unit}"
     }
   },
   "cart": {
@@ -605,7 +581,6 @@
     "add": "Thêm vào giỏ",
     "added": "Đã thêm vào giỏ",
     "buyNow": "Mua ngay",
-    "chooseOption": "Chọn phân loại",
     "quantity": "Số lượng",
     "decrease": "Giảm số lượng",
     "increase": "Tăng số lượng",
@@ -621,12 +596,15 @@
     "unitPrice": "{price}/{unit}",
     "problem": {
       "LISTING_NOT_OPEN": "Bài đăng đã đóng hoặc hết hạn chốt đơn",
-      "ITEM_REMOVED": "Người bán đã bỏ phân loại này",
       "OUT_OF_STOCK": "Chỉ còn {available} {unit}"
     },
     "preorderCloses": "Đặt trước · chốt {deadline}",
     "selectedTotal": "Tổng {count} món đã chọn",
-    "checkout": "Mua hàng ({count})"
+    "checkout": "Mua hàng ({count})",
+    "allInCart": "Đã có {quantity} {unit} trong giỏ",
+    "onlyLeft": "Chỉ còn {quantity} {unit}",
+    "soldOut": "Hết hàng",
+    "viewCart": "Xem giỏ"
   },
   "checkout": {
     "title": "Đặt hàng",
@@ -651,6 +629,8 @@
     "doneHint": "Chuyển khoản theo mã QR của từng đơn, hoặc trả khi nhận hàng.",
     "payOnDelivery": "Trả {amount} khi nhận hàng",
     "viewOrder": "Xem đơn {code}",
-    "myOrders": "Xem đơn của tôi"
+    "myOrders": "Xem đơn của tôi",
+    "alreadyOrdered": "Bạn đã đặt đợt này. Muốn đổi số lượng, hãy sửa đơn đã có.",
+    "viewExisting": "Xem đơn của bạn"
   }
 }

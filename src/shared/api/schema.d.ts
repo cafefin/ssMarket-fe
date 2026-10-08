@@ -269,7 +269,7 @@ export interface paths {
         };
         get: operations["OrdersController_listMine"];
         put?: never;
-        post: operations["OrdersController_place"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -468,7 +468,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/cart/lines/{itemId}": {
+    "/cart/lines/{listingId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -640,35 +640,9 @@ export interface components {
              */
             price: number;
         };
-        ListingItemInputDto: {
-            /**
-             * Format: uuid
-             * @description When editing: the id of an existing item to keep. Omit for a new item.
-             */
-            id?: string;
-            /** @example Cam sành */
-            name: string;
-            /**
-             * @example kg
-             * @enum {string}
-             */
-            unit: "cái" | "kg" | "hộp" | "túi" | "chai" | "bó" | "combo";
-            /**
-             * @description Integer VND
-             * @example 35000
-             */
-            unitPrice: number;
-            /**
-             * @description Decimal string, up to 3 fraction digits. Required for in-stock listings, null for pre-order.
-             * @example 2.5
-             */
-            stockQuantity?: string | null;
-            /** @description "N units for a set price"; at most 3 */
-            combos?: components["schemas"]["ComboInputDto"][];
-        };
         ListingInputDto: {
             mode: components["schemas"]["ListingMode"];
-            /** @example Hoa quả tuần 41 */
+            /** @example Loa JBL Go 3 */
             title: string;
             /** @example 2 */
             categoryId: number;
@@ -688,7 +662,23 @@ export interface components {
             deliveryDate?: string | null;
             /** @description Required for in-stock goods outside food categories; null otherwise */
             condition?: components["schemas"]["ListingCondition"] | null;
-            items: components["schemas"]["ListingItemInputDto"][];
+            /**
+             * @example cái
+             * @enum {string}
+             */
+            unit: "cái" | "kg" | "hộp" | "túi" | "chai" | "bó" | "combo";
+            /**
+             * @description Integer VND
+             * @example 35000
+             */
+            unitPrice: number;
+            /**
+             * @description Decimal string, up to 3 fraction digits. Required for in-stock products, null for pre-orders.
+             * @example 2
+             */
+            stockQuantity?: string | null;
+            /** @description "N units for a set price"; at most 3 */
+            combos?: components["schemas"]["ComboInputDto"][];
         };
         /** @enum {string} */
         ListingStatus: "draft" | "open" | "closed";
@@ -696,6 +686,8 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
+            /** @description The part of the work email before @, e.g. "an.nguyen" */
+            handle: string;
             avatarUrl: string | null;
         };
         ComboDto: {
@@ -706,18 +698,6 @@ export interface components {
             quantity: string;
             /** @description Price of the whole combo, integer VND */
             price: number;
-        };
-        ListingItemDto: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            unit: string;
-            /** @description Integer VND */
-            unitPrice: number;
-            /** @description Remaining stock; null means unlimited */
-            stockQuantity: number | null;
-            /** @description "N units for a set price", smallest first */
-            combos: components["schemas"]["ComboDto"][];
         };
         ListingImageDto: {
             /** Format: uuid */
@@ -754,7 +734,14 @@ export interface components {
              * @description The earlier round this listing was reopened from
              */
             reopenedFromId: string | null;
-            items: components["schemas"]["ListingItemDto"][];
+            /** @example cái */
+            unit: string;
+            /** @description Integer VND */
+            unitPrice: number;
+            /** @description Remaining stock of an in-stock product; null for a pre-order */
+            stockQuantity: number | null;
+            /** @description "N units for a set price", smallest first */
+            combos: components["schemas"]["ComboDto"][];
             images: components["schemas"]["ListingImageDto"][];
         };
         /** @enum {string} */
@@ -767,26 +754,16 @@ export interface components {
             category: components["schemas"]["CategoryResponseDto"];
             seller: components["schemas"]["ListingSellerDto"];
             thumbnailUrl: string | null;
-            /** @description Lowest unit price among the items, integer VND */
-            minUnitPrice: number;
-            /**
-             * @description Unit of the cheapest item
-             * @example kg
-             */
-            minPriceUnit: string;
+            /** @description Integer VND */
+            unitPrice: number;
+            /** @example cái */
+            unit: string;
             /** @description Orders that have not been cancelled */
             orderCount: number;
-            /** @description Remaining stock, only for an in-stock listing with exactly one item that has a stock limit; null otherwise */
+            /** @description Remaining stock of an in-stock product; null for a pre-order */
             stockQuantity: number | null;
-            /** @description True when some option has a combo price */
+            /** @description True when the product has a combo price */
             hasCombos: boolean;
-            /** @description Active options (items) of the listing */
-            itemCount: number;
-            /**
-             * Format: uuid
-             * @description The id of the only option when there is exactly one, so the list can add it to the cart directly; null otherwise
-             */
-            singleItemId: string | null;
             condition: components["schemas"]["ListingCondition"] | null;
             /** @example 99 */
             conditionPercent: number | null;
@@ -801,26 +778,6 @@ export interface components {
             items: components["schemas"]["ListingSummaryDto"][];
             /** @description Pass as `cursor` to get the next page; null on the last page */
             nextCursor: string | null;
-        };
-        OrderLineInputDto: {
-            /** Format: uuid */
-            itemId: string;
-            /**
-             * @description Decimal string, so no precision is lost in transit
-             * @example 1.5
-             */
-            quantity: string;
-        };
-        /** @enum {string} */
-        PaymentMethod: "prepaid_qr" | "pay_on_delivery";
-        PlaceOrderDto: {
-            /** Format: uuid */
-            listingId: string;
-            lines: components["schemas"]["OrderLineInputDto"][];
-            paymentMethod: components["schemas"]["PaymentMethod"];
-            /** @example Tầng 7 */
-            deliveryLocation: string;
-            note?: string | null;
         };
         OrderListingDto: {
             /** Format: uuid */
@@ -839,17 +796,16 @@ export interface components {
         /** @enum {string} */
         OrderActor: "buyer" | "seller";
         /** @enum {string} */
+        PaymentMethod: "prepaid_qr" | "pay_on_delivery";
+        /** @enum {string} */
         PaymentStatus: "unpaid" | "reported" | "paid";
         /** @enum {string} */
         FulfillmentStatus: "pending" | "delivered" | "cancelled";
         OrderLineDto: {
             /** Format: uuid */
             listingId: string;
-            /** @description Title of the listing the option belongs to */
-            listingTitle: string;
-            /** Format: uuid */
-            itemId: string;
-            itemName: string;
+            /** @description The product title when it was ordered */
+            title: string;
             unit: string;
             /** @description Integer VND, as it was when the order was placed */
             unitPrice: number;
@@ -906,7 +862,11 @@ export interface components {
             nextCursor: string | null;
         };
         EditOrderDto: {
-            lines: components["schemas"]["OrderLineInputDto"][];
+            /**
+             * @description Decimal string, so no precision is lost in transit
+             * @example 1.5
+             */
+            quantity: string;
             paymentMethod: components["schemas"]["PaymentMethod"];
             /** @example Tầng 7 */
             deliveryLocation: string;
@@ -920,18 +880,12 @@ export interface components {
             /** Format: uuid */
             id: string;
             title: string;
+            /** @example cái */
+            unit: string;
             /** Format: date-time */
             orderDeadline: string | null;
             /** Format: date */
             deliveryDate: string | null;
-        };
-        SummaryItemDto: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            unit: string;
-            /** @description False for an item the seller has removed */
-            isActive: boolean;
         };
         SummaryBuyerDto: {
             name: string;
@@ -943,10 +897,8 @@ export interface components {
             code: string;
             buyer: components["schemas"]["SummaryBuyerDto"];
             deliveryLocation: string;
-            /** @description Quantity per item id; items not ordered are absent */
-            quantities: {
-                [key: string]: number;
-            };
+            /** @description Units of this product in the order */
+            quantity: number;
             /** @description Integer VND */
             totalAmount: number;
             paymentMethod: components["schemas"]["PaymentMethod"];
@@ -958,10 +910,8 @@ export interface components {
         };
         SummaryTotalsDto: {
             orderCount: number;
-            /** @description Quantity per item id; items not ordered are absent */
-            quantities: {
-                [key: string]: number;
-            };
+            /** @description Units ordered */
+            quantity: number;
             /** @description Integer VND */
             totalAmount: number;
             /** @description Sum of orders whose payment is confirmed */
@@ -971,7 +921,6 @@ export interface components {
         };
         SalesSummaryDto: {
             listing: components["schemas"]["SummaryListingDto"];
-            items: components["schemas"]["SummaryItemDto"][];
             rows: components["schemas"]["SummaryRowDto"][];
             /** @description Cancelled orders never count towards totals */
             totals: components["schemas"]["SummaryTotalsDto"];
@@ -992,23 +941,18 @@ export interface components {
             results: components["schemas"]["BulkResultDto"][];
         };
         /** @enum {string} */
-        CartProblem: "LISTING_NOT_OPEN" | "ITEM_REMOVED" | "OUT_OF_STOCK";
+        CartProblem: "LISTING_NOT_OPEN" | "OUT_OF_STOCK";
         CartLineDto: {
             /** Format: uuid */
-            itemId: string;
-            /** Format: uuid */
             listingId: string;
-            listingTitle: string;
+            title: string;
             mode: components["schemas"]["ListingMode"];
-            /** @description Active options of the listing */
-            itemCount: number;
-            itemName: string;
             unit: string;
             /** @description Current price, integer VND */
             unitPrice: number;
             combos: components["schemas"]["ComboDto"][];
             quantity: number;
-            /** @description null: unlimited */
+            /** @description What is left of an in-stock product; null for a pre-order */
             stockQuantity: number | null;
             thumbnailUrl: string | null;
             /** Format: date-time */
@@ -1040,7 +984,7 @@ export interface components {
         };
         CheckoutLineDto: {
             /** Format: uuid */
-            itemId: string;
+            listingId: string;
             /**
              * @description Decimal string
              * @example 1.5
@@ -1052,11 +996,8 @@ export interface components {
         };
         CheckoutPreviewLineDto: {
             /** Format: uuid */
-            itemId: string;
-            /** Format: uuid */
             listingId: string;
-            listingTitle: string;
-            itemName: string;
+            title: string;
             unit: string;
             unitPrice: number;
             quantity: number;
@@ -1634,41 +1575,6 @@ export interface operations {
             };
         };
     };
-    OrdersController_place: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description A UUID generated once per order form */
-                "Idempotency-Key": string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlaceOrderDto"];
-            };
-        };
-        responses: {
-            /** @description The order this key already created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderDetailDto"];
-                };
-            };
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderDetailDto"];
-                };
-            };
-        };
-    };
     OrdersController_get: {
         parameters: {
             query?: never;
@@ -1961,7 +1867,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                itemId: string;
+                listingId: string;
             };
             cookie?: never;
         };
@@ -1986,7 +1892,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                itemId: string;
+                listingId: string;
             };
             cookie?: never;
         };

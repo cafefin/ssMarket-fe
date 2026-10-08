@@ -116,7 +116,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
     );
   }
 
-  const { listing, items, rows, totals } = summary.data;
+  const { listing, rows, totals } = summary.data;
   const visible = sortRows(
     rows.filter(FILTERS.find((option) => option.value === filter)!.test),
     grouped ? "location" : sort,
@@ -171,7 +171,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
   );
   const th =
     "px-3 py-2 text-left text-[11px] font-semibold tracking-wide whitespace-nowrap text-muted-foreground uppercase";
-  const columnCount = items.length + 5;
+  const columnCount = 6;
 
   return (
     <div className="flex flex-col gap-6">
@@ -336,16 +336,9 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                 <th scope="col" className={th}>
                   {t("columns.location")}
                 </th>
-                {items.map((item) => (
-                  <th key={item.id} scope="col" className={cn(th, "text-right")}>
-                    {t("columns.item", { name: item.name, unit: item.unit })}
-                    {!item.isActive && (
-                      <span className="block font-normal normal-case">
-                        {t("columns.discontinued")}
-                      </span>
-                    )}
-                  </th>
-                ))}
+                <th scope="col" className={cn(th, "text-right")}>
+                  {t("columns.quantity", { unit: listing.unit })}
+                </th>
                 <th scope="col" className={cn(th, "text-right")}>
                   {t("columns.total")}
                 </th>
@@ -446,13 +439,9 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                             </span>
                           )}
                         </td>
-                        {items.map((item) => (
-                          <td key={item.id} className="px-3 py-2 text-right">
-                            {row.quantities[item.id] !== undefined
-                              ? format.quantity(row.quantities[item.id])
-                              : ""}
-                          </td>
-                        ))}
+                        <td className="px-3 py-2 text-right">
+                          {format.quantity(row.quantity)}
+                        </td>
                         <td className="px-3 py-2 text-right font-medium whitespace-nowrap">
                           {format.money(row.totalAmount)}
                         </td>
@@ -477,11 +466,9 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                 >
                   {t("totalRow", { count: totals.orderCount })}
                 </th>
-                {items.map((item) => (
-                  <td key={item.id} className="px-3 py-2 text-right">
-                    {format.quantity(totals.quantities[item.id] ?? 0)}
-                  </td>
-                ))}
+                <td className="px-3 py-2 text-right">
+                  {format.quantity(totals.quantity)}
+                </td>
                 <td className="px-3 py-2 text-right whitespace-nowrap">
                   {format.money(totals.totalAmount)}
                 </td>

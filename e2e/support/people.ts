@@ -49,13 +49,11 @@ export const tinyPng = Buffer.from(
 export interface NewListing {
   title: string;
   mode: "in_stock" | "preorder";
-  items: {
-    name: string;
-    unit: string;
-    price: string;
-    stock?: string;
-    combos?: { quantity: string; price: string }[];
-  }[];
+  unit: string;
+  price: string;
+  /** In-stock only. */
+  stock?: string;
+  combos?: { quantity: string; price: string }[];
   acceptQr?: boolean;
   photo?: boolean;
   /** In-stock only; defaults to like_new. */
@@ -89,22 +87,15 @@ export async function postListing(seller: Person, listing: NewListing): Promise<
     await page.getByLabel("Ngày giao").fill(day(delivery));
   }
 
-  for (const [index, item] of listing.items.entries()) {
-    if (index > 0) {
-      await page.getByRole("button", { name: "Thêm phân loại" }).click();
-    }
-    const row = page.getByRole("group", { name: `Phân loại ${index + 1}` });
-    await row.getByLabel(/^Tên phân loại/).fill(item.name);
-    await row.getByLabel("Đơn vị").selectOption(item.unit);
-    await row.getByLabel("Đơn giá (đ)").fill(item.price);
-    if (item.stock) {
-      await row.getByLabel("Số lượng có").fill(item.stock);
-    }
-    for (const [comboIndex, combo] of (item.combos ?? []).entries()) {
-      await row.getByRole("button", { name: "Thêm combo" }).click();
-      await row.getByLabel(`Số lượng combo ${comboIndex + 1}`).fill(combo.quantity);
-      await row.getByLabel(`Giá cả combo ${comboIndex + 1} (đ)`).fill(combo.price);
-    }
+  await page.getByLabel("Đơn vị").selectOption(listing.unit);
+  await page.getByLabel("Đơn giá (đ)").fill(listing.price);
+  if (listing.stock) {
+    await page.getByLabel("Số lượng có").fill(listing.stock);
+  }
+  for (const [index, combo] of (listing.combos ?? []).entries()) {
+    await page.getByRole("button", { name: "Thêm combo" }).click();
+    await page.getByLabel(`Số lượng combo ${index + 1}`).fill(combo.quantity);
+    await page.getByLabel(`Giá cả combo ${index + 1} (đ)`).fill(combo.price);
   }
 
   if (listing.acceptQr) {
@@ -132,4 +123,37 @@ export async function signInAsAdmin(browser: Browser): Promise<Person> {
   await page.goto("/api/auth/dev-login?as=e2e-admin");
   await expect(page).toHaveURL("/");
   return { name: "e2e-admin", context, page };
+}
+
+/**
+ * Buys one product straight from its page: quantity, "Mua ngay", then one
+ * order on the checkout page. Leaves the page on the checkout result.
+ */
+export async function buyNow(
+  person: Person,
+  listingPath: string,
+  quantity: string,
+  options: { qr?: boolean; location?: string } = {},
+): Promise<void> {
+  const { page } = person;
+  await page.goto(listingPath);
+  await page.getByRole("textbox", { name: "Số lượng" }).fill(quantity);
+  await page.getByRole("button", { name: "Mua ngay" }).click();
+  await expect(page).toHaveURL(/\/checkout\?items=/);
+  await page
+    .getByRole("radio", {
+      name: options.qr ? "Chuyển khoản trước qua mã QR" : "Trả tiền khi nhận hàng",
+    })
+    .check();
+  await page.getByLabel("Giao đến").fill(options.location ?? "Tầng 7");
+  await page.getByRole("button", { name: "Đặt 1 đơn" }).click();
+}
+
+/** From the checkout result, opens the order that was just placed. */
+export async function openPlacedOrder(person: Person): Promise<string> {
+  const { page } = person;
+  await expect(page.getByRole("heading", { name: "Đã tạo 1 đơn" })).toBeVisible();
+  await page.getByRole("link", { name: /^Xem đơn SSM/ }).click();
+  await expect(page).toHaveURL(/\/orders\/[0-9a-f-]{36}$/);
+  return page.url();
 }

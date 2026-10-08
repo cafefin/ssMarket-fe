@@ -16,21 +16,18 @@ test("a buyer fills a cart from two sellers on the list page and checks out once
     mode: "in_stock",
     condition: "new",
     acceptQr: true,
-    items: [
-      {
-        name: "Bút bi",
-        unit: "cái",
-        price: "10.000",
-        stock: "500",
-        combos: [{ quantity: "100", price: "900.000" }],
-      },
-    ],
+    unit: "cái",
+    price: "10.000",
+    stock: "500",
+    combos: [{ quantity: "100", price: "900.000" }],
   });
   await postListing(mice, {
     title: mouseTitle,
     mode: "in_stock",
     condition: "good",
-    items: [{ name: "Chuột", unit: "cái", price: "200.000", stock: "2" }],
+    unit: "cái",
+    price: "200.000",
+    stock: "2",
   });
 
   // Straight from the list: no need to open either product.
@@ -47,6 +44,10 @@ test("a buyer fills a cart from two sellers on the list page and checks out once
   const mouseCard = page.getByRole("listitem").filter({ hasText: mouseTitle });
   await mouseCard.getByRole("button", { name: "Thêm vào giỏ" }).click();
   await expect(page.getByRole("link", { name: "Giỏ hàng, 2 món" })).toBeVisible();
+  // Two mice were for sale: once both are in the cart, no more can be added.
+  await mouseCard.getByRole("button", { name: "Thêm vào giỏ" }).click();
+  await expect(mouseCard.getByRole("status")).toContainText("Đã có 2 cái trong giỏ");
+  await expect(mouseCard.getByRole("button", { name: "Thêm vào giỏ" })).toBeDisabled();
 
   // The cart: grouped by seller, the combo already applied.
   await page.getByRole("link", { name: "Giỏ hàng, 2 món" }).click();
@@ -70,7 +71,7 @@ test("a buyer fills a cart from two sellers on the list page and checks out once
 
   await expect(page.getByRole("heading", { name: "Đã tạo 2 đơn" })).toBeVisible();
   await expect(page.getByRole("img", { name: /^Mã QR chuyển khoản cho đơn/ })).toHaveCount(1);
-  await expect(page.getByText("Trả 200.000 đ khi nhận hàng")).toBeVisible();
+  await expect(page.getByText("Trả 400.000 đ khi nhận hàng")).toBeVisible();
 
   // The cart is empty again, and each seller received their order.
   await page.goto("/cart");
@@ -88,13 +89,17 @@ test("a buyer narrows the list by price and condition", async ({ browser }) => {
     title: `${word} cũ`,
     mode: "in_stock",
     condition: "fair",
-    items: [{ name: "Bàn phím", unit: "cái", price: "150.000", stock: "1" }],
+    unit: "cái",
+    price: "150.000",
+    stock: "1",
   });
   await postListing(seller, {
     title: `${word} như mới`,
     mode: "in_stock",
     condition: "like_new",
-    items: [{ name: "Bàn phím", unit: "cái", price: "1.500.000", stock: "1" }],
+    unit: "cái",
+    price: "1.500.000",
+    stock: "1",
   });
 
   const { page } = buyer;

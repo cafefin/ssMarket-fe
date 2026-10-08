@@ -9,17 +9,15 @@ const listing = (overrides: Partial<ListingSummary> = {}): ListingSummary => ({
   title: "Loa bluetooth cũ",
   mode: "in_stock",
   category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", isPerishable: false },
-  seller: { id: "u1", name: "Nguyen Van A", avatarUrl: null },
+  seller: { id: "u1", name: "Nguyen Van A", handle: "an.nguyen", avatarUrl: null },
   thumbnailUrl: "/api/media/listings/abc/x_thumb.webp",
-  minUnitPrice: 500000,
-  minPriceUnit: "cái",
+  unitPrice: 500000,
+  unit: "cái",
   orderDeadline: null,
   deliveryDate: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
   orderCount: 0,
-  stockQuantity: null,
-  itemCount: 1,
-  singleItemId: "i1",
+  stockQuantity: 3,
   hasCombos: false,
   condition: null,
   conditionPercent: null,
@@ -31,51 +29,57 @@ describe("ListingCard", () => {
     vi.useRealTimers();
   });
 
-  it("is one link to the listing with title, price and seller", () => {
+  it("is one link with the title, the plain price and the seller's handle", () => {
     renderWithIntl(<ListingCard listing={listing()} />);
 
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute("href", "/listings/abc");
     expect(link).toHaveTextContent("Loa bluetooth cũ");
-    expect(link).toHaveTextContent("từ 500.000 đ/cái");
-    expect(link).toHaveTextContent("Nguyen Van A");
+    expect(link).toHaveTextContent("@an.nguyen");
+    expect(link).not.toHaveTextContent("Nguyen Van A");
+    // No "from", no "/unit": one product, one price.
+    expect(screen.getByText("500.000 đ")).toHaveClass("font-semibold", "text-[15px]");
+    expect(link).not.toHaveTextContent(/từ|\/cái/);
   });
 
-  it("sets the price in the heading typeface at its normal width", () => {
-    renderWithIntl(<ListingCard listing={listing()} />);
+  it("has no avatar and a square, lazily loaded photo", () => {
+    const { container } = renderWithIntl(<ListingCard listing={listing()} />);
 
-    const price = screen.getByText("500.000 đ");
-    expect(price).toHaveClass("font-heading");
-    // Prices look the same on the card, the item table and the order total.
-    expect(price).not.toHaveClass("[font-stretch:75%]");
+    expect(container.querySelector('[data-slot="avatar"]')).toBeNull();
+    const image = container.querySelector("img");
+    expect(image).toHaveAttribute("src", "/api/media/listings/abc/x_thumb.webp");
+    expect(image).toHaveAttribute("loading", "lazy");
+    // Decorative: the title next to it already names the listing.
+    expect(image).toHaveAttribute("alt", "");
+    expect(image).toHaveClass("aspect-square");
   });
 
-  it("keeps the seller's initials out of the link's name", () => {
-    renderWithIntl(<ListingCard listing={listing()} />);
+  it("shows how much is left, the Vietnamese way", () => {
+    const { rerender } = renderWithIntl(
+      <ListingCard listing={listing({ stockQuantity: 24, unit: "hũ" })} />,
+    );
+    expect(screen.getByText("Còn 24 hũ")).toHaveClass("text-positive-deep");
 
-    const link = screen.getByRole("link");
-    const avatar = link.querySelector('[data-slot="avatar"]');
-    expect(avatar).not.toBeNull();
-    expect(avatar).toHaveAttribute("aria-hidden", "true");
+    rerender(<ListingCard listing={listing({ stockQuantity: 2.5, unit: "kg" })} />);
+    expect(screen.getByText("Còn 2,5 kg")).toBeInTheDocument();
+  });
+
+  it("says Hết hàng, not in green, when nothing is left", () => {
+    renderWithIntl(<ListingCard listing={listing({ stockQuantity: 0 })} />);
+    const soldOut = screen.getByText("Hết hàng");
+    expect(soldOut).toHaveClass("text-muted-foreground");
+    expect(soldOut).not.toHaveClass("text-positive-deep");
   });
 
   it("says Đặt trước for a pre-order without a closing time", () => {
     renderWithIntl(
-      <ListingCard listing={listing({ mode: "preorder", orderDeadline: null })} />,
+      <ListingCard
+        listing={listing({ mode: "preorder", orderDeadline: null, stockQuantity: null })}
+      />,
     );
 
     expect(screen.getByText("Đặt trước")).toBeInTheDocument();
-  });
-
-  it("marks an in-stock listing in green and shows its photo", () => {
-    const { container } = renderWithIntl(<ListingCard listing={listing()} />);
-
-    expect(screen.getByText("Có sẵn")).toHaveClass("text-positive-deep");
-    const image = container.querySelector("img");
-    expect(image).toHaveAttribute("src", "/api/media/listings/abc/x_thumb.webp");
-    // Decorative: the title next to it already names the listing.
-    expect(image).toHaveAttribute("alt", "");
-    expect(screen.queryByText(/^Chốt/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Còn/)).not.toBeInTheDocument();
   });
 
   it("shows a pre-order's closing time on soft orange", () => {
@@ -86,20 +90,17 @@ describe("ListingCard", () => {
       <ListingCard
         listing={listing({
           mode: "preorder",
-          minUnitPrice: 35000,
-          minPriceUnit: "kg",
+          unitPrice: 35000,
+          unit: "kg",
+          stockQuantity: null,
           orderDeadline: "2026-10-10T10:00:00.000Z",
         })}
       />,
     );
 
     const closing = screen.getByText(/^Chốt \d{2}:\d{2} .+, \d{1,2}\/10$/);
-    expect(closing.closest("p")).toHaveClass(
-      "bg-deadline-soft",
-      "text-deadline-deep",
-    );
-    expect(screen.getByRole("link")).toHaveTextContent("từ 35.000 đ/kg");
-    expect(screen.queryByText("Có sẵn")).not.toBeInTheDocument();
+    expect(closing.closest("p")).toHaveClass("bg-deadline-soft", "text-deadline-deep");
+    expect(screen.getByRole("link")).toHaveTextContent("35.000 đ");
   });
 
   it("uses solid orange when a pre-order closes today", () => {
@@ -110,15 +111,27 @@ describe("ListingCard", () => {
       <ListingCard
         listing={listing({
           mode: "preorder",
+          stockQuantity: null,
           // One minute later: the same calendar day in every time zone.
           orderDeadline: "2026-10-06T12:01:00.000Z",
         })}
       />,
     );
 
-    expect(
-      screen.getByText(/^Chốt \d{2}:\d{2} hôm nay$/).closest("p"),
-    ).toHaveClass("bg-deadline", "text-foreground");
+    expect(screen.getByText(/^Chốt \d{2}:\d{2} hôm nay$/).closest("p")).toHaveClass(
+      "bg-deadline",
+      "text-foreground",
+    );
+  });
+
+  it("shows how many people ordered a pre-order, but not zero", () => {
+    const { rerender } = renderWithIntl(
+      <ListingCard listing={listing({ mode: "preorder", orderCount: 7 })} />,
+    );
+    expect(screen.getByText("7 người đã đặt")).toBeInTheDocument();
+
+    rerender(<ListingCard listing={listing({ mode: "preorder", orderCount: 0 })} />);
+    expect(screen.queryByText(/người đã đặt/)).not.toBeInTheDocument();
   });
 
   it("shows the condition and combo deals in neutral text", () => {
@@ -127,9 +140,7 @@ describe("ListingCard", () => {
         listing={listing({ condition: "like_new", conditionPercent: 99, hasCombos: true })}
       />,
     );
-    expect(screen.getByText("Như mới 99%").closest("p")).toHaveClass(
-      "text-muted-foreground",
-    );
+    expect(screen.getByText("Như mới 99%").closest("p")).toHaveClass("text-muted-foreground");
     expect(screen.getByText("Có combo")).toBeInTheDocument();
   });
 
@@ -139,7 +150,15 @@ describe("ListingCard", () => {
     );
     const link = screen.getByRole("link");
     expect(link).not.toContainElement(screen.getByRole("button", { name: "Mua" }));
-    expect(link).toHaveClass("rounded-t-lg");
+  });
+
+  it("shows a placeholder when there is no photo", () => {
+    const { container } = renderWithIntl(
+      <ListingCard listing={listing({ thumbnailUrl: null })} />,
+    );
+
+    expect(screen.getByTestId("image-placeholder")).toBeInTheDocument();
+    expect(container.querySelector("img")).toBeNull();
   });
 
   it("speaks English when the page is in English", () => {
@@ -150,7 +169,7 @@ describe("ListingCard", () => {
       <ListingCard listing={listing({ stockQuantity: 0 })} />,
       { locale: "en" },
     );
-    expect(screen.getByRole("link")).toHaveTextContent("from 500,000 VND/cái");
+    expect(screen.getByRole("link")).toHaveTextContent("500,000 VND");
     expect(screen.getByText("Sold out")).toBeInTheDocument();
 
     rerender(
@@ -164,75 +183,5 @@ describe("ListingCard", () => {
     );
     expect(screen.getByText(/^Closes \d{2}:\d{2} today$/)).toBeInTheDocument();
     expect(screen.getByText("1 person ordered")).toBeInTheDocument();
-
-    rerender(
-      <ListingCard listing={listing({ mode: "preorder", orderCount: 7 })} />,
-    );
-    expect(screen.getByText("7 people ordered")).toBeInTheDocument();
-  });
-
-  it("stacks the photo above the text when asked, for the carousel", () => {
-    const { rerender } = renderWithIntl(<ListingCard listing={listing()} />);
-    expect(screen.getByRole("link")).toHaveClass("grid");
-
-    rerender(<ListingCard listing={listing()} layout="stacked" />);
-    expect(screen.getByRole("link")).toHaveClass("flex-col");
-    expect(screen.getByRole("link")).not.toHaveClass("grid");
-  });
-
-  it("shows how many people ordered a pre-order, but not zero and not for in-stock", () => {
-    const { rerender } = renderWithIntl(
-      <ListingCard
-        listing={listing({ mode: "preorder", orderCount: 7 })}
-      />,
-    );
-    expect(screen.getByText("7 người đã đặt")).toBeInTheDocument();
-
-    rerender(<ListingCard listing={listing({ mode: "preorder", orderCount: 0 })} />);
-    expect(screen.queryByText(/người đã đặt/)).not.toBeInTheDocument();
-
-    rerender(<ListingCard listing={listing({ mode: "in_stock", orderCount: 3 })} />);
-    expect(screen.queryByText(/người đã đặt/)).not.toBeInTheDocument();
-  });
-
-  it("shows a placeholder when there is no photo", () => {
-    const { container } = renderWithIntl(
-      <ListingCard listing={listing({ thumbnailUrl: null })} />,
-    );
-
-    expect(screen.getByTestId("image-placeholder")).toBeInTheDocument();
-    expect(container.querySelector("img")).toBeNull();
-  });
-
-  it("shows how much is left of a single in-stock item", () => {
-    renderWithIntl(
-      <ListingCard
-        listing={listing({ stockQuantity: 24, minPriceUnit: "hũ" })}
-      />,
-    );
-    const foot = screen.getByText("Có sẵn").closest("p");
-    expect(foot).toHaveTextContent("Có sẵn còn 24 hũ");
-  });
-
-  it("writes decimal stock the Vietnamese way", () => {
-    renderWithIntl(
-      <ListingCard
-        listing={listing({ stockQuantity: 2.5, minPriceUnit: "kg" })}
-      />,
-    );
-    expect(screen.getByText("còn 2,5 kg")).toBeInTheDocument();
-  });
-
-  it("says Hết hàng, not in green, when nothing is left", () => {
-    renderWithIntl(<ListingCard listing={listing({ stockQuantity: 0 })} />);
-    const foot = screen.getByText("Hết hàng");
-    expect(foot.closest("p")).not.toHaveClass("text-positive-deep");
-    expect(foot.closest("p")).toHaveClass("text-muted-foreground");
-    expect(screen.queryByText("Có sẵn")).not.toBeInTheDocument();
-  });
-
-  it("shows only Có sẵn when the stock is not known", () => {
-    renderWithIntl(<ListingCard listing={listing({ stockQuantity: null })} />);
-    expect(screen.getByText("Có sẵn").closest("p")).toHaveTextContent(/^Có sẵn$/);
   });
 });

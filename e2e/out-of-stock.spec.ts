@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { postListing, signInAs, unique } from "./support/people";
+import { buyNow, openPlacedOrder, postListing, signInAs, unique } from "./support/people";
 
 test("the last unit goes to whoever orders first", async ({ browser }) => {
   const seller = await signInAs(browser, "ban");
@@ -10,34 +10,40 @@ test("the last unit goes to whoever orders first", async ({ browser }) => {
   const listingPath = await postListing(seller, {
     title,
     mode: "in_stock",
-    items: [{ name: "Bàn phím", unit: "cái", price: "800.000", stock: "1" }],
+    unit: "cái",
+    price: "800.000",
+    stock: "1",
   });
 
-  // Both buyers have the page open while one unit is left.
-  await first.page.goto(listingPath);
+  // More than the stock cannot even be chosen.
   await second.page.goto(listingPath);
-  const quantity = second.page.getByRole("textbox", { name: /^Bàn phím/ });
-  await expect(quantity).toHaveAccessibleName(/Còn 1/);
-
-  // More than the stock is refused before anything is sent.
+  const quantity = second.page.getByRole("textbox", { name: "Số lượng" });
+  await expect(second.page.getByText("Còn 1 cái")).toBeVisible();
+  await expect(second.page.getByRole("button", { name: "Tăng số lượng" })).toBeDisabled();
   await quantity.fill("2");
-  await second.page.getByLabel("Giao đến").fill("Tầng 3");
-  await second.page.getByRole("button", { name: "Đặt hàng" }).click();
-  await expect(second.page.getByText("Bàn phím: Chỉ còn 1 cái")).toBeVisible();
+  await expect(second.page.getByText("Chỉ còn 1 cái")).toBeVisible();
+  await expect(second.page.getByRole("button", { name: "Mua ngay" })).toBeDisabled();
 
-  // The first buyer takes the last one.
-  await first.page.getByRole("textbox", { name: /^Bàn phím/ }).fill("1");
-  await first.page.getByLabel("Giao đến").fill("Tầng 5");
-  await first.page.getByRole("button", { name: "Đặt hàng" }).click();
-  await expect(first.page).toHaveURL(/\/orders\//);
-
-  // The second buyer, still looking at a stale page, is told it is gone.
+  // The second buyer opens the checkout for the last one, and waits.
   await quantity.fill("1");
-  await second.page.getByRole("button", { name: "Đặt hàng" }).click();
-  const alert = second.page.getByRole("alert").filter({ hasText: "Không còn đủ hàng" });
-  await expect(alert).toContainText("Bàn phím: còn 0");
-  await expect(second.page).toHaveURL(listingPath);
+  await second.page.getByRole("button", { name: "Mua ngay" }).click();
+  await expect(second.page).toHaveURL(/\/checkout\?items=/);
 
-  // The refreshed listing now shows it as sold out.
-  await expect(second.page.getByRole("textbox", { name: /^Bàn phím/ })).toBeDisabled();
+  // Meanwhile the first buyer takes it.
+  await buyNow(first, listingPath, "1");
+  await openPlacedOrder(first);
+
+  // The second buyer is told it is gone, and no order is created.
+  await second.page.getByLabel("Giao đến").fill("Tầng 3");
+  await second.page.getByRole("button", { name: "Đặt 1 đơn" }).click();
+  const alert = second.page.getByRole("alert").filter({ hasText: "Không còn đủ hàng" });
+  await expect(alert).toContainText(`${title}: còn 0`);
+
+  // The product now shows as sold out, also in the list "Có sẵn" leaves it out.
+  await second.page.goto(listingPath);
+  await expect(second.page.getByRole("button", { name: "Hết hàng" })).toBeDisabled();
+  await second.page.goto(`/?q=${encodeURIComponent(title)}`);
+  await expect(second.page.getByRole("link", { name: new RegExp(title) })).toHaveCount(0);
+  await second.page.getByRole("button", { name: "Tất cả" }).click();
+  await expect(second.page.getByRole("link", { name: new RegExp(title) })).toBeVisible();
 });

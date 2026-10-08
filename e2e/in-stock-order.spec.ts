@@ -1,7 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { addBankProfile, postListing, signInAs, unique } from "./support/people";
+import {
+  addBankProfile,
+  buyNow,
+  openPlacedOrder,
+  postListing,
+  signInAs,
+  unique,
+} from "./support/people";
 
-test("a buyer finds a listing, pays by QR and the seller completes the order", async ({
+test("a buyer finds a product, pays by QR and the seller completes the order", async ({
   browser,
 }) => {
   const seller = await signInAs(browser, "ban");
@@ -16,13 +23,12 @@ test("a buyer finds a listing, pays by QR and the seller completes the order", a
     mode: "in_stock",
     acceptQr: true,
     photo: true,
-    items: [
-      { name: "Loa JBL", unit: "cái", price: "500.000", stock: "3" },
-      { name: "Cam sành", unit: "kg", price: "35.000", stock: "10" },
-    ],
+    unit: "cái",
+    price: "500.000",
+    stock: "3",
   });
 
-  // The buyer searches without diacritics and opens the listing.
+  // The buyer searches without diacritics and opens the product.
   await buyer.page.goto("/");
   const search = buyer.page.getByRole("searchbox", { name: "Tìm kiếm bài đăng" });
   await search.fill(`loa bluetooth cu ${word}`);
@@ -30,20 +36,16 @@ test("a buyer finds a listing, pays by QR and the seller completes the order", a
   const card = buyer.page.getByRole("link", { name: new RegExp(title) });
   await expect(card).toBeVisible();
   await expect(card.locator("img")).toHaveAttribute("src", /_thumb\.webp$/);
+  await expect(card).toContainText("500.000 đ");
+  await expect(card).toContainText(`@${seller.name}`);
   await card.click();
   await expect(buyer.page).toHaveURL(listingPath);
 
-  // Two speakers and 1.5 kg of oranges: 2 × 500,000 + 1.5 × 35,000.
-  await buyer.page.getByRole("textbox", { name: /^Loa JBL/ }).fill("2");
-  await buyer.page.getByRole("textbox", { name: /^Cam sành/ }).fill("1,5");
-  await expect(buyer.page.getByRole("status", { name: "Tổng tiền" })).toHaveText(
-    "1.052.500 đ",
-  );
-  await buyer.page.getByLabel("Giao đến").fill("Tầng 7");
-  await buyer.page.getByRole("button", { name: "Đặt hàng" }).click();
+  // Two speakers, paid by QR.
+  await buyNow(buyer, listingPath, "2", { qr: true });
+  await openPlacedOrder(buyer);
 
-  // The order page shows the QR code with the same amount and the order code.
-  await expect(buyer.page).toHaveURL(/\/orders\/[0-9a-f-]{36}$/);
+  // The order page shows the QR code with the amount and the order code.
   const heading = buyer.page.getByRole("heading", { name: /^Đơn SSM/ });
   await expect(heading).toBeVisible();
   const code = ((await heading.textContent()) ?? "").replace("Đơn", "").trim();
@@ -54,7 +56,7 @@ test("a buyer finds a listing, pays by QR and the seller completes the order", a
   const transfer = buyer.page.getByRole("region", { name: "Thông tin chuyển khoản" });
   await expect(transfer).toContainText("Vietcombank");
   await expect(transfer).toContainText("0123456789");
-  await expect(transfer).toContainText("1.052.500 đ");
+  await expect(transfer).toContainText("1.000.000 đ");
   await expect(transfer).toContainText(code);
 
   await buyer.page.getByRole("button", { name: "Tôi đã chuyển khoản" }).click();
@@ -77,8 +79,5 @@ test("a buyer finds a listing, pays by QR and the seller completes the order", a
   await expect(buyer.page.getByRole("img", { name: /Mã QR/ })).toHaveCount(0);
 
   await buyer.page.goto(listingPath);
-  await expect(buyer.page.getByRole("row", { name: /Loa JBL/ })).toContainText("1 cái");
-  await expect(buyer.page.getByRole("row", { name: /Cam sành/ })).toContainText(
-    "8,5 kg",
-  );
+  await expect(buyer.page.getByText("Còn 1 cái")).toBeVisible();
 });

@@ -1,40 +1,28 @@
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { formatMoney } from "@/shared/lib/format/money";
 import { cn } from "@/shared/lib/utils";
 
-const SIZE = { 20: "text-xl", 22: "text-[22px]", 36: "text-4xl" } as const;
-const MUTED = "font-sans text-[13px] font-normal text-muted-foreground";
+const SIZE = { sm: "text-[15px]", md: "text-base", lg: "text-xl" } as const;
 
-/** An amount of money in the heading typeface, optionally "from …/unit". */
+/**
+ * An amount of money. It uses the body typeface at semibold, so the digits
+ * sit with the words around them instead of shouting over them.
+ */
 export function Price({
   amount,
-  size,
-  from = false,
-  unit,
-  unitStyle = "muted",
+  size = "md",
   className,
 }: {
   amount: number;
-  size: keyof typeof SIZE;
-  from?: boolean;
-  unit?: string;
-  unitStyle?: "muted" | "inline";
+  size?: keyof typeof SIZE;
   className?: string;
 }) {
   const locale = useLocale();
-  const t = useTranslations("common");
   return (
     <span
-      className={cn("font-heading font-bold tabular-nums", SIZE[size], className)}
+      className={cn("font-sans font-semibold tabular-nums", SIZE[size], className)}
     >
-      {from && <span className={MUTED}>{t("priceFrom")} </span>}
       {formatMoney(amount, locale)}
-      {unit &&
-        (unitStyle === "muted" ? (
-          <span className={MUTED}>/{unit}</span>
-        ) : (
-          `/${unit}`
-        ))}
     </span>
   );
 }

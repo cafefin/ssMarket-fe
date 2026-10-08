@@ -8,16 +8,16 @@ describe("checkout links", () => {
   it("round-trips lines and the cart flag", () => {
     const href = checkoutHref(
       [
-        { itemId: A, quantity: "2" },
-        { itemId: B, quantity: "1.5" },
+        { listingId: A, quantity: "2" },
+        { listingId: B, quantity: "1.5" },
       ],
       true,
     );
     expect(href).toBe(`/checkout?items=${A}%3A2%2C${B}%3A1.5&from=cart`);
     expect(parseCheckoutLink(new URL(href, "http://x").searchParams)).toEqual({
       lines: [
-        { itemId: A, quantity: "2" },
-        { itemId: B, quantity: "1.5" },
+        { listingId: A, quantity: "2" },
+        { listingId: B, quantity: "1.5" },
       ],
       fromCart: true,
     });
@@ -28,7 +28,7 @@ describe("checkout links", () => {
       parseCheckoutLink(
         new URLSearchParams(`items=${A}:2,${A}:3,nope:1,${B}:-1,${B}:abc`),
       ),
-    ).toEqual({ lines: [{ itemId: A, quantity: "2" }], fromCart: false });
+    ).toEqual({ lines: [{ listingId: A, quantity: "2" }], fromCart: false });
     expect(parseCheckoutLink(new URLSearchParams(""))).toEqual({
       lines: [],
       fromCart: false,

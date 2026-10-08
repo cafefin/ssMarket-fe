@@ -32,10 +32,7 @@ export const useSellDraftStore = create<SellDraftState>()(
                   ...state.values,
                   orderDeadline: "",
                   deliveryDate: "",
-                  items: state.values.items.map((item) => ({
-                    ...item,
-                    stockQuantity: "",
-                  })),
+                  stockQuantity: "",
                 }
               : state.values,
         })),

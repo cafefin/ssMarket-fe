@@ -25,7 +25,7 @@ import {
 } from "../lib/listing-schema";
 import { submitListing } from "../lib/submit-listing";
 import { ImagesField } from "./images-field";
-import { ItemsField } from "./items-field";
+import { ProductField } from "./product-field";
 
 interface ListingFormProps {
   mode: ListingMode;
@@ -288,7 +288,7 @@ export function ListingForm({
         </section>
       )}
 
-      <ItemsField mode={mode} control={control} register={register} errors={errors} />
+      <ProductField mode={mode} control={control} register={register} errors={errors} />
 
       <ImagesField
         existing={existingImages}

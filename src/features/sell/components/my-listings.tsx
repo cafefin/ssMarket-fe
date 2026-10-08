@@ -26,12 +26,6 @@ import { cn } from "@/shared/lib/utils";
 
 const TABS: readonly ListingStatus[] = ["open", "draft", "closed"];
 
-function cheapest(listing: ListingDetail) {
-  return listing.items.reduce((low, current) =>
-    current.unitPrice < low.unitPrice ? current : low,
-  );
-}
-
 function when(
   listing: ListingDetail,
   t: Translator<"sell.mine">,
@@ -145,7 +139,6 @@ export function MyListings() {
         <ul className="flex flex-col gap-3">
           {listings.data.map((listing) => {
             const expired = listing.status === "open" && !listing.isOpen;
-            const low = cheapest(listing);
             const time = when(listing, t);
             return (
               <li
@@ -159,10 +152,9 @@ export function MyListings() {
                     <ModeBadge mode={listing.mode} />
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {t("itemCount", { count: listing.items.length })} ·{" "}
-                    {t("from", {
-                      price: format.money(low.unitPrice),
-                      unit: low.unit,
+                    {t("price", {
+                      price: format.money(listing.unitPrice),
+                      unit: listing.unit,
                     })}
                     {time && ` · ${time}`}
                   </p>

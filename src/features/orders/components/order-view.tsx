@@ -140,25 +140,18 @@ export function OrderView({ id }: { id: string }) {
       )}
 
       <section className="rounded-lg border border-border p-4">
-        <h2 className="font-semibold">
-          <Link
-            href={`/listings/${order.listing.id}`}
-            className="hover:text-primary hover:underline"
-          >
-            {order.listing.title}
-          </Link>
-        </h2>
+        <h2 className="font-semibold">{t("products")}</h2>
         <table className="mt-3 w-full text-sm">
           <tbody>
             {order.lines.map((line) => (
-              <tr key={line.itemId} className="border-t border-hairline-soft">
+              <tr key={line.listingId} className="border-t border-hairline-soft">
                 <th scope="row" className="py-2 pr-3 text-left font-normal">
-                  {order.listingCount > 1 && (
-                    <span className="block text-[13px] text-muted-foreground">
-                      {line.listingTitle}
-                    </span>
-                  )}
-                  {line.itemName}
+                  <Link
+                    href={`/listings/${line.listingId}`}
+                    className="hover:text-primary hover:underline"
+                  >
+                    {line.title}
+                  </Link>
                   <span className="block text-[13px] text-muted-foreground">
                     {format.quantity(line.quantity)} {line.unit} ×{" "}
                     {format.money(line.unitPrice)}

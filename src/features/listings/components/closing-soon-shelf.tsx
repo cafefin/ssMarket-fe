@@ -104,7 +104,7 @@ export function ClosingSoonShelf() {
               key={listing.id}
               className="flex w-[62vw] max-w-[250px] min-w-[200px] shrink-0 snap-start"
             >
-              <ListingCard listing={listing} layout="stacked" />
+              <ListingCard listing={listing} />
             </li>
           ))}
         </ul>

@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { screen, within } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -10,7 +10,7 @@ import { ListingDetailView } from "./listing-detail-view";
 const { api } = vi.hoisted(() => ({ api: { GET: vi.fn() } }));
 vi.mock("@/shared/api/client", () => ({ api }));
 
-const SELLER = { id: "seller-1", name: "Chị Lan", avatarUrl: null };
+const SELLER = { id: "seller-1", name: "Chị Lan", handle: "lan.tran", avatarUrl: null };
 
 const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   id: "l1",
@@ -30,10 +30,10 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   reopenedFromId: null,
   condition: null,
   conditionPercent: null,
-  items: [
-    { id: "i1", name: "Loa JBL Go 3", unit: "cái", unitPrice: 500000, stockQuantity: 2, combos: [] },
-    { id: "i2", name: "Dây sạc", unit: "cái", unitPrice: 20000, stockQuantity: 0, combos: [] },
-  ],
+  unit: "cái",
+  unitPrice: 500000,
+  stockQuantity: 2,
+  combos: [],
   images: [],
   ...overrides,
 });
@@ -91,7 +91,7 @@ describe("ListingDetailView", () => {
     expect(screen.getByLabelText("Đang tải bài đăng")).toBeInTheDocument();
   });
 
-  it("shows an in-stock listing with prices, stock and payment methods", async () => {
+  it("shows an in-stock product with its price, stock and payment methods", async () => {
     serve(listing());
 
     renderView();
@@ -103,12 +103,9 @@ describe("ListingDetailView", () => {
     expect(screen.getByText("Điện tử")).toBeInTheDocument();
     expect(screen.getByText("Chị Lan")).toBeInTheDocument();
 
-    const loa = screen.getByRole("row", { name: /Loa JBL Go 3/ });
-    expect(within(loa).getByText("500.000 đ/cái")).toHaveClass("font-heading");
-    expect(within(loa).getByText("2 cái")).toBeInTheDocument();
-    expect(
-      within(screen.getByRole("row", { name: /Dây sạc/ })).getByText("Hết hàng"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("500.000 đ")).toHaveClass("font-semibold");
+    expect(screen.getByText("/ cái")).toBeInTheDocument();
+    expect(screen.getByText("Còn 2 cái")).toBeInTheDocument();
 
     expect(
       screen.getByText("Chuyển khoản trước qua mã QR · Trả tiền khi nhận hàng"),
@@ -118,28 +115,30 @@ describe("ListingDetailView", () => {
     expect(screen.queryByText("Chốt đơn")).not.toBeInTheDocument();
   });
 
-  it("shows the condition and each option's combos", async () => {
+  it("shows the condition and the combos", async () => {
     serve(
       listing({
         condition: "good",
         conditionPercent: 90,
-        items: [
-          {
-            id: "i1",
-            name: "Bút bi",
-            unit: "cái",
-            unitPrice: 10000,
-            stockQuantity: 500,
-            combos: [{ quantity: "100", price: 900000 }],
-          },
-        ],
+        unitPrice: 10000,
+        stockQuantity: 500,
+        combos: [{ quantity: "100", price: 900000 }],
       }),
     );
 
     renderView();
 
     expect(await screen.findByText("Tốt 90%")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Mua nhiều giá tốt" })).toBeInTheDocument();
     expect(screen.getByText("100 cái: 900.000 đ")).toBeInTheDocument();
+  });
+
+  it("says Hết hàng when nothing is left", async () => {
+    serve(listing({ stockQuantity: 0 }));
+
+    renderView();
+
+    expect(await screen.findByText("Hết hàng")).toBeInTheDocument();
   });
 
   it("shows the listing in English, with the English category name", async () => {
@@ -152,24 +151,24 @@ describe("ListingDetailView", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("In stock")).toBeInTheDocument();
     expect(screen.getByText("Electronics")).toBeInTheDocument();
-    const loa = screen.getByRole("row", { name: /Loa JBL Go 3/ });
-    expect(within(loa).getByText("500,000 VND/cái")).toBeInTheDocument();
+    expect(screen.getByText("500,000 VND")).toBeInTheDocument();
+    expect(screen.getByText("2 cái left")).toBeInTheDocument();
     expect(
       screen.getByText("Bank transfer in advance by QR code · Pay on delivery"),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "View seller page" })).toBeInTheDocument();
   });
 
-  it("shows a pre-order with its deadline and delivery date and no stock column", async () => {
+  it("shows a pre-order with its deadline and delivery date and no stock", async () => {
     serve(
       listing({
         mode: "preorder",
         acceptsPrepaidQr: false,
         orderDeadline: "2026-10-09T10:00:00.000Z",
         deliveryDate: "2026-10-12",
-        items: [
-          { id: "i1", name: "Cam sành", unit: "kg", unitPrice: 35000, stockQuantity: null, combos: [] },
-        ],
+        unit: "kg",
+        unitPrice: 35000,
+        stockQuantity: null,
       }),
     );
 
@@ -178,10 +177,9 @@ describe("ListingDetailView", () => {
     expect(await screen.findByText("Đặt trước")).toBeInTheDocument();
     expect(screen.getByText("Chốt đơn")).toBeInTheDocument();
     expect(screen.getByText("12/10/2026")).toBeInTheDocument();
-    expect(screen.getByText("35.000 đ/kg")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("columnheader", { name: "Còn lại" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("35.000 đ")).toBeInTheDocument();
+    expect(screen.getByText("/ kg")).toBeInTheDocument();
+    expect(screen.queryByText(/^Còn \d/)).not.toBeInTheDocument();
     expect(screen.getByText("Trả tiền khi nhận hàng")).toBeInTheDocument();
   });
 
@@ -252,27 +250,27 @@ describe("ListingDetailView", () => {
     );
   });
 
-  it("offers ordering, not editing, to other people", async () => {
+  it("offers buying, not editing, to other people", async () => {
     serve(listing());
 
     renderView({
-      renderOrderPanel: (l) => <div data-testid="order-panel">{l.id}</div>,
+      renderBuy: (l) => <div data-testid="buy">{l.id}</div>,
     });
 
-    expect(await screen.findByTestId("order-panel")).toHaveTextContent("l1");
+    expect(await screen.findByTestId("buy")).toHaveTextContent("l1");
     expect(
       screen.queryByRole("link", { name: "Sửa bài đăng" }),
     ).not.toBeInTheDocument();
   });
 
-  it("asks for the order panel only for a signed-in buyer of an open listing", async () => {
+  it("asks for the buy controls only for a signed-in buyer of an open listing", async () => {
     serve(listing());
-    const renderOrderPanel = vi.fn(() => <div data-testid="order-panel" />);
+    const renderBuy = vi.fn(() => <div data-testid="buy" />);
 
-    renderView({ renderOrderPanel });
+    renderView({ renderBuy });
 
-    expect(await screen.findByTestId("order-panel")).toBeInTheDocument();
-    expect(renderOrderPanel).toHaveBeenCalledWith(
+    expect(await screen.findByTestId("buy")).toBeInTheDocument();
+    expect(renderBuy).toHaveBeenCalledWith(
       expect.objectContaining({ id: expect.any(String) }),
     );
   });
@@ -280,15 +278,15 @@ describe("ListingDetailView", () => {
   it.each([
     ["the seller", { isOpen: true }, SELLER.id],
     ["a closed listing", { isOpen: false, status: "closed" as const }, "buyer-1"],
-  ])("never asks for the order panel for %s", async (_name, overrides, viewer) => {
+  ])("never asks for the buy controls for %s", async (_name, overrides, viewer) => {
     serve(listing(overrides), viewer);
-    const renderOrderPanel = vi.fn(() => <div data-testid="order-panel" />);
+    const renderBuy = vi.fn(() => <div data-testid="buy" />);
 
-    renderView({ renderOrderPanel });
+    renderView({ renderBuy });
 
     await screen.findByRole("heading", { level: 1 });
-    expect(screen.queryByTestId("order-panel")).not.toBeInTheDocument();
-    expect(renderOrderPanel).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("buy")).not.toBeInTheDocument();
+    expect(renderBuy).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -326,14 +324,14 @@ describe("ListingDetailView", () => {
     serve(listing(), SELLER.id);
 
     renderView({
-      renderOrderPanel: (l) => <div data-testid="order-panel">{l.id}</div>,
+      renderBuy: (l) => <div data-testid="buy">{l.id}</div>,
     });
 
     await screen.findByRole("link", { name: "Sửa bài đăng" });
     expect(
       screen.getByRole("link", { name: "Bảng tổng hợp đơn hàng" }),
     ).toHaveAttribute("href", "/sell/listings/l1");
-    expect(screen.queryByTestId("order-panel")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("buy")).not.toBeInTheDocument();
     expect(screen.queryByText(/Chỉ bạn nhìn thấy/)).not.toBeInTheDocument();
   });
 

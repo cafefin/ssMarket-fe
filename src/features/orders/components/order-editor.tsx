@@ -6,9 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/shared/ui/atoms/shadcn/button";
 import { Input } from "@/shared/ui/atoms/shadcn/input";
 import { Label } from "@/shared/ui/atoms/shadcn/label";
-import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { useUserMessage } from "@/shared/api/use-user-message";
-import { useListing } from "@/features/listings";
 import { type Order, useEditOrder } from "../api/use-orders";
 import { useFormat } from "@/shared/lib/format/use-format";
 import {
@@ -46,9 +44,9 @@ export function editBlockedReason(
 }
 
 /**
- * Lets a buyer change the quantities of a pre-order. Items already in the
- * order are shown at the price they were ordered at; items added now use the
- * listing's current price. The server applies the same rule.
+ * Lets a buyer change the quantity of a pre-order, its delivery place and
+ * note. The product keeps the price it was ordered at; the server applies
+ * the same rule.
  */
 export function OrderEditor({
   order,
@@ -57,7 +55,6 @@ export function OrderEditor({
   order: Order;
   onDone: () => void;
 }) {
-  const { data: listing, isPending, isError } = useListing(order.listing.id);
   const editOrder = useEditOrder();
   const t = useTranslations("orders.editor");
   const tp = useTranslations("orders.panel");
@@ -65,86 +62,38 @@ export function OrderEditor({
   const tc = useTranslations("common");
   const format = useFormat();
   const userMessage = useUserMessage();
-  const [quantities, setQuantities] = useState<Record<string, string>>(() =>
-    Object.fromEntries(
-      order.lines.map((line) => [
-        line.itemId,
-        String(line.quantity).replace(".", ","),
-      ]),
-    ),
+  const [line] = order.lines;
+  const [quantityText, setQuantityText] = useState(
+    String(line.quantity).replace(".", ","),
   );
   const [location, setLocation] = useState(order.deliveryLocation);
   const [note, setNote] = useState(order.note ?? "");
   const [showProblems, setShowProblems] = useState(false);
 
-  if (isPending) {
-    return <Skeleton className="h-40 w-full rounded-lg" aria-label={t("loading")} />;
-  }
-  if (isError || !listing) {
-    return (
-      <p role="alert" className="text-sm text-error-deep">
-        {t("loadFailed")}
-      </p>
-    );
-  }
-
-  // Ordered items first at their ordered price, then the rest of the listing.
-  const ordered = order.lines.map((line) => ({
-    id: line.itemId,
-    name: line.itemName,
-    unit: line.unit,
-    unitPrice: line.unitPrice,
-    // The combos the line was priced with stay with it, like the price.
-    combos: line.combos,
-  }));
-  const orderedIds = new Set(ordered.map((item) => item.id));
-  const items = [
-    ...ordered,
-    ...listing.items
-      .filter((item) => !orderedIds.has(item.id))
-      .map(({ id, name, unit, unitPrice, combos }) => ({
-        id,
-        name,
-        unit,
-        unitPrice,
-        combos,
-      })),
-  ];
-
-  const lines = items.map((item) => {
-    const quantity = normalizeQuantity(quantities[item.id] ?? "");
-    const code = quantity === "" ? null : quantityProblem(quantity, item.unit);
-    const problem =
-      code === "tooMany"
-        ? tq(code, { max: MAX_ORDER_QUANTITY })
+  const quantity = normalizeQuantity(quantityText);
+  const code =
+    quantity === "" ? "required" : quantityProblem(quantity, line.unit);
+  const problem =
+    code === "tooMany"
+      ? tq(code, { max: MAX_ORDER_QUANTITY })
+      : code === "required"
+        ? t("noItems")
         : code && tq(code);
-    return {
-      item,
-      quantity,
-      problem,
-      total:
-        quantity !== "" && !problem
-          ? lineTotalWithCombos(item.unitPrice, item.combos, quantity)
-          : 0,
-    };
-  });
-  const chosen = lines.filter((line) => line.quantity !== "");
-  const total = lines.reduce((sum, line) => sum + line.total, 0);
+  const total = problem
+    ? 0
+    : lineTotalWithCombos(line.unitPrice, line.combos, quantity);
   const locationMissing = location.trim() === "";
 
   async function save(): Promise<void> {
     setShowProblems(true);
-    if (chosen.length === 0 || chosen.some((line) => line.problem) || locationMissing) {
+    if (problem || locationMissing) {
       return;
     }
     try {
       await editOrder.mutateAsync({
         id: order.id,
         body: {
-          lines: chosen.map((line) => ({
-            itemId: line.item.id,
-            quantity: line.quantity,
-          })),
+          quantity,
           paymentMethod: order.paymentMethod,
           deliveryLocation: location.trim(),
           note: note.trim() || null,
@@ -168,47 +117,33 @@ export function OrderEditor({
       className="flex flex-col gap-4 rounded-lg border border-primary bg-primary-soft/40 p-4"
     >
       <h2 className="text-lg font-semibold">{t("title")}</h2>
-      <ul className="flex flex-col gap-3">
-        {lines.map(({ item, problem }) => {
-          const inputId = `edit-quantity-${item.id}`;
-          return (
-            <li key={item.id} className="flex flex-col gap-1">
-              <div className="flex items-center justify-between gap-3">
-                <Label htmlFor={inputId} className="min-w-0 flex-1 font-normal">
-                  <span className="block truncate">{item.name}</span>
-                  <span className="block text-[13px] text-muted-foreground">
-                    {format.money(item.unitPrice)}/{item.unit}
-                  </span>
-                </Label>
-                <div className="flex shrink-0 items-center gap-2">
-                  <Input
-                    id={inputId}
-                    inputMode={item.unit === "kg" ? "decimal" : "numeric"}
-                    placeholder="0"
-                    value={quantities[item.id] ?? ""}
-                    aria-invalid={showProblems && Boolean(problem)}
-                    onChange={(event) =>
-                      setQuantities((current) => ({
-                        ...current,
-                        [item.id]: event.target.value,
-                      }))
-                    }
-                    className="w-20 bg-background text-right"
-                  />
-                  <span className="w-8 text-sm text-muted-foreground">
-                    {item.unit}
-                  </span>
-                </div>
-              </div>
-              {showProblems && problem && (
-                <p role="alert" className="text-right text-[13px] text-error-deep">
-                  {tp("lineProblem", { item: item.name, problem })}
-                </p>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="editQuantity" className="min-w-0 flex-1 font-normal">
+            <span className="block truncate">{line.title}</span>
+            <span className="block text-[13px] text-muted-foreground">
+              {format.money(line.unitPrice)}/{line.unit}
+            </span>
+          </Label>
+          <div className="flex shrink-0 items-center gap-2">
+            <Input
+              id="editQuantity"
+              inputMode={line.unit === "kg" ? "decimal" : "numeric"}
+              placeholder="0"
+              value={quantityText}
+              aria-invalid={showProblems && Boolean(problem)}
+              onChange={(event) => setQuantityText(event.target.value)}
+              className="w-20 bg-background text-right"
+            />
+            <span className="w-8 text-sm text-muted-foreground">{line.unit}</span>
+          </div>
+        </div>
+        {showProblems && problem && (
+          <p role="alert" className="text-right text-[13px] text-error-deep">
+            {problem}
+          </p>
+        )}
+      </div>
 
       <div className="flex items-center justify-between border-t border-hairline-soft pt-3">
         <span className="text-sm text-muted-foreground">{t("newTotal")}</span>
@@ -243,12 +178,6 @@ export function OrderEditor({
           className="bg-background"
         />
       </div>
-
-      {showProblems && chosen.length === 0 && (
-        <p role="alert" className="text-[13px] text-error-deep">
-          {t("noItems")}
-        </p>
-      )}
 
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={editOrder.isPending}>

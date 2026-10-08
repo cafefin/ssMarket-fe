@@ -54,21 +54,21 @@ function useStoreCart() {
   };
 }
 
-/** Puts an option in the cart with this quantity, or changes it. */
+/** Puts a product in the cart with this quantity, or changes it. */
 export function useSetCartLine() {
   const store = useStoreCart();
   return useMutation({
     mutationFn: async ({
-      itemId,
+      listingId,
       quantity,
     }: {
-      itemId: string;
+      listingId: string;
       quantity: string;
     }): Promise<Cart> => {
-      const { data, error, response } = await api.PUT("/cart/lines/{itemId}", {
-        params: { path: { itemId } },
-        body: { quantity },
-      });
+      const { data, error, response } = await api.PUT(
+        "/cart/lines/{listingId}",
+        { params: { path: { listingId } }, body: { quantity } },
+      );
       if (!data) {
         throw toApiError(error, response);
       }
@@ -81,10 +81,10 @@ export function useSetCartLine() {
 export function useRemoveCartLine() {
   const store = useStoreCart();
   return useMutation({
-    mutationFn: async (itemId: string): Promise<Cart> => {
+    mutationFn: async (listingId: string): Promise<Cart> => {
       const { data, error, response } = await api.DELETE(
-        "/cart/lines/{itemId}",
-        { params: { path: { itemId } } },
+        "/cart/lines/{listingId}",
+        { params: { path: { listingId } } },
       );
       if (!data) {
         throw toApiError(error, response);
@@ -141,4 +141,14 @@ export function useCheckout() {
         queryClient.invalidateQueries({ queryKey: LISTINGS_QUERY_KEY }),
       ]),
   });
+}
+
+/** How much of a product the cart holds; 0 when it is not there. */
+export function useInCart(listingId: string): number {
+  const { data: cart } = useCart();
+  return (
+    cart?.groups
+      .flatMap((group) => group.lines)
+      .find((line) => line.listingId === listingId)?.quantity ?? 0
+  );
 }

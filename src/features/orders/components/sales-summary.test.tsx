@@ -18,7 +18,7 @@ const row = (overrides: Partial<SummaryRow>): SummaryRow => ({
   code: "SSMAAAAA2",
   buyer: { name: "Minh", email: "minh@example.com" },
   deliveryLocation: "Tầng 7",
-  quantities: { cam: 1.5 },
+  quantity: 1.5,
   totalAmount: 52500,
   paymentMethod: "pay_on_delivery",
   paymentStatus: "unpaid",
@@ -32,17 +32,14 @@ const summary = (rows: SummaryRow[]): Summary => ({
   listing: {
     id: "l1",
     title: "Hoa quả tuần 41",
+    unit: "kg",
     orderDeadline: "2026-10-09T10:00:00.000Z",
     deliveryDate: "2026-10-12",
   },
-  items: [
-    { id: "cam", name: "Cam ngọt", unit: "kg", isActive: true },
-    { id: "buoi", name: "Bưởi", unit: "cái", isActive: false },
-  ],
   rows,
   totals: {
     orderCount: rows.length,
-    quantities: { cam: 3.5, buoi: 2 },
+    quantity: 5.5,
     totalAmount: 242500,
     paidAmount: 70000,
     outstandingAmount: 172500,
@@ -56,7 +53,7 @@ const three = () => [
     code: "SSMBBBBB2",
     buyer: { name: "Lan", email: "lan@example.com" },
     deliveryLocation: "Tầng 3",
-    quantities: { cam: 2 },
+    quantity: 2,
     totalAmount: 70000,
     paymentStatus: "paid",
     note: "Giao sau 14h",
@@ -66,7 +63,7 @@ const three = () => [
     code: "SSMCCCCC2",
     buyer: { name: "An", email: "an@example.com" },
     deliveryLocation: "Tầng 7",
-    quantities: { buoi: 2 },
+    quantity: 2,
     totalAmount: 120000,
     paymentStatus: "reported",
     fulfillmentStatus: "delivered",
@@ -142,17 +139,14 @@ describe("SalesSummary", () => {
     expect(screen.getByRole("row", { name: /Minh/ })).toHaveTextContent("1.5");
   });
 
-  it("has a column per item, marks a removed one, and totals from the server", async () => {
+  it("has a quantity column with the unit, and totals from the server", async () => {
     renderSummary();
 
     expect(
-      await screen.findByRole("columnheader", { name: "Cam ngọt (kg)" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("columnheader", { name: /Bưởi \(cái\).*đã ngừng bán/ }),
+      await screen.findByRole("columnheader", { name: "Số lượng (kg)" }),
     ).toBeInTheDocument();
     const totals = screen.getByRole("row", { name: /Tổng 3 đơn/ });
-    expect(totals).toHaveTextContent("3,5");
+    expect(totals).toHaveTextContent("5,5");
     expect(totals).toHaveTextContent("242.500 đ");
   });
 

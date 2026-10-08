@@ -24,16 +24,14 @@ const preview: CheckoutPreview = {
   orders: [
     {
       key: "seller:s1",
-      seller: { id: "s1", name: "Chị Lan", avatarUrl: null },
+      seller: { id: "s1", name: "Chị Lan", handle: "lan", avatarUrl: null },
       isPreorder: false,
       orderDeadline: null,
       deliveryDate: null,
       lines: [
         {
-          itemId: A,
-          listingId: "l1",
-          listingTitle: "Bút bi",
-          itemName: "Bút bi",
+          listingId: A,
+          title: "Bút bi",
           unit: "cái",
           unitPrice: 10000,
           quantity: 100,
@@ -48,16 +46,14 @@ const preview: CheckoutPreview = {
     },
     {
       key: "listing:l2",
-      seller: { id: "s2", name: "Anh Minh", avatarUrl: null },
+      seller: { id: "s2", name: "Anh Minh", handle: "minh", avatarUrl: null },
       isPreorder: true,
       orderDeadline: "2026-10-09T10:00:00.000Z",
       deliveryDate: "2026-10-12",
       lines: [
         {
-          itemId: B,
-          listingId: "l2",
-          listingTitle: "Hoa quả",
-          itemName: "Cam",
+          listingId: B,
+          title: "Cam sành",
           unit: "kg",
           unitPrice: 35000,
           quantity: 1.5,
@@ -147,8 +143,8 @@ describe("CheckoutPage", () => {
     const [, call] = api.POST.mock.calls.find(([path]) => path === "/checkout")!;
     expect(call.body).toEqual({
       lines: [
-        { itemId: A, quantity: "100" },
-        { itemId: B, quantity: "1.5" },
+        { listingId: A, quantity: "100" },
+        { listingId: B, quantity: "1.5" },
       ],
       fromCart: true,
       orders: [
@@ -190,7 +186,7 @@ describe("CheckoutPage", () => {
           : {
               error: {
                 code: "OUT_OF_STOCK",
-                details: { items: [{ itemId: A, name: "Bút bi", available: 40 }] },
+                details: { items: [{ listingId: A, title: "Bút bi", available: 40 }] },
               },
               response: new Response(null, { status: 409 }),
             },
@@ -201,6 +197,29 @@ describe("CheckoutPage", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Đặt 2 đơn" }));
 
     expect(await screen.findByText("Bút bi: còn 40")).toBeInTheDocument();
+  });
+
+  it("points to the existing order of a pre-order round", async () => {
+    serve();
+    api.POST.mockImplementation((path: string) =>
+      Promise.resolve(
+        path === "/checkout/preview"
+          ? { data: preview, response: new Response() }
+          : {
+              error: { code: "ALREADY_ORDERED", details: { orderId: "o9" } },
+              response: new Response(null, { status: 409 }),
+            },
+      ),
+    );
+    render();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Đặt 2 đơn" }));
+
+    expect(await screen.findByText(/Bạn đã đặt đợt này/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Xem đơn của bạn" })).toHaveAttribute(
+      "href",
+      "/orders/o9",
+    );
   });
 
   it("reviews again when the orders changed", async () => {

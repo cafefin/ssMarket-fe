@@ -16,7 +16,6 @@ export type OrderQr = components["schemas"]["OrderQrDto"];
 export type PaymentMethod = components["schemas"]["PaymentMethod"];
 export type PaymentStatus = components["schemas"]["PaymentStatus"];
 export type FulfillmentStatus = components["schemas"]["FulfillmentStatus"];
-export type PlaceOrderBody = components["schemas"]["PlaceOrderDto"];
 export type EditOrderBody = components["schemas"]["EditOrderDto"];
 export type SalesSummary = components["schemas"]["SalesSummaryDto"];
 export type SummaryRow = components["schemas"]["SummaryRowDto"];
@@ -95,35 +94,6 @@ export function useSales(filters: SalesFilters) {
       return data;
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-  });
-}
-
-export function usePlaceOrder() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (input: {
-      body: PlaceOrderBody;
-      /** One UUID per order form, so a double click creates one order. */
-      idempotencyKey: string;
-    }): Promise<Order> => {
-      const { data, error, response } = await api.POST("/orders", {
-        body: input.body,
-        params: { header: { "Idempotency-Key": input.idempotencyKey } },
-      });
-      if (!data) {
-        throw toApiError(error, response);
-      }
-      return data;
-    },
-    onSuccess: (order) =>
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY }),
-        queryClient.invalidateQueries({ queryKey: LISTINGS_QUERY_KEY }),
-        queryClient.invalidateQueries({
-          queryKey: listingQueryKey(order.listing.id),
-        }),
-      ]),
   });
 }
 

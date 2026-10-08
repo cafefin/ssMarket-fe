@@ -27,10 +27,14 @@ const summary = (id: string, title: string) => ({
   title,
   mode: "in_stock",
   category: categories[1],
-  seller: { id: "u1", name: "An", avatarUrl: null },
+  seller: { id: "u1", name: "An", handle: "an", avatarUrl: null },
   thumbnailUrl: null,
-  minUnitPrice: 100000,
-  minPriceUnit: "cái",
+  unitPrice: 100000,
+  unit: "cái",
+  stockQuantity: 2,
+  hasCombos: false,
+  condition: null,
+  conditionPercent: null,
   orderDeadline: null,
   deliveryDate: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
@@ -100,7 +104,7 @@ describe("ListingBrowser", () => {
     expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
   });
 
-  it.each(["q=loa", "category=dien-tu", "mode=in_stock"])(
+  it.each(["q=loa", "category=dien-tu", "mode=preorder", "mode=all"])(
     "hides the shelf when the list is narrowed by %s",
     async (search) => {
       location.search = search;
@@ -123,11 +127,11 @@ describe("ListingBrowser", () => {
     ).toBeInTheDocument();
     const modes = screen.getByRole("group", { name: "Selling mode" });
     expect(within(modes).getByRole("button", { name: "Pre-order" })).toBeInTheDocument();
-    const kinds = screen.getByRole("group", { name: "Category" });
+    expect(within(modes).getByRole("button", { name: "All" })).toBeInTheDocument();
     expect(
-      await within(kinds).findByRole("button", { name: "Electronics" }),
+      await screen.findByRole("link", { name: "Electronics" }),
     ).toBeInTheDocument();
-    expect(within(kinds).queryByText("Điện tử")).not.toBeInTheDocument();
+    expect(screen.queryByText("Điện tử")).not.toBeInTheDocument();
   });
 
   it("offers price and condition filters as links", async () => {
@@ -140,6 +144,9 @@ describe("ListingBrowser", () => {
     expect(
       screen.getByRole("link", { name: "Dưới 50.000 đ" }),
     ).toHaveAttribute("href", "/?maxPrice=50000");
+    expect(
+      screen.getByRole("link", { name: "Bỏ lọc 50.000 đ – 200.000 đ" }),
+    ).toHaveAttribute("href", "/");
     expect(
       screen.getByRole("link", { name: "50.000 đ – 200.000 đ" }),
     ).toHaveAttribute("aria-current", "true");
@@ -170,6 +177,25 @@ describe("ListingBrowser", () => {
           cursor: undefined,
         },
       },
+    });
+  });
+
+  it("asks for goods in stock by default and for every mode on All", async () => {
+    serve([{ items: [], nextCursor: null }]);
+    renderBrowser();
+    await waitFor(() => expect(listingCalls()).toHaveLength(1));
+    expect(listingCalls()[0][1]).toMatchObject({
+      params: { query: { mode: "in_stock" } },
+    });
+  });
+
+  it("does not filter by mode when All is chosen", async () => {
+    location.search = "mode=all";
+    serve([{ items: [], nextCursor: null }]);
+    renderBrowser();
+    await waitFor(() => expect(listingCalls()).toHaveLength(1));
+    expect(listingCalls()[0][1]).toMatchObject({
+      params: { query: { mode: undefined } },
     });
   });
 
@@ -246,16 +272,32 @@ describe("ListingBrowser", () => {
     expect(screen.queryByRole("button", { name: "Xem thêm" })).not.toBeInTheDocument();
   });
 
-  describe("filter chips", () => {
+  describe("filters", () => {
+    it("put In stock first, then Pre-order and All, with In stock chosen", async () => {
+      serve([{ items: [], nextCursor: null }]);
+
+      renderBrowser();
+
+      const modes = await screen.findByRole("group", { name: "Hình thức bán" });
+      const buttons = within(modes).getAllByRole("button");
+      expect(buttons.map((button) => button.textContent)).toEqual([
+        "Có sẵn",
+        "Đặt trước",
+        "Tất cả",
+      ]);
+      expect(buttons[0]).toHaveAttribute("aria-pressed", "true");
+      expect(buttons[0]).toHaveAttribute("href", "/");
+      expect(buttons[2]).toHaveAttribute("href", "/?mode=all");
+    });
+
     it("link to the URL with that filter added, keeping the others", async () => {
       location.search = "q=loa";
       serve([{ items: [], nextCursor: null }]);
 
       renderBrowser();
 
-      const categoryGroup = await screen.findByRole("group", { name: "Loại hàng" });
       expect(
-        await within(categoryGroup).findByRole("button", { name: "Điện tử" }),
+        await screen.findByRole("link", { name: "Điện tử" }),
       ).toHaveAttribute("href", "/?q=loa&category=dien-tu");
       expect(screen.getByRole("button", { name: "Đặt trước" })).toHaveAttribute(
         "href",
@@ -263,49 +305,36 @@ describe("ListingBrowser", () => {
       );
     });
 
-    it("mark the active filter and link to the URL without it", async () => {
-      location.search = "category=dien-tu&mode=in_stock";
+    it("offer categories as chips in a menu, and show the chosen one", async () => {
+      location.search = "category=dien-tu&mode=preorder";
       serve([{ items: [], nextCursor: null }]);
 
       renderBrowser();
 
-      const active = await screen.findByRole("button", { name: "Điện tử" });
-      expect(active).toHaveAttribute("aria-pressed", "true");
-      expect(active).toHaveAttribute("href", "/?mode=in_stock");
+      const chosen = await screen.findByRole("link", { name: "Điện tử" });
+      expect(chosen).toHaveAttribute("aria-current", "true");
+      // The menu's own chip now reads the chosen category.
+      expect(screen.getByText("Điện tử", { selector: "summary" })).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: "Thực phẩm tươi" }),
-      ).toHaveAttribute("aria-pressed", "false");
-      expect(screen.getByRole("button", { name: "Có sẵn" })).toHaveAttribute(
-        "href",
-        "/?category=dien-tu",
-      );
+        screen.getByRole("link", { name: "Bỏ lọc Điện tử" }),
+      ).toHaveAttribute("href", "/?mode=preorder");
+      expect(
+        screen.getByRole("link", { name: "Mọi danh mục" }),
+      ).toHaveAttribute("href", "/?mode=preorder");
     });
 
-    it("offer an 'all' choice that is active when nothing is filtered", async () => {
+    it("close the menu once a choice is made", async () => {
       serve([{ items: [], nextCursor: null }]);
 
       renderBrowser();
 
-      const all = await screen.findByRole("button", { name: "Tất cả" });
-      expect(all).toHaveAttribute("aria-pressed", "true");
-      expect(all).toHaveAttribute("href", "/");
-      expect(
-        screen.getByRole("button", { name: "Mọi loại hàng" }),
-      ).toHaveAttribute("aria-pressed", "true");
-    });
-
-    it("let the 'all' choices clear one filter and keep the other", async () => {
-      location.search = "category=dien-tu&mode=in_stock";
-      serve([{ items: [], nextCursor: null }]);
-
-      renderBrowser();
-
-      const all = await screen.findByRole("button", { name: "Tất cả" });
-      expect(all).toHaveAttribute("aria-pressed", "false");
-      expect(all).toHaveAttribute("href", "/?category=dien-tu");
-      expect(
-        screen.getByRole("button", { name: "Mọi loại hàng" }),
-      ).toHaveAttribute("href", "/?mode=in_stock");
+      const summary = await screen.findByText("Danh mục", { selector: "summary" });
+      const menu = summary.closest("details") as HTMLDetailsElement;
+      menu.open = true;
+      const link = await screen.findByRole("link", { name: "Điện tử" });
+      link.addEventListener("click", (event) => event.preventDefault());
+      await userEvent.click(link);
+      expect(menu.open).toBe(false);
     });
 
     it("stay under the header while the list scrolls", async () => {

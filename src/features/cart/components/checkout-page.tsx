@@ -49,7 +49,7 @@ function Done({ orders }: { orders: Order[] }) {
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-medium">{order.seller.name}</span>
-            <Price amount={order.totalAmount} size={20} />
+            <Price amount={order.totalAmount} />
           </div>
           {order.qr ? (
             <OrderQr qr={order.qr} code={order.code} />
@@ -92,9 +92,11 @@ export function CheckoutPage() {
   const [choices, setChoices] = useState<Record<string, Choice>>({});
   const [showProblems, setShowProblems] = useState(false);
   const [shortages, setShortages] = useState<
-    { itemId: string; name?: string; available: number }[]
+    { listingId: string; title?: string; available: number }[]
   >([]);
   const [placed, setPlaced] = useState<Order[] | null>(null);
+  // A pre-order the buyer already has an order for: link to that order.
+  const [existingOrderId, setExistingOrderId] = useState<string | null>(null);
 
   if (placed) {
     return <Done orders={placed} />;
@@ -157,6 +159,7 @@ export function CheckoutPage() {
   async function place(): Promise<void> {
     setShowProblems(true);
     setShortages([]);
+    setExistingOrderId(null);
     if (missingLocation) {
       return;
     }
@@ -184,6 +187,8 @@ export function CheckoutPage() {
           (error.details.items as typeof shortages | undefined) ?? [],
         );
         void preview.refetch();
+      } else if (error instanceof ApiError && error.code === "ALREADY_ORDERED") {
+        setExistingOrderId((error.details.orderId as string | undefined) ?? null);
       } else if (error instanceof ApiError && error.code === "CHECKOUT_CHANGED") {
         toast.error(t("changed"));
         void preview.refetch();
@@ -231,12 +236,9 @@ export function CheckoutPage() {
 
             <ul className="flex flex-col gap-2 text-sm">
               {order.lines.map((line) => (
-                <li key={line.itemId} className="flex justify-between gap-3">
+                <li key={line.listingId} className="flex justify-between gap-3">
                   <span className="min-w-0">
-                    <span className="block truncate">
-                      {line.listingTitle}
-                      {line.itemName !== line.listingTitle && ` · ${line.itemName}`}
-                    </span>
+                    <span className="block truncate">{line.title}</span>
                     <span className="text-[13px] text-muted-foreground">
                       {format.quantity(line.quantity)} {line.unit} ×{" "}
                       {format.money(line.unitPrice)}
@@ -305,11 +307,26 @@ export function CheckoutPage() {
 
             <div className="flex items-baseline justify-between border-t border-hairline-soft pt-3">
               <span className="text-sm text-muted-foreground">{t("subtotal")}</span>
-              <Price amount={order.totalAmount} size={20} />
+              <Price amount={order.totalAmount} />
             </div>
           </section>
         );
       })}
+
+      {existingOrderId && (
+        <div
+          role="alert"
+          className="rounded-md border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn-deep"
+        >
+          <p>{t("alreadyOrdered")}</p>
+          <Link
+            href={`/orders/${existingOrderId}`}
+            className="mt-1 inline-block font-medium underline"
+          >
+            {t("viewExisting")}
+          </Link>
+        </div>
+      )}
 
       {shortages.length > 0 && (
         <div
@@ -319,9 +336,9 @@ export function CheckoutPage() {
           <p className="font-medium">{t("short")}</p>
           <ul className="mt-1 list-disc pl-5">
             {shortages.map((shortage) => (
-              <li key={shortage.itemId}>
+              <li key={shortage.listingId}>
                 {t("shortLine", {
-                  item: shortage.name ?? "",
+                  item: shortage.title ?? "",
                   available: format.quantity(shortage.available),
                 })}
               </li>
@@ -339,7 +356,7 @@ export function CheckoutPage() {
             {t("total", { count: orders.length })}
           </p>
           <output aria-label={t("total", { count: orders.length })}>
-            <Price amount={total} size={36} />
+            <Price amount={total} size="lg" />
           </output>
         </div>
         <Button

@@ -30,8 +30,8 @@ const order = (overrides: Partial<Order> = {}): Order => ({
   deliveryLocation: "Tầng 7",
   note: "Giao sau 14h",
   lines: [
-    { listingId: "l1", listingTitle: "Hoa quả tuần này", itemId: "i1", itemName: "Cam sành", unit: "kg", unitPrice: 35000, quantity: 1.5, lineTotal: 52500, listTotal: 52500, combos: [] },
-    { listingId: "l1", listingTitle: "Hoa quả tuần này", itemId: "i2", itemName: "Bưởi", unit: "kg", unitPrice: 70000, quantity: 1, lineTotal: 70000, listTotal: 70000, combos: [] },
+    { listingId: "l1", title: "Cam sành", unit: "kg", unitPrice: 35000, quantity: 1.5, lineTotal: 52500, listTotal: 52500, combos: [] },
+    { listingId: "l3", title: "Bưởi", unit: "kg", unitPrice: 70000, quantity: 1, lineTotal: 70000, listTotal: 70000, combos: [] },
   ],
   refundNeeded: false,
   cancelledBy: null,
@@ -150,7 +150,7 @@ describe("OrderView", () => {
     ).toBeInTheDocument();
   });
 
-  it("names each listing and shows the price before combos", async () => {
+  it("links each product and shows the price before combos", async () => {
     renderView(
       order({
         listingCount: 2,
@@ -158,9 +158,7 @@ describe("OrderView", () => {
         lines: [
           {
             listingId: "l1",
-            listingTitle: "Loa bluetooth",
-            itemId: "i1",
-            itemName: "Loa",
+            title: "Loa bluetooth",
             unit: "cái",
             unitPrice: 500000,
             quantity: 1,
@@ -170,9 +168,7 @@ describe("OrderView", () => {
           },
           {
             listingId: "l2",
-            listingTitle: "Bút bi",
-            itemId: "i2",
-            itemName: "Bút bi",
+            title: "Bút bi",
             unit: "cái",
             unitPrice: 10000,
             quantity: 100,
@@ -187,7 +183,10 @@ describe("OrderView", () => {
     const pens = await screen.findByRole("row", { name: /Bút bi.*100 cái/ });
     expect(within(pens).getByText("900.000 đ")).toBeInTheDocument();
     expect(within(pens).getByText("Giá lẻ 1.000.000 đ")).toBeInTheDocument();
-    expect(screen.getByText("Loa bluetooth")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Loa bluetooth" })).toHaveAttribute(
+      "href",
+      "/listings/l1",
+    );
   });
 
   it("copies the raw amount and the transfer content", async () => {
