@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
-import { postListing, signInAs, unique } from "./support/people";
+import { buyNow, openPlacedOrder, postListing, signInAs, unique } from "./support/people";
 
 test("a seller switches to English, keeps it on reload and on another device, and gets an English CSV", async ({
   browser,
@@ -12,15 +12,13 @@ test("a seller switches to English, keeps it on reload and on another device, an
   const listingPath = await postListing(seller, {
     title,
     mode: "preorder",
-    items: [{ name: "Cam ngọt", unit: "kg", price: "35.000" }],
+    unit: "kg",
+    price: "35.000",
   });
   const listingId = listingPath.split("/").pop() as string;
 
-  await buyer.page.goto(listingPath);
-  await buyer.page.getByRole("textbox", { name: /^Cam ngọt/ }).fill("2");
-  await buyer.page.getByLabel("Giao đến").fill("Tầng 7");
-  await buyer.page.getByRole("button", { name: "Đặt hàng" }).click();
-  await expect(buyer.page).toHaveURL(/\/orders\//);
+  await buyNow(buyer, listingPath, "2");
+  await openPlacedOrder(buyer);
 
   // Switch from the header.
   const { page } = seller;
@@ -34,15 +32,17 @@ test("a seller switches to English, keeps it on reload and on another device, an
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByRole("link", { name: "Purchases" })).toBeVisible();
   await expect(
-    page.getByRole("group", { name: "Category" }).getByRole("button", {
-      name: "Fresh food",
+    page.getByRole("group", { name: "Selling mode" }).getByRole("button", {
+      name: "In stock",
     }),
-  ).toBeVisible();
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.getByText("Category", { exact: true }).click();
+  await expect(page.getByRole("link", { name: "Fresh food" })).toBeVisible();
   // A pre-order shows in the closing-soon carousel as well as in the list.
   const card = page
     .getByRole("region", { name: "Closing soon" })
     .getByRole("link", { name: new RegExp(title) });
-  await expect(card).toContainText("from 35,000 VND/kg");
+  await expect(card).toContainText("35,000 VND");
   await expect(card).toContainText("1 person ordered");
 
   // The choice survives a reload: the server renders from the cookie.
@@ -61,7 +61,7 @@ test("a seller switches to English, keeps it on reload and on another device, an
   ]);
   const csv = await readFile(await download.path(), "utf8");
   expect(csv).toContain(
-    "Order code,Buyer,Email,Deliver to,Cam ngọt (kg),Total",
+    "Order code,Buyer,Email,Deliver to,Quantity (kg),Total",
   );
 
   // Another device for the same person starts without the cookie and adopts

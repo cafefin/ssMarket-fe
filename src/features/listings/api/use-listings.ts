@@ -1,14 +1,18 @@
 "use client";
 
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import type { ListingFilters } from "../lib/filters";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQuery,
+} from "@tanstack/react-query";
+import { apiMode, type ListingFilters } from "../lib/filters";
 import { toApiError } from "@/shared/api/api-error";
 import { api } from "@/shared/api/client";
 import type { components } from "@/shared/api/schema";
 
 export type ListingSummary = components["schemas"]["ListingSummaryDto"];
 export type ListingDetail = components["schemas"]["ListingDetailDto"];
-export type ListingItem = components["schemas"]["ListingItemDto"];
+export type Combo = components["schemas"]["ComboDto"];
 export type ListingMode = components["schemas"]["ListingMode"];
 
 export const LISTINGS_QUERY_KEY = ["listings"] as const;
@@ -23,7 +27,7 @@ export function useListings(filters: ListingFilters) {
           query: {
             q: filters.q || undefined,
             category: filters.category ?? undefined,
-            mode: filters.mode ?? undefined,
+            mode: apiMode(filters),
             minPrice: filters.minPrice ?? undefined,
             maxPrice: filters.maxPrice ?? undefined,
             minCondition: filters.minCondition ?? undefined,
@@ -37,6 +41,9 @@ export function useListings(filters: ListingFilters) {
       return data;
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
+    // Changing a filter keeps the current cards on screen until the new ones
+    // arrive, so the page never flashes back to skeletons.
+    placeholderData: keepPreviousData,
   });
 }
 

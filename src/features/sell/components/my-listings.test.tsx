@@ -27,7 +27,7 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   status: "open",
   isOpen: true,
   category: { id: 4, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", isPerishable: false },
-  seller: { id: "me", name: "Tôi", avatarUrl: null },
+  seller: { id: "me", name: "Tôi", handle: "toi", avatarUrl: null },
   acceptsPrepaidQr: false,
   acceptsPayOnDelivery: true,
   orderDeadline: null,
@@ -37,10 +37,10 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   reopenedFromId: null,
   condition: null,
   conditionPercent: null,
-  items: [
-    { id: "i1", name: "Loa", unit: "cái", unitPrice: 500000, stockQuantity: 1, combos: [] },
-    { id: "i2", name: "Dây sạc", unit: "cái", unitPrice: 20000, stockQuantity: 3, combos: [] },
-  ],
+  unit: "cái",
+  unitPrice: 500000,
+  stockQuantity: 1,
+  combos: [],
   images: [],
   ...overrides,
 });
@@ -102,7 +102,7 @@ describe("MyListings", () => {
     renderPage();
 
     const item = await row("Loa bluetooth cũ");
-    expect(item).toHaveTextContent("2 phân loại · từ 20.000 đ/cái · Đăng lúc");
+    expect(item).toHaveTextContent("500.000 đ/cái · Đăng lúc");
     expect(within(item).getByText("Có sẵn")).toBeInTheDocument();
     expect(within(item).getByRole("link", { name: "Xem" })).toHaveAttribute(
       "href",

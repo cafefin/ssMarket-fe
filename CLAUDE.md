@@ -46,8 +46,8 @@ src/
 │   │                     locale cookie, Translator type, test-utils (renderWithIntl)
 │   └── lib/              utils.ts, format/ (money, dates, quantities, initials, useFormat), theme/
 └── features/
-    ├── listings/         components/ (card, grid, filters, carousel, detail view, gallery,
-    │                     item table), api/ (listing and category hooks), lib/ (URL filters,
+    ├── listings/         components/ (card, grid, filters, carousel, detail view, gallery),
+    │                     api/ (listing and category hooks), lib/ (URL filters,
     │                     pricing and combos, condition)
     ├── profile/          components/, api/ (banks, update profile), lib/ (schema)
     ├── shell/            components/ (header, search box, user menu, phone tab bar,
@@ -55,12 +55,12 @@ src/
     │                     lib/ (nav-items, use-switch-locale)
     ├── sellers/          components/ (seller page)
     ├── admin/            components/ (category admin), api/
-    ├── orders/           components/ (panel, order page, editor, QR block, actions, lists,
+    ├── orders/           components/ (order page, editor, QR block, actions, lists,
     │                     summary), api/ (use-orders), lib/ (order-math)
     ├── sell/             components/ (mode step, listing form, my listings),
     │                     lib/ (form schema, units, draft store, save sequence)
-    └── cart/             components/ (card actions, stepper, cart button, cart page,
-                          checkout page, add to cart), api/ (use-cart), lib/ (checkout link)
+    └── cart/             components/ (buy controls, stepper, cart button, cart page,
+                          checkout page), api/ (use-cart), lib/ (checkout link, purchase)
 ```
 
 Each feature has `components/`, `api/`, `lib/` (only the ones it needs) and an
@@ -139,8 +139,11 @@ locale routing: URLs never carry a language.
   (`GET /listings?sort=deadline`) and the seller page uses `useSellerListings`,
   both under the `["listings"]` key.
 - **Browse filters**: the URL query string, through
-  `parseListingFilters` / `listingsHref`. Filters are links, so a search can
-  be shared and the back button works.
+  `parseListingFilters` / `listingsHref`. Filters are client-side links, so a
+  search can be shared and the back button works; `useListings` keeps the
+  previous results (`keepPreviousData`) while new ones load, so the page
+  never flashes. The mode defaults to `in_stock` (left out of the URL);
+  `mode=all` asks the API without a mode.
 - **Unfinished new listing**: the Zustand store in `features/sell/lib/sell-draft-store.ts`
   (sessionStorage). It exists so typed values survive the detour to the
   profile page. Do not put server data in Zustand.
@@ -164,16 +167,16 @@ already serves a 400px thumbnail and a 1600px full size.
 
 ## Products, condition and combos
 
-- A listing is one product with up to 10 options ("Phân loại", `MAX_ITEMS`).
-  With one option the form names it after the title and the card and detail
-  hide the option name.
+- A listing is **one product**: one price, unit, stock (in-stock) and combos.
+  There are no options; another kind or size is another listing. A pre-order
+  is a product with a deadline and a delivery date and no stock.
 - Condition (`CONDITIONS` in `features/listings/lib/condition.ts`) is chosen
   for in-stock goods outside perishable categories (`category.isPerishable`)
   and never for pre-orders; `needsCondition` in the form schema decides.
-- Combos ("N for a set price", at most 3 per option) are priced by
+- Combos ("N for a set price", at most 3 per product) are priced by
   `lineTotalWithCombos` in `features/listings/lib/pricing.ts`, a mirror of the
   backend's function tested with the same table. Combos never add up across
-  options. `nextCombo` gives the "buy N more" hint.
+  products. `nextCombo` gives the "buy N more" hint.
 - Price and condition filters are URL params (`minPrice`, `maxPrice`,
   `minCondition`) handled by `parseListingFilters` / `listingsHref`.
 
@@ -181,15 +184,20 @@ already serves a 400px thumbnail and a 1600px full size.
 
 - The cart lives on the server (`/cart`); the header shows `CartButton` with
   `useCartCount`. The cart never reserves stock.
-- `listings` may not import `cart`, so cards and the detail page receive cart
-  buttons from `app/` (`renderCardActions`, `renderSecondaryAction`).
-- `/checkout?items=<itemId>:<qty>,...` (built by `checkoutHref`) asks
+- `listings` may not import `cart`, so cards and the product page receive
+  `BuyControls` from `app/` (`renderCardActions`, `renderBuy`): quantity on
+  one row, then "Thêm vào giỏ" and "Mua ngay".
+- `BuyControls` never lets the quantity go above the stock left minus what
+  the cart already holds (`addableQuantity`); the backend refuses more with
+  `OUT_OF_STOCK` too. "Mua ngay" skips the cart and opens the checkout.
+- `/checkout?items=<listingId>:<qty>,...` (built by `checkoutHref`) asks
   `POST /checkout/preview` how the lines split into orders: one per seller,
   one per listing for pre-orders. Each block picks its own payment method and
   delivery place; the page holds one idempotency key for its lifetime, and
   `CHECKOUT_CHANGED` refetches the preview.
-- "Đặt hàng" on the detail page still places one order directly
-  (`OrderPanel`); "Thêm vào giỏ" sits next to it.
+- Every order is created by the checkout page; it holds one idempotency key
+  for its lifetime. `ALREADY_ORDERED` (a pre-order round) links to the
+  existing order.
 - After a checkout invalidate the cart, `["orders"]` and `["listings"]`.
 
 ## Orders
@@ -197,8 +205,6 @@ already serves a 400px thumbnail and a 1600px full size.
 - `src/features/orders/lib/order-math.ts` mirrors the backend's rounding and quantity
   rules and is tested with the same table. It only previews the total; the
   amount that counts is the one the server returns.
-- `OrderPanel` holds one idempotency key for its lifetime and sends it with
-  every attempt. Do not generate a new key per click.
 - `availableActions(order)` is the single place that decides which buttons a
   person sees for an order. Buttons that undo something (cancel, "Chưa nhận
   được") ask for confirmation; the seller must give a reason to cancel.
@@ -211,10 +217,8 @@ already serves a 400px thumbnail and a 1600px full size.
   up in the browser. Bulk actions report how many orders changed and list the
   ones that did not.
 - `editBlockedReason(order, now)` decides whether a buyer sees "Sửa đơn", an
-  explanation, or nothing. The editor shows already-ordered items at their
-  ordered price, as the server will charge them.
-- When editing a listing, send each existing item's `id`; the backend then
-  updates it in place and existing orders stay valid.
+  explanation, or nothing. The editor changes the quantity at the ordered
+  price, as the server will charge it.
 
 ## Admin screens
 
@@ -258,13 +262,15 @@ already serves a 400px thumbnail and a 1600px full size.
   up, `MobileTabBar` below. Add a destination there, not in either component.
 - Fixed and sticky chrome (header, tab bar) is `z-20`; things that stick under
   the header are `z-10`. `main` reserves `pb-24` below `md` for the tab bar.
-- An in-stock card shows `còn N <unit>` when the API sends `stockQuantity`, and
-  `Hết hàng` in muted text when it is 0.
-- `ListingCard` is a row (photo left) below 560px and stacked above; pass
-  `layout="stacked"` where it must always be stacked, as in the carousel.
+- `ListingCard` is always stacked: square lazy photo, title, `Price` (no
+  "from", no unit), condition, `Còn N <unit>` or muted `Hết hàng`, and
+  `@handle` (the seller's email before @), no avatar. `LISTING_GRID` gives
+  two columns on a 360px phone.
+- Lists load more on their own when the end comes into view (an
+  `IntersectionObserver`), with "Xem thêm" as a fallback, and show card-shaped
+  skeletons while loading.
 - Nunito for all UI text (`font-sans`; `font-heading` is the same family at
-  heavier weights for h1, h2, prices and the wordmark); prices use
-  `tabular-nums`. Geist Mono for codes people copy.
+  heavier weights for h1, h2 and the wordmark); prices use `tabular-nums`. Geist Mono for codes people copy.
 - Fonts are self-hosted in `src/app/fonts/` (woff2 files and `fonts.css`,
   OFL licence alongside). Never load fonts from Google Fonts or another
   CDN: the office network blocks it and the build must work offline.
@@ -273,7 +279,8 @@ already serves a 400px thumbnail and a 1600px full size.
 - `h1` and `h2` get `font-heading` from the base layer, and shadcn's
   `AlertDialogTitle` uses `font-heading` too, so changing `--font-heading`
   restyles dialogs.
-- Use `Price` for money in the heading typeface and `UserAvatar` for a person's picture.
+- Use `Price` for money: body typeface, semibold, `size` sm/md/lg; never large
+  and bold. `UserAvatar` is for a person's picture.
 - Use the `Wordmark` component for the product name. Never add the SmartOSC
   logo file to this repository.
 - To style a link as a button, use `buttonVariants(...)` on an `<a>`.

@@ -13,7 +13,8 @@ import { formatDate } from "@/shared/lib/format/datetime";
 import { formatDeadline } from "@/shared/lib/format/deadline";
 import { categoryName } from "../lib/category-name";
 import { ImageGallery } from "./image-gallery";
-import { ItemTable } from "./item-table";
+import { Price } from "@/shared/ui/atoms/price";
+import { useFormat } from "@/shared/lib/format/use-format";
 import { ModeBadge } from "./mode-badge";
 
 function ListingNotFound() {
@@ -58,12 +59,59 @@ function paymentMethods(
   ];
 }
 
+/** Price per unit, what is left and the combo deals of the product. */
+function ProductFacts({ listing }: { listing: ListingDetail }) {
+  const t = useTranslations("listings");
+  const format = useFormat();
+  return (
+    <section className="flex flex-col gap-2">
+      <p className="flex items-baseline gap-1.5">
+        <Price amount={listing.unitPrice} size="lg" />
+        <span className="text-sm text-muted-foreground">
+          {t("detail.perUnit", { unit: listing.unit })}
+        </span>
+      </p>
+      {listing.mode === "in_stock" &&
+        listing.stockQuantity !== null &&
+        (listing.stockQuantity === 0 ? (
+          <p className="text-sm font-medium text-muted-foreground">
+            {t("outOfStock")}
+          </p>
+        ) : (
+          <p className="text-sm font-medium text-positive-deep">
+            {t("card.remaining", {
+              quantity: format.quantity(listing.stockQuantity),
+              unit: listing.unit,
+            })}
+          </p>
+        ))}
+      {listing.combos.length > 0 && (
+        <div className="flex flex-col gap-1 rounded-md bg-primary-soft px-3 py-2 text-sm text-primary-deep">
+          <h2 className="font-semibold">{t("detail.combos")}</h2>
+          <ul className="flex flex-wrap gap-x-3">
+            {listing.combos.map((combo) => (
+              <li key={combo.quantity}>
+                {t("detail.combo", {
+                  quantity: format.quantity(Number(combo.quantity)),
+                  unit: listing.unit,
+                  price: format.money(combo.price),
+                })}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function ListingDetailView({
   id,
-  renderOrderPanel,
+  renderBuy,
 }: {
   id: string;
-  renderOrderPanel?: (listing: ListingDetail) => ReactNode;
+  /** Quantity, add to cart and buy now; the page passes the cart's, see app/. */
+  renderBuy?: (listing: ListingDetail) => ReactNode;
 }) {
   const { data: listing, error, isPending, refetch } = useListing(id);
   const { data: me } = useCurrentUser();
@@ -137,7 +185,7 @@ export function ListingDetailView({
               </span>
             )}
           </div>
-          <h1 className="text-[28px] leading-tight font-bold md:text-4xl">
+          <h1 className="text-2xl leading-tight font-bold md:text-3xl">
             {listing.title}
           </h1>
           <div className="flex items-center gap-3">
@@ -167,7 +215,7 @@ export function ListingDetailView({
             <dl className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2 rounded-md bg-deadline-soft p-4 text-sm">
               <div>
                 <dt className="text-deadline-deep">{t("deadline")}</dt>
-                <dd className="font-heading text-[22px] leading-tight font-bold text-deadline-deep">
+                <dd className="text-lg leading-tight font-semibold text-deadline-deep">
                   {formatDeadline(listing.orderDeadline, locale)}
                 </dd>
               </div>
@@ -188,7 +236,10 @@ export function ListingDetailView({
             </dl>
           )}
 
-        <ItemTable items={listing.items} mode={listing.mode} />
+        <ProductFacts listing={listing} />
+
+        {/* The seller manages; everyone else can buy while it is open. */}
+        {!isOwner && me && listing.isOpen && renderBuy?.(listing)}
 
         <section className="flex flex-col gap-1 text-sm">
           <h2 className="font-semibold">{t("payment")}</h2>
@@ -206,8 +257,7 @@ export function ListingDetailView({
           </section>
         )}
 
-        {/* The seller manages; everyone else can order while it is open. */}
-        {isOwner ? (
+        {isOwner && (
           <div className="flex flex-wrap gap-3">
             {listing.status !== "closed" && (
               <Link
@@ -226,8 +276,6 @@ export function ListingDetailView({
               </Link>
             )}
           </div>
-        ) : (
-          me && listing.isOpen && renderOrderPanel?.(listing)
         )}
       </div>
     </article>

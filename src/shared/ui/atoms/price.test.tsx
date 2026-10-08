@@ -3,28 +3,22 @@ import { describe, expect, it } from "vitest";
 import { Price } from "./price";
 
 describe("Price", () => {
-  it("writes the amount in the heading typeface at the chosen size", () => {
-    const { container } = renderWithIntl(<Price amount={500000} size={36} />);
+  it("writes the amount in the body typeface, semibold, at the chosen size", () => {
+    const { container } = renderWithIntl(<Price amount={500000} size="lg" />);
     const price = container.firstElementChild;
     expect(price?.tagName).toBe("SPAN");
-    expect(price).toHaveClass("font-heading", "font-bold", "text-4xl");
+    expect(price).toHaveClass("font-sans", "font-semibold", "tabular-nums", "text-xl");
+    expect(price).not.toHaveClass("font-bold");
     expect(price).toHaveTextContent(/^500\.000\s?đ$/);
   });
 
-  it("adds a muted 'từ' and unit, as on cards", () => {
-    const { container } = renderWithIntl(<Price amount={500000} size={22} from unit="cái" />);
-    expect(container.firstElementChild).toHaveClass("text-[22px]");
-    expect(container).toHaveTextContent(/^từ 500\.000\s?đ\/cái$/);
-    const muted = container.querySelectorAll("span span.text-muted-foreground");
-    expect(muted).toHaveLength(2);
+  it("is the size of the text around it by default", () => {
+    const { container } = renderWithIntl(<Price amount={35000} />);
+    expect(container.firstElementChild).toHaveClass("text-base");
   });
 
-  it("can keep the unit in the price's own style, as in the item table", () => {
-    const { container } = renderWithIntl(
-      <Price amount={35000} size={20} unit="kg" unitStyle="inline" />,
-    );
-    expect(container.firstElementChild).toHaveClass("text-xl");
-    expect(container.querySelector(".text-muted-foreground")).toBeNull();
-    expect(container).toHaveTextContent(/^35\.000\s?đ\/kg$/);
+  it("has a small size for cards", () => {
+    const { container } = renderWithIntl(<Price amount={35000} size="sm" />);
+    expect(container.firstElementChild).toHaveClass("text-[15px]");
   });
 });

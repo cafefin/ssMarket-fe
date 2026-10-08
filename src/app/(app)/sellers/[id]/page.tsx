@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { CardCartActions } from "@/features/cart";
+import { BuyControls } from "@/features/cart";
 import { SellerProfile } from "@/features/sellers";
 
 export default function SellerPage() {
@@ -9,7 +9,7 @@ export default function SellerPage() {
   return (
     <SellerProfile
       sellerId={id}
-      renderCardActions={(listing) => <CardCartActions listing={listing} />}
+      renderCardActions={(listing) => <BuyControls product={listing} />}
     />
   );
 }

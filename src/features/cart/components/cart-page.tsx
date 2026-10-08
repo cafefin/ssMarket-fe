@@ -41,8 +41,7 @@ function Line({
   const setLine = useSetCartLine();
   const remove = useRemoveCartLine();
   const [quantity, setQuantity] = useState(String(line.quantity));
-  const name =
-    line.itemCount > 1 ? `${line.listingTitle} · ${line.itemName}` : line.listingTitle;
+  const name = line.title;
   const hint = line.problem ? null : nextCombo(line.combos, String(line.quantity));
 
   function change(value: string): void {
@@ -50,7 +49,7 @@ function Line({
     const normalized = value.trim().replace(",", ".");
     if (DECIMAL.test(normalized) && Number(normalized) > 0) {
       setLine.mutate(
-        { itemId: line.itemId, quantity: normalized },
+        { listingId: line.listingId, quantity: normalized },
         {
           onError: (error) => {
             toast.error(userMessage(error));
@@ -94,7 +93,7 @@ function Line({
             type="button"
             aria-label={t("remove", { name })}
             onClick={() =>
-              remove.mutate(line.itemId, {
+              remove.mutate(line.listingId, {
                 onSuccess: () => toast.success(t("removed")),
                 onError: (error) => toast.error(userMessage(error)),
               })
@@ -130,11 +129,11 @@ function Line({
             unit={line.unit}
             max={line.stockQuantity}
             onChange={change}
-            disabled={line.problem === "LISTING_NOT_OPEN" || line.problem === "ITEM_REMOVED"}
+            disabled={line.problem === "LISTING_NOT_OPEN"}
             label={t("quantity")}
           />
           <p className="text-right">
-            <Price amount={line.lineTotal} size={20} />
+            <Price amount={line.lineTotal} />
             {line.listTotal > line.lineTotal && (
               <span className="block text-[13px] text-muted-foreground line-through">
                 {format.money(line.listTotal)}
@@ -187,7 +186,7 @@ export function CartPage() {
 
   const lines = cart.groups.flatMap((group) => group.lines);
   const isSelected = (line: CartLine) =>
-    line.problem === null && !unselected.has(line.itemId);
+    line.problem === null && !unselected.has(line.listingId);
   const selected = lines.filter(isSelected);
   const total = selected.reduce((sum, line) => sum + line.lineTotal, 0);
 
@@ -235,7 +234,7 @@ export function CartPage() {
                   disabled={buyable.length === 0}
                   onChange={() =>
                     toggle(
-                      buyable.map((line) => line.itemId),
+                      buyable.map((line) => line.listingId),
                       !all,
                     )
                   }
@@ -255,10 +254,10 @@ export function CartPage() {
               <ul>
                 {group.lines.map((line) => (
                   <Line
-                    key={line.itemId}
+                    key={line.listingId}
                     line={line}
                     selected={isSelected(line)}
-                    onToggle={() => toggle([line.itemId], !isSelected(line))}
+                    onToggle={() => toggle([line.listingId], !isSelected(line))}
                   />
                 ))}
               </ul>
@@ -275,7 +274,7 @@ export function CartPage() {
               <p className="text-[13px] text-muted-foreground">
                 {t("selectedTotal", { count: selected.length })}
               </p>
-              <Price amount={total} size={22} />
+              <Price amount={total} size="lg" />
             </div>
             <Button
               size="lg"
@@ -285,7 +284,7 @@ export function CartPage() {
                 router.push(
                   checkoutHref(
                     selected.map((line) => ({
-                      itemId: line.itemId,
+                      listingId: line.listingId,
                       quantity: String(line.quantity),
                     })),
                     true,

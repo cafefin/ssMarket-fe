@@ -33,7 +33,7 @@ const order = (overrides: Partial<Order> = {}): Order => ({
   deliveryLocation: "Tầng 7",
   note: null,
   lines: [
-    { listingId: "l1", listingTitle: "Hoa quả tuần này", itemId: "cam", itemName: "Cam ngọt", unit: "kg", unitPrice: 35000, quantity: 1.5, lineTotal: 52500, listTotal: 52500, combos: [] },
+    { listingId: "l1", title: "Cam ngọt", unit: "kg", unitPrice: 35000, quantity: 1.5, lineTotal: 52500, listTotal: 52500, combos: [] },
   ],
   refundNeeded: false,
   cancelledBy: null,
@@ -43,20 +43,11 @@ const order = (overrides: Partial<Order> = {}): Order => ({
   ...overrides,
 });
 
-// The seller has since raised the price of Cam ngọt and added Bưởi.
-const listing = {
-  id: "l1",
-  items: [
-    { id: "cam", name: "Cam ngọt", unit: "kg", unitPrice: 40000, stockQuantity: null, combos: [] },
-    { id: "buoi", name: "Bưởi", unit: "cái", unitPrice: 60000, stockQuantity: null, combos: [] },
-  ],
-};
-
 const ok = (data: unknown) => ({ data, response: new Response() });
 
 function renderOrder(value: Order = order()) {
   api.GET.mockImplementation((path: string) =>
-    Promise.resolve(ok(path === "/orders/{id}" ? value : listing)),
+    Promise.resolve(ok(path === "/orders/{id}" ? value : {})),
   );
   renderWithIntl(
     <QueryProvider>
@@ -109,27 +100,23 @@ describe("editing an order", () => {
 
     const cam = await screen.findByRole("textbox", { name: /^Cam ngọt/ });
     expect(cam).toHaveValue("1,5");
-    // The ordered price, not the listing's new 40.000 đ.
+    // The ordered price, whatever the listing costs now.
     expect(cam).toHaveAccessibleName(/35\.000 đ\/kg/);
-    expect(screen.getByRole("textbox", { name: /^Bưởi/ })).toHaveAccessibleName(
-      /60\.000 đ\/cái/,
-    );
     expect(screen.getByRole("status", { name: "Tổng tiền mới" })).toHaveTextContent(
       "52.500 đ",
     );
     expect(screen.getByLabelText("Giao đến")).toHaveValue("Tầng 7");
   });
 
-  it("saves changed quantities and an added item, then closes", async () => {
+  it("saves the changed quantity, then closes", async () => {
     renderOrder();
     await openEditor();
     const cam = await screen.findByRole("textbox", { name: /^Cam ngọt/ });
 
     await userEvent.clear(cam);
     await userEvent.type(cam, "2");
-    await userEvent.type(screen.getByRole("textbox", { name: /^Bưởi/ }), "1");
     expect(screen.getByRole("status", { name: "Tổng tiền mới" })).toHaveTextContent(
-      "130.000 đ",
+      "70.000 đ",
     );
     await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
 
@@ -137,10 +124,7 @@ describe("editing an order", () => {
     expect(api.PATCH).toHaveBeenCalledWith("/orders/{id}", {
       params: { path: { id: "o1" } },
       body: {
-        lines: [
-          { itemId: "cam", quantity: "2" },
-          { itemId: "buoi", quantity: "1" },
-        ],
+        quantity: "2",
         paymentMethod: "pay_on_delivery",
         deliveryLocation: "Tầng 7",
         note: null,
@@ -159,7 +143,7 @@ describe("editing an order", () => {
     await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
 
     expect(
-      await screen.findByText("Đơn cần ít nhất một mặt hàng. Muốn bỏ hết, hãy hủy đơn."),
+      await screen.findByText("Nhập số lượng. Muốn bỏ hẳn, hãy hủy đơn."),
     ).toBeInTheDocument();
     expect(api.PATCH).not.toHaveBeenCalled();
   });
@@ -168,10 +152,12 @@ describe("editing an order", () => {
     renderOrder();
     await openEditor();
 
-    await userEvent.type(screen.getByRole("textbox", { name: /^Bưởi/ }), "1,5");
+    const cam = await screen.findByRole("textbox", { name: /^Cam ngọt/ });
+    await userEvent.clear(cam);
+    await userEvent.type(cam, "1,25");
     await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
 
-    expect(await screen.findByText("Bưởi: Nhập số nguyên từ 1")).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent(/0,1/);
     expect(api.PATCH).not.toHaveBeenCalled();
   });
 

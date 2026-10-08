@@ -17,7 +17,6 @@
     }
   },
   "common": {
-    "priceFrom": "from",
     "retry": "Try again",
     "loading": "Loading…",
     "loadMore": "Show more",
@@ -121,28 +120,10 @@
       "copied": "Copied"
     },
     "panel": {
-      "onlyLeft": "Only {quantity} {unit} left",
-      "alreadyOrdered": "You have already ordered this",
-      "oneOrderPerRound": "Each person has one order per pre-order round.",
-      "viewYourOrder": "View your order",
-      "title": "Order",
-      "soldOut": " · Sold out",
-      "left": " · {quantity} left",
-      "lineProblem": "{item}: {problem}",
-      "notEnough": "Not enough left:",
-      "shortage": "{item}: {quantity} left",
-      "total": "Total",
-      "payment": "Payment",
-      "paymentLabel": "Payment:",
       "deliverTo": "Deliver to",
-      "deliverToPlaceholder": "For example: Floor 7, zone A",
       "locationRequired": "Enter where to deliver",
       "note": "Note (optional)",
-      "noItems": "Enter a quantity for at least one item",
-      "placing": "Placing order…",
-      "place": "Place order",
-      "comboHint": "Buy {missing} {unit} more to get the {quantity} {unit} combo for {price}",
-      "withCombos": "Combo prices applied"
+      "comboHint": "Buy {missing} {unit} more to get the {quantity} {unit} combo for {price}"
     },
     "editor": {
       "blocked": {
@@ -154,7 +135,7 @@
       "updated": "Order updated",
       "title": "Edit order",
       "newTotal": "New total",
-      "noItems": "An order needs at least one item. To remove everything, cancel the order.",
+      "noItems": "Enter a quantity. To drop it entirely, cancel the order.",
       "saveChanges": "Save changes",
       "dismiss": "Never mind"
     },
@@ -212,7 +193,8 @@
       "payment": "Payment",
       "deliveryDate": "Expected delivery",
       "note": "Note",
-      "savedWithCombos": "{listTotal} without combos"
+      "savedWithCombos": "{listTotal} without combos",
+      "products": "Products"
     },
     "summary": {
       "filters": {
@@ -258,8 +240,7 @@
       "columns": {
         "buyer": "Buyer",
         "location": "Delivery location",
-        "item": "{name} ({unit})",
-        "discontinued": "no longer sold",
+        "quantity": "Quantity ({unit})",
         "total": "Total",
         "status": "Status"
       },
@@ -305,11 +286,11 @@
     "orderCount": "{count, plural, one {# person ordered} other {# people ordered}}",
     "card": {
       "remaining": "{quantity} {unit} left",
-      "closes": "Closes {deadline}"
+      "closes": "Closes {deadline}",
+      "seller": "@{handle}"
     },
     "filters": {
       "modeGroup": "Selling mode",
-      "allModes": "All",
       "categoryGroup": "Category",
       "allCategories": "All categories",
       "price": "Price",
@@ -319,15 +300,14 @@
       "over": "From {min}",
       "condition": "Condition",
       "anyCondition": "Any condition",
-      "atLeast": "{percent}% or better ({level})"
-    },
-    "items": {
-      "item": "Item",
-      "unitPrice": "Unit price",
-      "remaining": "Left",
-      "combos": "Combos",
-      "combo": "{quantity} {unit}: {price}",
-      "option": "Option"
+      "atLeast": "{percent}% or better ({level})",
+      "category": "Category",
+      "clear": "Remove filter {name}",
+      "modes": {
+        "in_stock": "In stock",
+        "preorder": "Pre-order",
+        "all": "All"
+      }
     },
     "shelf": {
       "title": "Closing soon",
@@ -369,7 +349,10 @@
       "description": "Description",
       "edit": "Edit listing",
       "summary": "Order summary",
-      "condition": "Condition"
+      "condition": "Condition",
+      "perUnit": "/ {unit}",
+      "combos": "Buy more, pay less",
+      "combo": "{quantity} {unit}: {price}"
     },
     "condition": {
       "new": "New",
@@ -510,20 +493,15 @@
       "chooseCondition": "Choose a condition",
       "conditionHint": "Buyers can filter by condition."
     },
-    "items": {
-      "title": "Options",
+    "product": {
+      "title": "Price and quantity",
       "hint": {
-        "in_stock": "Each listing is one product. Add options for different sizes, colours or kinds, with the quantity you have.",
-        "preorder": "Each listing is one product. Add options for different kinds, for example sweet and juicing oranges. No quantity needed."
+        "in_stock": "Each listing is one product. Sell other kinds or sizes as their own listings.",
+        "preorder": "Each listing is one product that people order until the deadline. No quantity needed."
       },
-      "item": "Option {number}",
-      "name": "Option name",
       "unit": "Unit",
       "unitPrice": "Unit price (VND)",
       "stock": "Quantity in stock",
-      "remove": "Remove option {number}",
-      "add": "Add an option",
-      "nameOptional": "Option name (optional)",
       "combos": "Combos",
       "combosHint": "Sell packs at a better price, for example 100 pieces for 900,000 VND. Up to {max} combos.",
       "comboQuantity": "Combo {number} quantity",
@@ -547,12 +525,10 @@
       "category": "Choose a category",
       "description": "The description has at most 5000 characters",
       "payment": "Choose at least one payment method",
-      "itemCount": "A listing needs 1–{max} options",
       "deadlineRequired": "Choose an order deadline",
       "deadlineFuture": "The order deadline must be in the future",
       "deliveryRequired": "Choose a delivery date",
       "deliveryBeforeDeadline": "The delivery date cannot be before the order deadline",
-      "itemName": "The option name has 1–120 characters",
       "unit": "Choose a unit",
       "unitPrice": "The unit price is from 1,000 VND to 1,000,000,000 VND",
       "stockPositive": "Enter a quantity greater than 0",
@@ -560,7 +536,8 @@
       "condition": "Choose a condition",
       "comboQuantity": "A combo quantity is more than 1 and a multiple of the step (kg: 0.1)",
       "comboPrice": "A combo costs from 1,000 VND and less than buying the same quantity singly",
-      "comboDuplicate": "Another combo has this quantity"
+      "comboDuplicate": "Another combo has this quantity",
+      "comboCount": "At most {max} combos"
     },
     "edit": {
       "title": "Edit listing",
@@ -585,8 +562,6 @@
       },
       "loading": "Loading listings",
       "loadFailed": "Could not load your listings.",
-      "itemCount": "{count, plural, one {# option} other {# options}}",
-      "from": "from {price}/{unit}",
       "closes": "Closes {time}",
       "publishedAt": "Published {time}",
       "expired": "Past the deadline. Buyers can no longer see this listing.",
@@ -596,7 +571,8 @@
       "close": "Close",
       "closed": "Listing closed",
       "closeTitle": "Close this listing?",
-      "closeBody": "“{title}” will no longer be shown to buyers. A closed listing cannot be opened again or edited."
+      "closeBody": "“{title}” will no longer be shown to buyers. A closed listing cannot be opened again or edited.",
+      "price": "{price}/{unit}"
     }
   },
   "cart": {
@@ -605,7 +581,6 @@
     "add": "Add to cart",
     "added": "Added to your cart",
     "buyNow": "Buy now",
-    "chooseOption": "Choose an option",
     "quantity": "Quantity",
     "decrease": "Decrease quantity",
     "increase": "Increase quantity",
@@ -621,12 +596,15 @@
     "unitPrice": "{price}/{unit}",
     "problem": {
       "LISTING_NOT_OPEN": "The listing is closed or past its deadline",
-      "ITEM_REMOVED": "The seller removed this option",
       "OUT_OF_STOCK": "Only {available} {unit} left"
     },
     "preorderCloses": "Pre-order · closes {deadline}",
     "selectedTotal": "Total for {count, plural, one {# item} other {# items}}",
-    "checkout": "Check out ({count})"
+    "checkout": "Check out ({count})",
+    "allInCart": "{quantity} {unit} already in your cart",
+    "onlyLeft": "Only {quantity} {unit} left",
+    "soldOut": "Sold out",
+    "viewCart": "View cart"
   },
   "checkout": {
     "title": "Checkout",
@@ -651,6 +629,8 @@
     "doneHint": "Pay each order with its QR code, or on delivery.",
     "payOnDelivery": "Pay {amount} on delivery",
     "viewOrder": "View order {code}",
-    "myOrders": "See my orders"
+    "myOrders": "See my orders",
+    "alreadyOrdered": "You already ordered from this round. To change the quantity, edit that order.",
+    "viewExisting": "View your order"
   }
 }

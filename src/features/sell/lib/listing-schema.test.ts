@@ -2,7 +2,6 @@ import { createTranslator } from "next-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MESSAGES } from "@/shared/i18n/messages";
 import {
-  emptyItem,
   imageProblem,
   type ListingFormValues,
   type ListingMode,
@@ -21,7 +20,10 @@ const inStock = (overrides: Partial<ListingFormValues> = {}): ListingFormValues 
   orderDeadline: "",
   deliveryDate: "",
   condition: "good",
-  items: [{ name: "Loa JBL", unit: "cái", unitPrice: "500.000", stockQuantity: "1", combos: [] }],
+  unit: "cái",
+  unitPrice: "500.000",
+  stockQuantity: "1",
+  combos: [],
   ...overrides,
 });
 
@@ -32,7 +34,10 @@ const preorder = (overrides: Partial<ListingFormValues> = {}): ListingFormValues
   orderDeadline: "2026-10-09T17:00",
   deliveryDate: "2026-10-12",
   condition: "",
-  items: [{ name: "Cam sành", unit: "kg", unitPrice: "35000", stockQuantity: "", combos: [] }],
+  unit: "kg",
+  unitPrice: "35000",
+  stockQuantity: "",
+  combos: [],
   ...overrides,
 });
 
@@ -82,53 +87,39 @@ describe("listingSchema", () => {
       "acceptsPayOnDelivery",
       "Chọn ít nhất một hình thức thanh toán",
     ],
-    ["no items", "in_stock", inStock({ items: [] }), "items", "Bài đăng cần 1–10 phân loại"],
-    [
-      "an empty item name",
-      "in_stock",
-      // An empty name is only allowed for a single option.
-      inStock({
-        items: [
-          { ...emptyItem(), unitPrice: "5000", stockQuantity: "1", combos: [] },
-          { ...emptyItem(), name: "Đỏ", unitPrice: "5000", stockQuantity: "1", combos: [] },
-        ],
-      }),
-      "items.0.name",
-      "Tên phân loại gồm 1–120 ký tự",
-    ],
     [
       "a price that is not a number",
       "in_stock",
-      inStock({ items: [{ name: "Loa", unit: "cái", unitPrice: "rẻ", stockQuantity: "1", combos: [] }] }),
-      "items.0.unitPrice",
+      inStock({ unit: "cái", unitPrice: "rẻ", stockQuantity: "1" }),
+      "unitPrice",
       "Đơn giá từ 1.000 đ đến 1.000.000.000 đ",
     ],
     [
       "a price below 1.000",
       "in_stock",
-      inStock({ items: [{ name: "Loa", unit: "cái", unitPrice: "999", stockQuantity: "1", combos: [] }] }),
-      "items.0.unitPrice",
+      inStock({ unit: "cái", unitPrice: "999", stockQuantity: "1" }),
+      "unitPrice",
       "Đơn giá từ 1.000 đ đến 1.000.000.000 đ",
     ],
     [
       "missing stock",
       "in_stock",
-      inStock({ items: [{ name: "Loa", unit: "cái", unitPrice: "5000", stockQuantity: "", combos: [] }] }),
-      "items.0.stockQuantity",
+      inStock({ unit: "cái", unitPrice: "5000", stockQuantity: "" }),
+      "stockQuantity",
       "Nhập số lượng lớn hơn 0",
     ],
     [
       "zero stock",
       "in_stock",
-      inStock({ items: [{ name: "Loa", unit: "cái", unitPrice: "5000", stockQuantity: "0", combos: [] }] }),
-      "items.0.stockQuantity",
+      inStock({ unit: "cái", unitPrice: "5000", stockQuantity: "0" }),
+      "stockQuantity",
       "Nhập số lượng lớn hơn 0",
     ],
     [
       "fractional stock for a unit other than kg",
       "in_stock",
-      inStock({ items: [{ name: "Bánh", unit: "hộp", unitPrice: "5000", stockQuantity: "1,5", combos: [] }] }),
-      "items.0.stockQuantity",
+      inStock({ unit: "hộp", unitPrice: "5000", stockQuantity: "1,5" }),
+      "stockQuantity",
       "Chỉ đơn vị kg được nhập số lẻ",
     ],
     ["no deadline", "preorder", preorder({ orderDeadline: "" }), "orderDeadline", "Chọn hạn chốt đơn"],
@@ -157,16 +148,17 @@ describe("listingSchema", () => {
         "in_stock",
         inStock({
           orderDeadline: "garbage",
-          items: [{ name: "Cam", unit: "kg", unitPrice: "35000", stockQuantity: "2,5", combos: [] }],
+          categoryId: "2",
+          unit: "kg",
+          unitPrice: "35000",
+          stockQuantity: "2,5",
         }),
       ),
     ).toEqual({});
     expect(
       problems(
         "preorder",
-        preorder({
-          items: [{ name: "Cam", unit: "kg", unitPrice: "35000", stockQuantity: "abc", combos: [] }],
-        }),
+        preorder({ stockQuantity: "abc" }),
       ),
     ).toEqual({});
   });
@@ -189,23 +181,22 @@ describe("toListingBody", () => {
       orderDeadline: null,
       deliveryDate: null,
       condition: "good",
-      items: [{ name: "Loa JBL", unit: "cái", unitPrice: 500000, stockQuantity: "1", combos: [] }],
+      unit: "cái",
+      unitPrice: 500000,
+      stockQuantity: "1",
+      combos: [],
     });
   });
 
   it("builds a pre-order body with an absolute deadline and no stock", () => {
     const body = toListingBody(
       "preorder",
-      preorder({
-        items: [{ name: " Cam sành ", unit: "kg", unitPrice: "35.000", stockQuantity: "9", combos: [] }],
-      }),
+      preorder({ unitPrice: "35.000", stockQuantity: "9" }),
     );
 
     expect(body.orderDeadline).toBe(new Date("2026-10-09T17:00").toISOString());
     expect(body.deliveryDate).toBe("2026-10-12");
-    expect(body.items).toEqual([
-      { name: "Cam sành", unit: "kg", unitPrice: 35000, stockQuantity: null, combos: [] },
-    ]);
+    expect(body).toMatchObject({ unit: "kg", unitPrice: 35000, stockQuantity: null, combos: [] });
   });
 });
 
@@ -240,7 +231,7 @@ describe("parsers", () => {
   );
 });
 
-describe("2f rules", () => {
+describe("condition and combos", () => {
   beforeEach(() => {
     vi.useFakeTimers({ now: new Date("2026-10-05T03:00:00Z") });
   });
@@ -265,37 +256,18 @@ describe("2f rules", () => {
     expect(toListingBody("preorder", preorder({ condition: "good" })).condition).toBeNull();
   });
 
-  it("lets a single option go unnamed and names it after the title", () => {
-    const values = inStock({
-      items: [{ name: "", unit: "cái", unitPrice: "500.000", stockQuantity: "1", combos: [] }],
-    });
-    expect(problems("in_stock", values)).toEqual({});
-    expect(toListingBody("in_stock", values).items[0].name).toBe("Loa bluetooth cũ");
-  });
-
-  it("accepts up to ten options", () => {
-    const item = { name: "Màu", unit: "cái", unitPrice: "10.000", stockQuantity: "1", combos: [] };
-    expect(problems("in_stock", inStock({ items: Array(10).fill(item) }))).toEqual({});
-    expect(problems("in_stock", inStock({ items: Array(11).fill(item) }))).toMatchObject({
-      items: "Bài đăng cần 1–10 phân loại",
-    });
-  });
-
   it("checks combos and sends them as numbers", () => {
     const withCombos = (combos: { quantity: string; price: string }[]) =>
-      inStock({
-        items: [{ name: "Bút", unit: "cái", unitPrice: "10.000", stockQuantity: "500", combos }],
-      });
+      inStock({ unitPrice: "10.000", stockQuantity: "500", combos });
     expect(problems("in_stock", withCombos([{ quantity: "100", price: "900.000" }]))).toEqual({});
     expect(
-      toListingBody("in_stock", withCombos([{ quantity: "100", price: "900.000" }])).items[0]
-        .combos,
+      toListingBody("in_stock", withCombos([{ quantity: "100", price: "900.000" }])).combos,
     ).toEqual([{ quantity: "100", price: 900000 }]);
     expect(problems("in_stock", withCombos([{ quantity: "1", price: "9.000" }]))).toMatchObject({
-      "items.0.combos.0.quantity": "Số lượng combo phải lớn hơn 1 và chia hết cho bước bán (kg: bước 0,1)",
+      "combos.0.quantity": "Số lượng combo phải lớn hơn 1 và chia hết cho bước bán (kg: bước 0,1)",
     });
     expect(problems("in_stock", withCombos([{ quantity: "10", price: "100.000" }]))).toMatchObject({
-      "items.0.combos.0.price": "Giá combo từ 1.000 đ và rẻ hơn mua lẻ cùng số lượng",
+      "combos.0.price": "Giá combo từ 1.000 đ và rẻ hơn mua lẻ cùng số lượng",
     });
     expect(
       problems(
@@ -305,7 +277,9 @@ describe("2f rules", () => {
           { quantity: "10", price: "80.000" },
         ]),
       ),
-    ).toMatchObject({ "items.0.combos.1.quantity": "Đã có combo với số lượng này" });
+    ).toMatchObject({ "combos.1.quantity": "Đã có combo với số lượng này" });
+    const four = [2, 3, 4, 5].map((n) => ({ quantity: String(n), price: String(n * 9000) }));
+    expect(problems("in_stock", withCombos(four))).toMatchObject({ combos: "Tối đa 3 combo" });
   });
 });
 

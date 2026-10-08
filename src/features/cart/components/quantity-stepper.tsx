@@ -3,11 +3,7 @@
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/utils";
-
-/** Pieces go up by one; kg by half a kilo, a multiple of the 0.1 kg step. */
-export function stepFor(unit: string): number {
-  return unit === "kg" ? 0.5 : 1;
-}
+import { stepFor } from "../lib/step";
 
 /** Rounds away floating-point noise from adding 0.5 steps. */
 function tidy(value: number): string {
@@ -15,7 +11,7 @@ function tidy(value: number): string {
 }
 
 /**
- * − quantity + for one option. The value is a decimal string like the API's;
+ * − quantity + for one product. The value is a decimal string like the API's;
  * typing is allowed too, and the parent validates it.
  */
 export function QuantityStepper({
@@ -33,7 +29,7 @@ export function QuantityStepper({
   max?: number | null;
   onChange: (value: string) => void;
   disabled?: boolean;
-  /** Accessible name of the field, e.g. the option's name. */
+  /** Accessible name of the field. */
   label: string;
   className?: string;
 }) {

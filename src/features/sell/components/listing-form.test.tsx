@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -49,17 +49,15 @@ async function renderForm(
 }
 
 const field = (name: string | RegExp) => screen.getByLabelText(name);
-const item = (n: number) => screen.getByRole("group", { name: `Phân loại ${n}` });
 const click = (name: string) =>
   userEvent.click(screen.getByRole("button", { name }));
 
 async function fillInStock() {
   await userEvent.type(field("Tiêu đề"), "Loa bluetooth cũ");
   await userEvent.selectOptions(field("Loại hàng"), "4");
-  await userEvent.type(within(item(1)).getByLabelText(/^Tên phân loại/), "Loa JBL");
   await userEvent.selectOptions(field("Độ mới"), "like_new");
-  await userEvent.type(within(item(1)).getByLabelText("Đơn giá (đ)"), "500.000");
-  await userEvent.type(within(item(1)).getByLabelText("Số lượng có"), "1");
+  await userEvent.type(field("Đơn giá (đ)"), "500.000");
+  await userEvent.type(field("Số lượng có"), "1");
 }
 
 const photo = (name: string, type = "image/jpeg", size = 10) => {
@@ -80,7 +78,7 @@ describe("ListingForm", () => {
       await renderForm({ mode: "in_stock" });
 
       expect(screen.getByText("Hàng có sẵn")).toBeInTheDocument();
-      expect(within(item(1)).getByLabelText("Số lượng có")).toBeInTheDocument();
+      expect(field("Số lượng có")).toBeInTheDocument();
       expect(screen.queryByLabelText("Hạn chốt đơn")).not.toBeInTheDocument();
       expect(screen.queryByLabelText("Ngày giao")).not.toBeInTheDocument();
     });
@@ -91,24 +89,29 @@ describe("ListingForm", () => {
       expect(screen.getByText("Đặt trước")).toBeInTheDocument();
       expect(field("Hạn chốt đơn")).toBeInTheDocument();
       expect(field("Ngày giao")).toBeInTheDocument();
-      expect(
-        within(item(1)).queryByLabelText("Số lượng có"),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("Số lượng có")).not.toBeInTheDocument();
     });
   });
 
-  describe("items", () => {
-    it("adds rows and never removes the last one", async () => {
+  describe("product", () => {
+    it("asks for one price and no option names", async () => {
       await renderForm();
 
-      expect(screen.getByRole("button", { name: "Xóa phân loại 1" })).toBeDisabled();
+      expect(screen.getByRole("group", { name: "Giá và số lượng" })).toBeInTheDocument();
+      expect(screen.queryByLabelText(/phân loại/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /phân loại/i })).not.toBeInTheDocument();
+    });
 
-      await click("Thêm phân loại");
+    it("adds and removes combos, at most three", async () => {
+      await renderForm();
 
-      expect(item(2)).toBeInTheDocument();
-      await click("Xóa phân loại 1");
-      expect(screen.queryByRole("group", { name: "Phân loại 2" })).not.toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Xóa phân loại 1" })).toBeDisabled();
+      await click("Thêm combo");
+      await click("Thêm combo");
+      await click("Thêm combo");
+      expect(field("Số lượng combo 3")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Thêm combo" })).toBeDisabled();
+      await click("Xóa combo 3");
+      expect(screen.queryByLabelText("Số lượng combo 3")).not.toBeInTheDocument();
     });
   });
 
@@ -179,9 +182,10 @@ describe("ListingForm", () => {
             title: "Loa bluetooth cũ",
             categoryId: 4,
             orderDeadline: null,
-            items: [
-              { name: "Loa JBL", unit: "cái", unitPrice: 500000, stockQuantity: "1", combos: [] },
-            ],
+            unit: "cái",
+            unitPrice: 500000,
+            stockQuantity: "1",
+            combos: [],
           }),
         }),
       );
@@ -341,7 +345,8 @@ describe("ListingForm", () => {
       title: "Loa bluetooth cũ",
       categoryId: "4",
       condition: "good",
-      items: [{ name: "Loa JBL", unit: "cái", unitPrice: "500.000", stockQuantity: "2", combos: [] }],
+      unitPrice: "500.000",
+      stockQuantity: "2",
     };
     const images = [
       { id: "img-1", url: "/api/media/a.webp", thumbnailUrl: "/api/media/a_thumb.webp" },

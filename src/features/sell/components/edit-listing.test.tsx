@@ -30,7 +30,7 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   status: "draft",
   isOpen: false,
   category: { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food", isPerishable: true },
-  seller: { id: "me", name: "Tôi", avatarUrl: null },
+  seller: { id: "me", name: "Tôi", handle: "toi", avatarUrl: null },
   acceptsPrepaidQr: true,
   acceptsPayOnDelivery: false,
   orderDeadline: "2026-10-09T10:00:00.000Z",
@@ -40,9 +40,10 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   reopenedFromId: null,
   condition: null,
   conditionPercent: null,
-  items: [
-    { id: "i1", name: "Cam sành", unit: "kg", unitPrice: 35000, stockQuantity: null, combos: [] },
-  ],
+  unit: "kg",
+  unitPrice: 35000,
+  stockQuantity: null,
+  combos: [{ quantity: "5", price: 160000 }],
   images: [],
   ...overrides,
 });
@@ -124,13 +125,16 @@ describe("toFormValues", () => {
       acceptsPrepaidQr: true,
       acceptsPayOnDelivery: false,
       deliveryDate: "2026-10-12",
-      items: [{ name: "Cam sành", unit: "kg", unitPrice: "35.000", stockQuantity: "" }],
+      unit: "kg",
+      unitPrice: "35.000",
+      stockQuantity: "",
+      combos: [{ quantity: "5", price: "160.000" }],
     });
     expect(values.orderDeadline).toMatch(/^2026-10-(09|10)T\d{2}:00$/);
   });
 
   it("groups price digits the English way in English", () => {
-    expect(toFormValues(listing(), "en").items[0].unitPrice).toBe("35,000");
+    expect(toFormValues(listing(), "en").unitPrice).toBe("35,000");
   });
 
   it("turns an in-stock listing into form values", () => {
@@ -140,16 +144,16 @@ describe("toFormValues", () => {
           mode: "in_stock",
           orderDeadline: null,
           deliveryDate: null,
-          items: [
-            { id: "i1", name: "Cam", unit: "kg", unitPrice: 1250000, stockQuantity: 2.5, combos: [] },
-          ],
+          unitPrice: 1250000,
+          stockQuantity: 2.5,
         }),
         "vi",
       ),
     ).toMatchObject({
       orderDeadline: "",
       deliveryDate: "",
-      items: [{ unitPrice: "1.250.000", stockQuantity: "2.5" }],
+      unitPrice: "1.250.000",
+      stockQuantity: "2.5",
     });
   });
 });

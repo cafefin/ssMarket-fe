@@ -2,17 +2,29 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { useCategories } from "../api/use-categories";
 import { type ListingSummary, useListings } from "../api/use-listings";
-import { parseListingFilters } from "../lib/filters";
+import { isDefault, parseListingFilters } from "../lib/filters";
 import { ListingCard } from "./listing-card";
 import { ClosingSoonShelf } from "./closing-soon-shelf";
 import { ListingFilters } from "./listing-filters";
+import { cn } from "@/shared/lib/utils";
 import { LISTING_GRID } from "./listing-grid";
+
+/** The shape of a card while it loads: photo, two lines of text, a price. */
+function CardSkeleton() {
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-border p-0 pb-3">
+      <Skeleton className="aspect-square w-full rounded-b-none" />
+      <Skeleton className="mx-2.5 h-4 w-4/5" />
+      <Skeleton className="mx-2.5 h-4 w-1/2" />
+    </div>
+  );
+}
 
 /** The home page: filters from the URL, then the matching listings. */
 export function ListingBrowser({
@@ -28,14 +40,29 @@ export function ListingBrowser({
   const listings = useListings(filters);
 
   const items = listings.data?.pages.flatMap((page) => page.items) ?? [];
-  const filtered = Boolean(
-    filters.q ||
-      filters.category ||
-      filters.mode ||
-      filters.minPrice !== null ||
-      filters.maxPrice !== null ||
-      filters.minCondition,
-  );
+  const filtered = !isDefault(filters);
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = listings;
+
+  // Loads the next page when the end of the list comes into view. The
+  // "load more" button stays as a fallback (and for browsers without the
+  // observer).
+  const end = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = end.current;
+    if (!element || !hasNextPage || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting) && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <>
@@ -54,10 +81,7 @@ export function ListingBrowser({
         {listings.isPending && (
           <div className={LISTING_GRID} aria-busy="true" aria-label={t("loading")}>
             {Array.from({ length: 8 }, (_, index) => (
-              <Skeleton
-                key={index}
-                className="h-32 w-full rounded-lg min-[560px]:aspect-[4/5] min-[560px]:h-auto"
-              />
+              <CardSkeleton key={index} />
             ))}
           </div>
         )}
@@ -100,7 +124,14 @@ export function ListingBrowser({
         )}
 
         {items.length > 0 && (
-          <ul className={LISTING_GRID}>
+          <ul
+            className={cn(
+              LISTING_GRID,
+              // While new filters load, the old cards stay, dimmed.
+              listings.isPlaceholderData && "opacity-60 transition-opacity",
+            )}
+            aria-busy={listings.isPlaceholderData}
+          >
             {items.map((listing) => (
               <li key={listing.id} className="flex">
                 <ListingCard
@@ -112,14 +143,22 @@ export function ListingBrowser({
           </ul>
         )}
 
-        {listings.hasNextPage && (
-          <div className="flex justify-center">
+        {isFetchingNextPage && (
+          <div className={LISTING_GRID} aria-hidden="true">
+            {Array.from({ length: 4 }, (_, index) => (
+              <CardSkeleton key={index} />
+            ))}
+          </div>
+        )}
+
+        {hasNextPage && (
+          <div ref={end} className="flex justify-center">
             <Button
               variant="outline"
-              disabled={listings.isFetchingNextPage}
-              onClick={() => void listings.fetchNextPage()}
+              disabled={isFetchingNextPage}
+              onClick={() => void fetchNextPage()}
             >
-              {listings.isFetchingNextPage ? tc("loading") : tc("loadMore")}
+              {isFetchingNextPage ? tc("loading") : tc("loadMore")}
             </Button>
           </div>
         )}

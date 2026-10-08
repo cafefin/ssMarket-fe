@@ -1,12 +1,20 @@
 import { isCondition, type ListingCondition } from "./condition";
 
-export type ListingModeFilter = "in_stock" | "preorder";
+/** "in_stock" is the default: goods that can be bought right now. */
+export type ListingModeFilter = "in_stock" | "preorder" | "all";
+
+/** In the order the filter bar shows them. */
+export const MODE_FILTERS: readonly ListingModeFilter[] = [
+  "in_stock",
+  "preorder",
+  "all",
+];
 
 export interface ListingFilters {
   q: string;
   category: string | null;
-  mode: ListingModeFilter | null;
-  /** Bounds on the cheapest option's unit price, integer VND. */
+  mode: ListingModeFilter;
+  /** Bounds on the unit price, integer VND. */
   minPrice: number | null;
   maxPrice: number | null;
   /** Second-hand goods at least this good. */
@@ -16,7 +24,7 @@ export interface ListingFilters {
 export const NO_FILTERS: ListingFilters = {
   q: "",
   category: null,
-  mode: null,
+  mode: "in_stock",
   minPrice: null,
   maxPrice: null,
   minCondition: null,
@@ -32,8 +40,6 @@ export const PRICE_RANGES: ReadonlyArray<{
   { minPrice: 200_000, maxPrice: 1_000_000 },
   { minPrice: 1_000_000, maxPrice: null },
 ];
-
-const MODES: readonly string[] = ["in_stock", "preorder"];
 
 function price(value: string | null): number | null {
   return value !== null && /^\d{1,10}$/.test(value) ? Number(value) : null;
@@ -53,7 +59,10 @@ export function parseListingFilters(params: URLSearchParams): ListingFilters {
   return {
     q: (params.get("q") ?? "").trim(),
     category: params.get("category")?.trim() || null,
-    mode: mode && MODES.includes(mode) ? (mode as ListingModeFilter) : null,
+    mode:
+      mode && (MODE_FILTERS as readonly string[]).includes(mode)
+        ? (mode as ListingModeFilter)
+        : NO_FILTERS.mode,
     minPrice,
     maxPrice,
     minCondition: isCondition(condition) ? condition : null,
@@ -69,7 +78,7 @@ export function toSearchParams(filters: ListingFilters): URLSearchParams {
   if (filters.category) {
     params.set("category", filters.category);
   }
-  if (filters.mode) {
+  if (filters.mode !== NO_FILTERS.mode) {
     params.set("mode", filters.mode);
   }
   if (filters.minPrice !== null) {
@@ -87,4 +96,16 @@ export function toSearchParams(filters: ListingFilters): URLSearchParams {
 export function listingsHref(filters: ListingFilters): string {
   const query = toSearchParams(filters).toString();
   return query ? `/?${query}` : "/";
+}
+
+/** True when nothing but the defaults is chosen: the plain home page. */
+export function isDefault(filters: ListingFilters): boolean {
+  return toSearchParams(filters).toString() === "";
+}
+
+/** The `mode` the API understands: "all" means not filtering by mode. */
+export function apiMode(
+  filters: ListingFilters,
+): "in_stock" | "preorder" | undefined {
+  return filters.mode === "all" ? undefined : filters.mode;
 }

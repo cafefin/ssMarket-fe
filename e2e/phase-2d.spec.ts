@@ -53,13 +53,15 @@ test("a buyer reaches the seller page from a listing", async ({ browser }) => {
   const listingPath = await postListing(seller, {
     title,
     mode: "in_stock",
-    items: [{ name: "Mật ong", unit: "hộp", price: "90.000", stock: "24" }],
+    unit: "hộp",
+    price: "90.000",
+    stock: "24",
   });
 
   await buyer.page.goto("/");
   const card = buyer.page.getByRole("link", { name: new RegExp(title) });
   await expect(card).toBeVisible();
-  await expect(card).toContainText("còn 24 hộp");
+  await expect(card).toContainText("Còn 24 hộp");
   await card.click();
   await expect(buyer.page).toHaveURL(listingPath);
 

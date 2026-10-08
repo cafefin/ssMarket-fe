@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: ssMarket
-description: ssMarket is an internal marketplace for SmartOSC employees. The interface is calm and information-dense, on a white canvas with navy text and hairline borders. Colour carries meaning. SmartOSC blue ({colors.primary}) marks what you can act on. SmartOSC green ({colors.accent}) marks what is good or available (in stock, paid, delivered). Orange ({colors.deadline}) marks a pre-order and its closing time. Nunito, a rounded and friendly family, carries all UI text including headings, prices and the wordmark, so digits match the words around them; Geist Mono carries codes such as order references. Icons come from Phosphor. Buttons are pills and cards have 12px corners.
+description: ssMarket is an internal marketplace for SmartOSC employees. The interface is calm and information-dense, on a white canvas with navy text and hairline borders. Colour carries meaning. SmartOSC blue ({colors.primary}) marks what you can act on. SmartOSC green ({colors.accent}) marks what is good or available (in stock, paid, delivered). Orange ({colors.deadline}) marks a pre-order and its closing time. Nunito, a rounded and friendly family, carries all UI text including headings, prices and the wordmark, so digits match the words around them; prices are semibold at the size of the surrounding text, never large and bold; Geist Mono carries codes such as order references. Icons come from Phosphor. Buttons are pills and cards have 12px corners.
 
 colors:
   primary: "#2B62B2"
@@ -96,9 +96,9 @@ typography:
     lineHeight: 1.30
   price:
     fontFamily: Nunito
-    fontSize: 22px
-    fontWeight: 700
-    lineHeight: 1.20
+    fontSize: 15px
+    fontWeight: 600
+    lineHeight: 1.30
   code-sm:
     fontFamily: Geist Mono
     fontSize: 13px
@@ -383,7 +383,7 @@ introduce one.
 
 ## Typography
 
-**Nunito** is used for all interface text: headings (h1, h2, weight 700), prices (700, tabular figures so amounts line up), the wordmark (800) and body text. One family keeps digits identical in prices, quantities and sentences; its rounded terminals make the app feel friendly. It covers Vietnamese. **Geist Mono** is used only for values people copy or compare character by character: order codes, bank account numbers, transfer references.
+**Nunito** is used for all interface text: headings (h1, h2, weight 700), prices (600, the size of the text around them, tabular figures so amounts line up), the wordmark (800) and body text. One family keeps digits identical in prices, quantities and sentences; its rounded terminals make the app feel friendly. It covers Vietnamese. **Geist Mono** is used only for values people copy or compare character by character: order codes, bank account numbers, transfer references.
 
 | Token | Size | Weight | Use |
 |---|---|---|---|
@@ -397,7 +397,7 @@ introduce one.
 | `{typography.caption-bold}` | 13px | 600 | Badges |
 | `{typography.micro-uppercase}` | 11px | 600 | Table column headers |
 | `{typography.button-md}` | 14px | 500 | Button labels |
-| `{typography.price}` | 22px | 700 | Prices on cards, in the item table and the order total; tabular figures |
+| `{typography.price}` | 15px (cards), 16px (lines), 20px (product page, totals) | 600 | Prices; tabular figures |
 | `{typography.code-sm}` | 13px | 500 | Order codes, account numbers |
 
 Emphasis comes from weight, never from italics. Body text keeps a 1.5 line
@@ -467,21 +467,23 @@ items and a raised round "Đăng bán" in the middle. The current tab is blue
 with a heavier weight and a thicker icon stroke. Hidden from 768px, where the
 header carries the links.
 
-**`listing-card`**: a hairline card. Below 560px it is a row with the photo on
-the left; from 560px the photo is on top (4:3, cropped to fill). It shows the
-title on at most two lines, the price line ("từ 35.000 đ/kg") and the seller
-name in `{colors.steel}`. The mode is shown in a foot strip: "Có sẵn" with a
-green dot on white, or "Chốt <time>" on soft orange (solid orange when it
-closes today), with "N người đã đặt" when there are orders. The whole card is
-one link.
+**`listing-card`**: a hairline card, two per row on a 360px phone and up to
+five on wide screens. A square photo (cropped to fill, loaded lazily), then
+the title on at most two lines, the price ("35.000 đ", no "from", no unit),
+condition and "Có combo", what is left ("Còn 3 cái" in green, or "Hết hàng"
+muted) and the seller as `@handle` in `{colors.steel}`, without an avatar. A
+pre-order shows "Chốt <time>" on a soft orange strip under the photo (solid
+orange when it closes today), with "N người đã đặt" when there are orders.
+The card body is one link; under it sit the quantity on one row and the cart
+icon button plus "Mua ngay" on the next.
 
 **`closing-soon-carousel`**: the "Sắp chốt đơn" band on the home page. A soft
 orange band with up to 10 pre-orders sorted by closing time, in a row that
 scrolls sideways. Arrow buttons appear from 560px; phones swipe.
 
 **`mode-segment`**: the "Hình thức bán" control above the grid. A segmented
-control with the choices "Tất cả", "Có sẵn" and "Đặt trước"; the selected one
-is navy with white text.
+control with the choices "Có sẵn" (the default), "Đặt trước" and "Tất cả";
+the selected one is navy with white text. "Có sẵn" leaves out sold-out goods.
 
 **`image-placeholder`**: shown when a listing has no image. A
 `{colors.surface}` block with a centred icon in `{colors.stone}`.
@@ -495,13 +497,14 @@ because it marks a deadline.
 open. Info: payment reported and awaiting confirmation. Warn: unpaid, awaiting
 delivery, draft. Error: cancelled, refund needed.
 
-**`filter-chip`** and **`filter-chip-active`**: category and mode filters above
-the grid. The active chip uses `{colors.primary-soft}` with a
-`{colors.primary}` border and text, and exposes `aria-pressed="true"`.
+**`filter-chip`** and **`filter-chip-active`**: category, price and condition
+are menus under the mode segment. Each is a chip that opens a panel of choice
+chips across the width of the bar; once chosen, the chip reads the choice
+with an ✕ to remove it. The active chip uses `{colors.primary-soft}` with
+`{colors.primary-deep}` text, and the chosen choice has `aria-current`.
 
-**`item-table-row`**: one item of a listing with its name, unit price with
-unit, and remaining stock. Rows are separated by soft hairlines. Column headers
-use `{typography.micro-uppercase}` in `{colors.steel}`.
+**`product-facts`**: on the product page, the price with "/ <unit>", what is
+left, and the combos in a `{colors.primary-soft}` box ("Mua nhiều giá tốt").
 
 **`mode-choice-card`**: the first step of "Đăng bán". Two large cards side by
 side (stacked on phones), each with a title and a one-line explanation. The
