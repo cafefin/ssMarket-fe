@@ -265,6 +265,9 @@ already serves a 400px thumbnail and a 1600px full size.
 - Nunito for all UI text (`font-sans`; `font-heading` is the same family at
   heavier weights for h1, h2, prices and the wordmark); prices use
   `tabular-nums`. Geist Mono for codes people copy.
+- Fonts are self-hosted in `src/app/fonts/` (woff2 files and `fonts.css`,
+  OFL licence alongside). Never load fonts from Google Fonts or another
+  CDN: the office network blocks it and the build must work offline.
 - Icons come from Phosphor: import from `@phosphor-icons/react/ssr` (works
   in server and client components); regular weight, fill for the current tab.
 - `h1` and `h2` get `font-heading` from the base layer, and shadcn's
