@@ -56,8 +56,8 @@
 
 @theme inline {
   --font-sans:
-    var(--font-nunito), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: var(--font-geist-mono), "SF Mono", Menlo, Consolas, monospace;
+    "Nunito Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono Variable", "SF Mono", Menlo, Consolas, monospace;
   --font-heading: var(--font-sans);
 
   --color-background: var(--background);
