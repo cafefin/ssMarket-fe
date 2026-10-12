@@ -21,6 +21,8 @@ import { categoryName } from "../lib/category-name";
 import { cn } from "@/shared/lib/utils";
 import { FilterLink } from "./filter-link";
 
+const VIEWS = ["campaigns", "items"] as const;
+
 const FOCUS = "outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 const CHIP = "inline-flex h-9 shrink-0 items-center gap-1 rounded-full border px-3.5 text-sm font-medium whitespace-nowrap";
 const CHIP_ON = "border-primary-soft bg-primary-soft text-primary-deep";
@@ -208,6 +210,28 @@ export function ListingFilters({
           );
         })}
       </div>
+
+      {filters.mode === "campaign" && (
+        <div
+          role="group"
+          aria-label={t("filters.viewGroup")}
+          className="flex items-center gap-1.5"
+        >
+          {VIEWS.map((view) => {
+            const active = filters.view === view;
+            return (
+              <FilterLink
+                key={view}
+                href={listingsHref({ ...filters, view })}
+                aria-current={active ? "true" : undefined}
+                className={cn(CHIP, FOCUS, active ? CHIP_ON : CHIP_OFF)}
+              >
+                {t(`filters.views.${view}`)}
+              </FilterLink>
+            );
+          })}
+        </div>
+      )}
 
       <div className="relative flex flex-wrap items-center gap-x-1.5 gap-y-2">
         <Menu

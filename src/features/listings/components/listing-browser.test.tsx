@@ -169,7 +169,7 @@ describe("ListingBrowser", () => {
     expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
 
-    location.search = "mode=campaign";
+    location.search = "mode=campaign&view=items";
     view.rerender(ui());
 
     expect(await screen.findByRole("progressbar", { name: "Đang lọc" })).toBeInTheDocument();
@@ -184,7 +184,8 @@ describe("ListingBrowser", () => {
   });
 
   it("sends the filters from the URL to the API", async () => {
-    location.search = "q=hoa+qua&category=thuc-pham-tuoi&mode=campaign";
+    location.search =
+      "q=hoa+qua&category=thuc-pham-tuoi&mode=campaign&view=items";
     serve([{ items: [], nextCursor: null }]);
 
     renderBrowser();
@@ -211,7 +212,7 @@ describe("ListingBrowser", () => {
     });
   });
 
-  it.each(["mode=campaign", "mode=campaign&view=items"])(
+  it.each(["mode=campaign&view=items"])(
     "lists the products of pre-order rounds for %s",
     async (search) => {
       location.search = search;
@@ -247,6 +248,67 @@ describe("ListingBrowser", () => {
     },
   );
 
+  describe("pre-order rounds", () => {
+    const grid = (filters: { category: string | null }) => (
+      <p>{`grid for "${filters.category}"`}</p>
+    );
+
+    function renderWith(search: string) {
+      location.search = search;
+      renderWithIntl(
+        <QueryProvider>
+          <ListingBrowser
+            shelf={<p>shelf</p>}
+            renderCampaigns={(filters) => grid(filters)}
+          />
+        </QueryProvider>,
+      );
+    }
+
+    it("shows the shelf on the in-stock tab with no filters", async () => {
+      serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
+      renderWith("");
+      expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
+      expect(screen.getByText("shelf")).toBeInTheDocument();
+    });
+
+    it.each(["category=dien-tu", "q=loa", "mode=campaign"])(
+      "hides the shelf for %s",
+      async (search) => {
+        serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
+        renderWith(search);
+        await screen.findByRole("group", { name: "Hình thức bán" });
+        expect(screen.queryByText("shelf")).not.toBeInTheDocument();
+      },
+    );
+
+    it("shows the grid of rounds, not the listings, on the round tab", async () => {
+      serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
+      renderWith("mode=campaign&category=dien-tu");
+
+      expect(await screen.findByText('grid for "dien-tu"')).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /Đợt đặt trước/ }),
+      ).toBeInTheDocument();
+      expect(screen.queryByText("Loa cũ")).not.toBeInTheDocument();
+      expect(listingCalls()).toHaveLength(0);
+    });
+
+    it("lists the products with view=items", async () => {
+      serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
+      renderWith("mode=campaign&view=items");
+
+      expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
+      expect(screen.queryByText(/^grid for/)).not.toBeInTheDocument();
+      expect(listingCalls()[0][1]).toMatchObject({
+        params: { query: { mode: "preorder" } },
+      });
+      expect(
+        screen.getByRole("heading", { level: 2, name: "Đợt đặt trước" }),
+      ).toBeInTheDocument();
+    });
+  });
+
   it("invites the first listing when the marketplace is empty", async () => {
     serve([{ items: [], nextCursor: null }]);
 
@@ -278,7 +340,7 @@ describe("ListingBrowser", () => {
   });
 
   it("explains an empty result caused by filters alone", async () => {
-    location.search = "mode=campaign";
+    location.search = "mode=campaign&view=items";
     serve([{ items: [], nextCursor: null }]);
 
     renderBrowser();

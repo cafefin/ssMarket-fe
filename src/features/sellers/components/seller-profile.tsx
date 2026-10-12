@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { CampaignCard, useSellerCampaigns } from "@/features/campaigns";
 import {
   ListingCard,
   LISTING_GRID,
@@ -29,6 +30,7 @@ export function SellerProfile({
 }) {
   const user = usePublicUser(sellerId);
   const listings = useSellerListings(sellerId);
+  const campaigns = useSellerCampaigns(sellerId);
   const t = useTranslations("sellers");
   const tc = useTranslations("common");
   const tl = useTranslations("listings.browser");
@@ -82,6 +84,21 @@ export function SellerProfile({
             )}
           </div>
         </header>
+      )}
+
+      {campaigns.data && campaigns.data.length > 0 && (
+        <section aria-labelledby="rounds-heading" className="flex flex-col gap-4">
+          <h2 id="rounds-heading" className="text-[22px] font-bold">
+            {t("rounds")}
+          </h2>
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {campaigns.data.map((campaign) => (
+              <li key={campaign.id} className="flex">
+                <CampaignCard campaign={campaign} />
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <section

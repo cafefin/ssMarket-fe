@@ -314,6 +314,11 @@
       "modes": {
         "in_stock": "In stock",
         "campaign": "Pre-order rounds"
+      },
+      "viewGroup": "View",
+      "views": {
+        "campaigns": "Rounds",
+        "items": "Items"
       }
     },
     "gallery": {
@@ -331,7 +336,8 @@
       "tryOther": "Try other words or remove some filters.",
       "emptyHint": "Things your colleagues sell will show up here.",
       "clearFilters": "Clear filters",
-      "sellFirst": "Post the first listing"
+      "sellFirst": "Post the first listing",
+      "campaigns": "Pre-order rounds"
     },
     "detail": {
       "notFound": "Listing not found",
@@ -371,7 +377,8 @@
     "loading": "Loading the seller",
     "deliversAt": "Delivers at {location}",
     "selling": "For sale",
-    "empty": "This seller has nothing for sale right now."
+    "empty": "This seller has nothing for sale right now.",
+    "rounds": "Open rounds"
   },
   "profile": {
     "title": "Profile",
@@ -616,5 +623,29 @@
     "chai": { "one": "bottle", "other": "bottles" },
     "bó": { "one": "bunch", "other": "bunches" },
     "combo": { "one": "combo", "other": "combos" }
+  },
+  "campaigns": {
+    "card": {
+      "closes": "Closes {deadline}",
+      "seller": "@{handle}",
+      "items": "{count, plural, one {# item} other {# items}}",
+      "from": "from",
+      "delivery": "Delivery {date}"
+    },
+    "shelf": {
+      "title": "Pre-order rounds closing soon",
+      "all": "See all",
+      "previous": "Show previous rounds",
+      "next": "Show next rounds"
+    },
+    "grid": {
+      "loading": "Loading rounds",
+      "loadFailed": "Could not load the pre-order rounds.",
+      "empty": "No pre-order rounds yet",
+      "emptyHint": "Rounds your colleagues open will show up here.",
+      "noMatch": "No round matches these filters",
+      "tryOther": "Try other words or remove some filters.",
+      "clearFilters": "Clear filters"
+    }
   }
 }

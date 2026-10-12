@@ -25,8 +25,21 @@ const summary = (id: string, title: string) => ({
 
 type Page = { items: ReturnType<typeof summary>[]; nextCursor: string | null };
 
+const round = (id: string, title: string) => ({
+  id,
+  title,
+  seller: { id: "u1", name: "Lê Thu Hà", handle: "ha", avatarUrl: null },
+  category: { id: 2, slug: "dien-tu", name: "Điện tử", nameEn: "Electronics", isPerishable: false },
+  orderDeadline: "2099-10-10T10:00:00.000Z",
+  deliveryDate: "2099-10-12",
+  itemCount: 3,
+  minPrice: 20000,
+  thumbnails: [],
+});
+
 function serve(
   opts: {
+    rounds?: ReturnType<typeof round>[];
     user?: object | "missing" | "broken";
     pages?: Page[];
     listingsFail?: boolean;
@@ -43,6 +56,12 @@ function serve(
   ];
   let call = 0;
   api.GET.mockImplementation((path: string) => {
+    if (path === "/campaigns") {
+      return Promise.resolve({
+        data: { items: opts.rounds ?? [], nextCursor: null },
+        response: new Response(),
+      });
+    }
     if (path === "/users/{id}") {
       if (user === "broken") {
         return Promise.resolve({
@@ -84,6 +103,35 @@ function renderProfile() {
 describe("SellerProfile", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+  });
+
+  it("lists the open rounds above the products", async () => {
+    serve({ rounds: [round("c1", "Hoa quả tuần 41")] });
+    renderProfile();
+
+    const heading = await screen.findByRole("heading", {
+      name: "Đợt đang mở",
+    });
+    const selling = screen.getByRole("heading", { name: "Đang bán" });
+    expect(
+      heading.compareDocumentPosition(selling) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: /Hoa quả tuần 41/ }),
+    ).toHaveAttribute("href", "/campaigns/c1");
+    expect(api.GET).toHaveBeenCalledWith("/campaigns", {
+      params: { query: { sellerId: "u1" } },
+    });
+  });
+
+  it("has no rounds section when the seller has none", async () => {
+    serve();
+    renderProfile();
+    await screen.findByRole("heading", { name: "Đang bán" });
+    expect(
+      screen.queryByRole("heading", { name: "Đợt đang mở" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the seller and links to each open listing", async () => {

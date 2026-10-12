@@ -17,8 +17,10 @@ export type ListingMode = components["schemas"]["ListingMode"];
 
 export const LISTINGS_QUERY_KEY = ["listings"] as const;
 
-export function useListings(filters: ListingFilters) {
+/** `enabled` is false where another list (the rounds) takes the place of this one. */
+export function useListings(filters: ListingFilters, enabled = true) {
   return useInfiniteQuery({
+    enabled,
     queryKey: [...LISTINGS_QUERY_KEY, filters],
     initialPageParam: null as string | null,
     queryFn: async ({ pageParam }) => {

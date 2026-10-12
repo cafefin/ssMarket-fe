@@ -8,7 +8,11 @@ import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { useCategories } from "../api/use-categories";
 import { type ListingSummary, useListings } from "../api/use-listings";
-import { isDefault, parseListingFilters } from "../lib/filters";
+import {
+  isDefault,
+  type ListingFilters as Filters,
+  parseListingFilters,
+} from "../lib/filters";
 import { ListingCard } from "./listing-card";
 import { FilterLink } from "./filter-link";
 import { ListingFilters } from "./listing-filters";
@@ -32,15 +36,23 @@ function CardSkeleton() {
  */
 export function ListingBrowser({
   renderCardActions,
+  shelf,
+  renderCampaigns,
 }: {
   /** Controls under each card; the page passes the cart's, see app/. */
   renderCardActions?: (listing: ListingSummary) => ReactNode;
+  /** Shown above the list of goods in stock while no filter is set. */
+  shelf?: ReactNode;
+  /** The grid of rounds, shown on the round tab; see app/. */
+  renderCampaigns?: (filters: Filters) => ReactNode;
 } = {}) {
   const t = useTranslations("listings.browser");
   const tc = useTranslations("common");
   const filters = parseListingFilters(useSearchParams());
   const { data: categories = [] } = useCategories();
-  const listings = useListings(filters);
+  // On the round tab the rounds are listed, not their products.
+  const roundsView = filters.mode === "campaign" && filters.view === "campaigns";
+  const listings = useListings(filters, !roundsView);
 
   const items = listings.data?.pages.flatMap((page) => page.items) ?? [];
   const filtered = !isDefault(filters);
@@ -68,22 +80,28 @@ export function ListingBrowser({
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
+      <>
+        {filters.mode === "in_stock" && !filtered && shelf}
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-8">
         {filters.q ? (
           <h1 className="text-[22px] font-bold">
             {t("resultsFor", { query: filters.q })}
           </h1>
         ) : (
-          <h2 className="text-[22px] font-bold">{t("all")}</h2>
+          <h2 className="text-[22px] font-bold">
+            {filters.mode === "campaign" ? t("campaigns") : t("all")}
+          </h2>
         )}
 
         <ListingFilters
           filters={filters}
           categories={categories}
-          busy={listings.isPlaceholderData}
+          busy={!roundsView && listings.isPlaceholderData}
         />
 
-        {listings.isPending && (
+        {roundsView && renderCampaigns?.(filters)}
+
+        {!roundsView && listings.isPending && (
           <div className={LISTING_GRID} aria-busy="true" aria-label={t("loading")}>
             {Array.from({ length: 8 }, (_, index) => (
               <CardSkeleton key={index} />
@@ -91,7 +109,7 @@ export function ListingBrowser({
           </div>
         )}
 
-        {listings.isError && (
+        {!roundsView && listings.isError && (
           <div role="alert" className="flex flex-col items-center gap-3 py-16">
             <p className="text-error-deep">
               {t("loadFailed")}
@@ -102,7 +120,7 @@ export function ListingBrowser({
           </div>
         )}
 
-        {listings.isSuccess && items.length === 0 && (
+        {!roundsView && listings.isSuccess && items.length === 0 && (
           <div className="flex flex-col items-center gap-3 py-16 text-center">
             <h2 className="text-[22px] font-semibold">
               {filters.q
@@ -128,14 +146,14 @@ export function ListingBrowser({
           </div>
         )}
 
-        {items.length > 0 && (
+        {!roundsView && items.length > 0 && (
           <ul
             className={cn(
               LISTING_GRID,
               // While new filters load, the old cards stay, dimmed.
               listings.isPlaceholderData && "opacity-60 transition-opacity",
             )}
-            aria-busy={listings.isPlaceholderData}
+            aria-busy={!roundsView && listings.isPlaceholderData}
           >
             {items.map((listing) => (
               <li key={listing.id} className="flex">
@@ -148,7 +166,7 @@ export function ListingBrowser({
           </ul>
         )}
 
-        {isFetchingNextPage && (
+        {!roundsView && isFetchingNextPage && (
           <div className={LISTING_GRID} aria-hidden="true">
             {Array.from({ length: 4 }, (_, index) => (
               <CardSkeleton key={index} />
@@ -156,7 +174,7 @@ export function ListingBrowser({
           </div>
         )}
 
-        {hasNextPage && (
+        {!roundsView && hasNextPage && (
           <div ref={end} className="flex justify-center">
             <Button
               variant="outline"
@@ -168,5 +186,6 @@ export function ListingBrowser({
           </div>
         )}
       </div>
+      </>
   );
 }

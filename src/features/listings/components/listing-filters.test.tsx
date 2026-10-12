@@ -119,6 +119,33 @@ describe("ListingFilters", () => {
     expect(buttons[1]).toHaveAttribute("aria-pressed", "true");
   });
 
+  it("switches the round tab between rounds and products", () => {
+    renderFilters({ mode: "campaign", q: "loa" });
+
+    const group = screen.getByRole("group", { name: "Xem" });
+    const [rounds, items] = within(group).getAllByRole("link");
+    expect(rounds).toHaveTextContent("Đợt");
+    expect(rounds).toHaveAttribute("href", "/?q=loa&mode=campaign");
+    expect(rounds).toHaveAttribute("aria-current", "true");
+    expect(items).toHaveTextContent("Món");
+    expect(items).toHaveAttribute("href", "/?q=loa&mode=campaign&view=items");
+    expect(items).not.toHaveAttribute("aria-current");
+  });
+
+  it("marks the product view as current", () => {
+    renderFilters({ mode: "campaign", view: "items" });
+    const [rounds, items] = within(
+      screen.getByRole("group", { name: "Xem" }),
+    ).getAllByRole("link");
+    expect(items).toHaveAttribute("aria-current", "true");
+    expect(rounds).not.toHaveAttribute("aria-current");
+  });
+
+  it("has no such switch on the in-stock tab", () => {
+    renderFilters();
+    expect(screen.queryByRole("group", { name: "Xem" })).not.toBeInTheDocument();
+  });
+
   it("filters by condition for goods in stock only", () => {
     renderFilters();
     expect(screen.getByText("Độ mới", { selector: "summary" })).toBeInTheDocument();

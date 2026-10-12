@@ -2,6 +2,8 @@
 // the feature uses.
 export { ListingBrowser } from "./components/listing-browser";
 export { LISTING_GRID } from "./components/listing-grid";
+export { FilterLink } from "./components/filter-link";
+export { ImagePlaceholder } from "./components/image-placeholder";
 export { ListingCard } from "./components/listing-card";
 export { ListingDetailView } from "./components/listing-detail-view";
 export { ModeBadge } from "./components/mode-badge";

@@ -314,6 +314,11 @@
       "modes": {
         "in_stock": "Có sẵn",
         "campaign": "Đợt đặt trước"
+      },
+      "viewGroup": "Xem",
+      "views": {
+        "campaigns": "Đợt",
+        "items": "Món"
       }
     },
     "gallery": {
@@ -331,7 +336,8 @@
       "tryOther": "Thử từ khóa khác hoặc bỏ bớt bộ lọc.",
       "emptyHint": "Các món đồ đồng nghiệp đăng bán sẽ xuất hiện ở đây.",
       "clearFilters": "Xóa bộ lọc",
-      "sellFirst": "Đăng bán món đầu tiên"
+      "sellFirst": "Đăng bán món đầu tiên",
+      "campaigns": "Đợt đặt trước"
     },
     "detail": {
       "notFound": "Không tìm thấy bài đăng",
@@ -371,7 +377,8 @@
     "loading": "Đang tải người bán",
     "deliversAt": "Giao tại {location}",
     "selling": "Đang bán",
-    "empty": "Người bán này chưa có món nào đang bán."
+    "empty": "Người bán này chưa có món nào đang bán.",
+    "rounds": "Đợt đang mở"
   },
   "profile": {
     "title": "Hồ sơ",
@@ -616,5 +623,29 @@
     "chai": { "one": "chai", "other": "chai" },
     "bó": { "one": "bó", "other": "bó" },
     "combo": { "one": "combo", "other": "combo" }
+  },
+  "campaigns": {
+    "card": {
+      "closes": "Chốt {deadline}",
+      "seller": "@{handle}",
+      "items": "{count} món",
+      "from": "từ",
+      "delivery": "Giao {date}"
+    },
+    "shelf": {
+      "title": "Đợt đặt trước sắp chốt",
+      "all": "Xem tất cả",
+      "previous": "Xem các đợt trước",
+      "next": "Xem các đợt tiếp theo"
+    },
+    "grid": {
+      "loading": "Đang tải các đợt",
+      "loadFailed": "Không tải được các đợt đặt trước.",
+      "empty": "Chưa có đợt đặt trước nào",
+      "emptyHint": "Các đợt đồng nghiệp mở sẽ xuất hiện ở đây.",
+      "noMatch": "Chưa có đợt nào khớp bộ lọc",
+      "tryOther": "Thử từ khóa khác hoặc bỏ bớt bộ lọc.",
+      "clearFilters": "Xóa bộ lọc"
+    }
   }
 }

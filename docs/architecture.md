@@ -38,6 +38,7 @@ src/
 │   └── lib/                  utils.ts, format/, theme/
 └── features/
     ├── listings/             browse, search and read listings
+    ├── campaigns/            pre-order rounds: card, shelf, grid
     ├── profile/              profile form, bank account
     ├── shell/                header, search, user menu, tab bar, nav items
     ├── sellers/              a seller's public page
@@ -68,9 +69,10 @@ Rules:
    | `listings` | `shared` |
    | `profile` | `shared` |
    | `shell` | `shared` |
-   | `sellers` | `shared`, `listings` |
+   | `campaigns` | `shared`, `listings` |
+   | `sellers` | `shared`, `listings`, `campaigns` |
    | `admin` | `shared`, `listings` |
-   | `orders` | `shared`, `listings` |
+   | `orders` | `shared`, `listings`, `campaigns` |
    | `sell` | `shared`, `listings` |
    | `cart` | `shared`, `listings`, `orders` |
 
