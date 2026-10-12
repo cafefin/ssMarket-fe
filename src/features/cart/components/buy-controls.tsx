@@ -106,7 +106,7 @@ export function BuyControls({
         max={left === 0 ? product.stockQuantity : left}
         onChange={setQuantity}
         label={t("quantity")}
-        className="w-full justify-between"
+        className={page ? "self-start" : "w-full justify-between"}
       />
       {hint && (
         <p className="text-xs text-muted-foreground" role="status">

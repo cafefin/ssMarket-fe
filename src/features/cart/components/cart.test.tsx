@@ -92,6 +92,8 @@ describe("BuyControls", () => {
       screen.getByRole("button", { name: "Thêm vào giỏ" }),
     );
     expect(buy.parentElement).not.toContainElement(quantity);
+    // On a card the stepper spans the narrow column.
+    expect(quantity.parentElement).toHaveClass("w-full");
   });
 
   it("adds the chosen quantity to what is already in the cart", async () => {
@@ -154,6 +156,10 @@ describe("BuyControls", () => {
 
     const add = await screen.findByRole("button", { name: "Thêm vào giỏ" });
     expect(add).toHaveTextContent("Thêm vào giỏ");
+    // The stepper keeps its own width instead of stretching across the page.
+    const stepper = screen.getByRole("textbox", { name: "Số lượng" }).parentElement;
+    expect(stepper).not.toHaveClass("w-full");
+    expect(stepper).toHaveClass("self-start");
   });
 
   it("shows nothing to the seller", async () => {
