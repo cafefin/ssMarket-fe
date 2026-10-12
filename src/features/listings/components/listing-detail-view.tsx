@@ -59,17 +59,14 @@ function paymentMethods(
   ];
 }
 
-/** Price per unit, what is left and the combo deals of the product. */
+/** Price, what is left and the combo deals of the product. */
 function ProductFacts({ listing }: { listing: ListingDetail }) {
   const t = useTranslations("listings");
   const format = useFormat();
   return (
     <section className="flex flex-col gap-2">
-      <p className="flex items-baseline gap-1.5">
+      <p>
         <Price amount={listing.unitPrice} size="lg" />
-        <span className="text-sm text-muted-foreground">
-          {t("detail.perUnit", { unit: listing.unit })}
-        </span>
       </p>
       {listing.mode === "in_stock" &&
         listing.stockQuantity !== null &&

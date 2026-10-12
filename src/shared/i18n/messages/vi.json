@@ -350,7 +350,6 @@
       "edit": "Sửa bài đăng",
       "summary": "Bảng tổng hợp đơn hàng",
       "condition": "Độ mới",
-      "perUnit": "/ {unit}",
       "combos": "Mua nhiều giá tốt",
       "combo": "{quantity} {unit}: {price}"
     },

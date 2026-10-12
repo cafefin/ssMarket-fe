@@ -104,7 +104,7 @@ describe("ListingDetailView", () => {
     expect(screen.getByText("Chị Lan")).toBeInTheDocument();
 
     expect(screen.getByText("500.000 đ")).toHaveClass("font-semibold");
-    expect(screen.getByText("/ cái")).toBeInTheDocument();
+    expect(screen.queryByText("/ cái")).not.toBeInTheDocument();
     expect(screen.getByText("Còn 2 cái")).toBeInTheDocument();
 
     expect(
@@ -178,7 +178,7 @@ describe("ListingDetailView", () => {
     expect(screen.getByText("Chốt đơn")).toBeInTheDocument();
     expect(screen.getByText("12/10/2026")).toBeInTheDocument();
     expect(screen.getByText("35.000 đ")).toBeInTheDocument();
-    expect(screen.getByText("/ kg")).toBeInTheDocument();
+    expect(screen.queryByText("/ kg")).not.toBeInTheDocument();
     expect(screen.queryByText(/^Còn \d/)).not.toBeInTheDocument();
     expect(screen.getByText("Trả tiền khi nhận hàng")).toBeInTheDocument();
   });

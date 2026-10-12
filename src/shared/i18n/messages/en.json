@@ -350,7 +350,6 @@
       "edit": "Edit listing",
       "summary": "Order summary",
       "condition": "Condition",
-      "perUnit": "/ {unit}",
       "combos": "Buy more, pay less",
       "combo": "{quantity} {unit}: {price}"
     },
