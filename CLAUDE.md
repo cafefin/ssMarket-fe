@@ -119,17 +119,24 @@ locale routing: URLs never carry a language.
   Add every key to both files; `messages.test.ts` checks keys and arguments.
 - `no-hardcoded-vietnamese.test.ts` fails on Vietnamese letters in any source
   file except tests, the message files, `schema.d.ts` and
-  `features/sell/lib/units.ts` (units are stored data, shown as written).
+  `features/sell/lib/units.ts` (units are stored data).
 - Components use `useTranslations("<namespace>")`; server components use
   `getTranslations`. Pure functions never hold text: schemas take a
   `Translator<"namespace">` (`listingSchema(mode, t)`), other helpers return
   codes or keys (`quantityProblem`, `imageProblem`, `editBlockedReason`,
   `NAV_ITEMS[].labelKey`).
-- Format with `useFormat()` (money, quantities, deadlines in the page's
-  language). Dates stay day/month and 24-hour in both languages.
+- Format with `useFormat()` (money, quantities, units, deadlines in the
+  page's language). Dates stay day/month and 24-hour in both languages.
+- A unit is stored as the seller chose it (`cái`, `hộp`, ...) and that value
+  is what the API and the `unit === "kg"` rules use. Show it with
+  `format.unit(unit, count)`: the `units` messages are keyed by the stored
+  value, with `one` and `other` forms ("1 piece", "2 pieces"). Add a new unit
+  to `units.ts` and to `units` in both message files.
+- `format.compactMoney` ("200k", "1tr" / "200K", "1M") is only for tight
+  labels such as the price filter. Prices always use `Price` / `format.money`.
 - Show a category with `categoryName(category, locale)` (`nameEn` in English).
-- User-entered content (titles, descriptions, item names, notes) and units are
-  never translated.
+- User-entered content (titles, descriptions, item names, notes) is never
+  translated.
 
 ## State
 
@@ -139,10 +146,13 @@ locale routing: URLs never carry a language.
   (`GET /listings?sort=deadline`) and the seller page uses `useSellerListings`,
   both under the `["listings"]` key.
 - **Browse filters**: the URL query string, through
-  `parseListingFilters` / `listingsHref`. Filters are client-side links, so a
-  search can be shared and the back button works; `useListings` keeps the
-  previous results (`keepPreviousData`) while new ones load, so the page
-  never flashes. The mode defaults to `in_stock` (left out of the URL);
+  `parseListingFilters` / `listingsHref`. Every filter is a `FilterLink`: a
+  real `<a href>` (shareable, opens in a new tab) whose plain click only
+  calls `history.pushState`. Next keeps `useSearchParams` in step, so the
+  list refetches at once; do not use `next/link` or `router.push` for a
+  filter, they wait for a round trip to the server first. `useListings` keeps
+  the previous results (`keepPreviousData`) while new ones load, dimmed, with
+  a progress bar under the filter bar, so the page never flashes. The mode defaults to `in_stock` (left out of the URL);
   `mode=all` asks the API without a mode.
 - **Unfinished new listing**: the Zustand store in `features/sell/lib/sell-draft-store.ts`
   (sessionStorage). It exists so typed values survive the detour to the

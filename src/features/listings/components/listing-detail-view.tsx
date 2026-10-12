@@ -78,7 +78,7 @@ function ProductFacts({ listing }: { listing: ListingDetail }) {
           <p className="text-sm font-medium text-positive-deep">
             {t("card.remaining", {
               quantity: format.quantity(listing.stockQuantity),
-              unit: listing.unit,
+              unit: format.unit(listing.unit, listing.stockQuantity),
             })}
           </p>
         ))}
@@ -90,7 +90,7 @@ function ProductFacts({ listing }: { listing: ListingDetail }) {
               <li key={combo.quantity}>
                 {t("detail.combo", {
                   quantity: format.quantity(Number(combo.quantity)),
-                  unit: listing.unit,
+                  unit: format.unit(listing.unit, Number(combo.quantity)),
                   price: format.money(combo.price),
                 })}
               </li>

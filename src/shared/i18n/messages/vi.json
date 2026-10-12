@@ -635,5 +635,14 @@
     "myOrders": "Xem đơn của tôi",
     "alreadyOrdered": "Bạn đã đặt đợt này. Muốn đổi số lượng, hãy sửa đơn đã có.",
     "viewExisting": "Xem đơn của bạn"
+  },
+  "units": {
+    "cái": { "one": "cái", "other": "cái" },
+    "kg": { "one": "kg", "other": "kg" },
+    "hộp": { "one": "hộp", "other": "hộp" },
+    "túi": { "one": "túi", "other": "túi" },
+    "chai": { "one": "chai", "other": "chai" },
+    "bó": { "one": "bó", "other": "bó" },
+    "combo": { "one": "combo", "other": "combo" }
   }
 }

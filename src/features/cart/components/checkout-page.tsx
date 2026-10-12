@@ -240,7 +240,8 @@ export function CheckoutPage() {
                   <span className="min-w-0">
                     <span className="block truncate">{line.title}</span>
                     <span className="text-[13px] text-muted-foreground">
-                      {format.quantity(line.quantity)} {line.unit} ×{" "}
+                      {format.quantity(line.quantity)}{" "}
+                      {format.unit(line.unit, line.quantity)} ×{" "}
                       {format.money(line.unitPrice)}
                     </span>
                   </span>

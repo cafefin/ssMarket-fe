@@ -337,7 +337,7 @@ export function SalesSummary({ listingId }: { listingId: string }) {
                   {t("columns.location")}
                 </th>
                 <th scope="col" className={cn(th, "text-right")}>
-                  {t("columns.quantity", { unit: listing.unit })}
+                  {t("columns.quantity", { unit: format.unit(listing.unit) })}
                 </th>
                 <th scope="col" className={cn(th, "text-right")}>
                   {t("columns.total")}

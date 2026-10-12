@@ -154,7 +154,7 @@ export function MyListings() {
                   <p className="text-sm text-muted-foreground">
                     {t("price", {
                       price: format.money(listing.unitPrice),
-                      unit: listing.unit,
+                      unit: format.unit(listing.unit),
                     })}
                     {time && ` · ${time}`}
                   </p>

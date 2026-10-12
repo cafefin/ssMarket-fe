@@ -78,7 +78,10 @@ function CombosField({
               hint={
                 perUnit === null
                   ? undefined
-                  : t("comboPerUnit", { price: format.money(perUnit), unit })
+                  : t("comboPerUnit", {
+                      price: format.money(perUnit),
+                      unit: format.unit(unit),
+                    })
               }
               error={errors.combos?.[index]?.price?.message}
             >
@@ -126,6 +129,7 @@ function CombosField({
  */
 export function ProductField({ mode, control, register, errors }: ProductFieldProps) {
   const t = useTranslations("sell.product");
+  const format = useFormat();
   const showStock = mode === "in_stock";
 
   return (
@@ -153,7 +157,7 @@ export function ProductField({ mode, control, register, errors }: ProductFieldPr
           <select id="unit" className={selectClassName} {...register("unit")}>
             {LISTING_UNITS.map((unit) => (
               <option key={unit} value={unit}>
-                {unit}
+                {format.unit(unit)}
               </option>
             ))}
           </select>

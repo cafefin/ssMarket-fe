@@ -635,5 +635,14 @@
     "myOrders": "See my orders",
     "alreadyOrdered": "You already ordered from this round. To change the quantity, edit that order.",
     "viewExisting": "View your order"
+  },
+  "units": {
+    "cái": { "one": "piece", "other": "pieces" },
+    "kg": { "one": "kg", "other": "kg" },
+    "hộp": { "one": "box", "other": "boxes" },
+    "túi": { "one": "bag", "other": "bags" },
+    "chai": { "one": "bottle", "other": "bottles" },
+    "bó": { "one": "bunch", "other": "bunches" },
+    "combo": { "one": "combo", "other": "combos" }
   }
 }

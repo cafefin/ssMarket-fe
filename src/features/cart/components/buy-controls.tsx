@@ -93,9 +93,15 @@ export function BuyControls({
 
   const hint =
     left === 0
-      ? t("allInCart", { quantity: format.quantity(inCart), unit: product.unit })
+      ? t("allInCart", {
+          quantity: format.quantity(inCart),
+          unit: format.unit(product.unit, inCart),
+        })
       : tooMany && left !== null
-        ? t("onlyLeft", { quantity: format.quantity(left), unit: product.unit })
+        ? t("onlyLeft", {
+            quantity: format.quantity(left),
+            unit: format.unit(product.unit, left),
+          })
         : null;
 
   return (

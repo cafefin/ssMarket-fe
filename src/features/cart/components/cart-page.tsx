@@ -104,7 +104,10 @@ function Line({
           </button>
         </div>
         <p className="text-[13px] text-muted-foreground">
-          {t("unitPrice", { price: format.money(line.unitPrice), unit: line.unit })}
+          {t("unitPrice", {
+            price: format.money(line.unitPrice),
+            unit: format.unit(line.unit),
+          })}
           {line.mode === "preorder" && line.orderDeadline && (
             <span className="ml-2 rounded-full bg-deadline-soft px-2 py-0.5 text-deadline-deep">
               {t("preorderCloses", {
@@ -118,7 +121,7 @@ function Line({
             {line.problem === "OUT_OF_STOCK"
               ? t("problem.OUT_OF_STOCK", {
                   available: format.quantity(line.stockQuantity ?? 0),
-                  unit: line.unit,
+                  unit: format.unit(line.unit, line.stockQuantity ?? 0),
                 })
               : t(`problem.${line.problem}`)}
           </p>
@@ -146,7 +149,7 @@ function Line({
             {tp("comboHint", {
               missing: format.quantity(hint.missing),
               quantity: format.quantity(Number(hint.combo.quantity)),
-              unit: line.unit,
+              unit: format.unit(line.unit, hint.missing),
               price: format.money(hint.combo.price),
             })}
           </p>

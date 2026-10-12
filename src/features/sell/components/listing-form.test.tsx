@@ -145,6 +145,9 @@ describe("ListingForm", () => {
         { locale: "en" },
       );
       await screen.findByRole("option", { name: "Electronics" });
+      // Units read in English, but the stored value does not change.
+      expect(screen.getByRole("option", { name: "piece" })).toHaveValue("cái");
+      expect(screen.getByRole("option", { name: "box" })).toHaveValue("hộp");
 
       await click("Publish");
 

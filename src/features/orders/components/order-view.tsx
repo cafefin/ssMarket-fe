@@ -153,7 +153,8 @@ export function OrderView({ id }: { id: string }) {
                     {line.title}
                   </Link>
                   <span className="block text-[13px] text-muted-foreground">
-                    {format.quantity(line.quantity)} {line.unit} ×{" "}
+                    {format.quantity(line.quantity)}{" "}
+                    {format.unit(line.unit, line.quantity)} ×{" "}
                     {format.money(line.unitPrice)}
                   </span>
                 </th>

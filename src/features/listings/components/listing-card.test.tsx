@@ -42,6 +42,15 @@ describe("ListingCard", () => {
     expect(link).not.toHaveTextContent(/từ|\/cái/);
   });
 
+  it("names the unit in the language of the page", () => {
+    const { unmount } = renderWithIntl(<ListingCard listing={listing()} />);
+    expect(screen.getByText("Còn 3 cái")).toBeInTheDocument();
+    unmount();
+
+    renderWithIntl(<ListingCard listing={listing()} />, { locale: "en" });
+    expect(screen.getByText("3 pieces left")).toBeInTheDocument();
+  });
+
   it("has no avatar and a square, lazily loaded photo", () => {
     const { container } = renderWithIntl(<ListingCard listing={listing()} />);
 

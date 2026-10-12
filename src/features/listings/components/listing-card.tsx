@@ -26,7 +26,7 @@ function Stock({ listing }: { listing: ListingSummary }) {
     <p className="text-[13px] font-medium text-positive-deep">
       {t("card.remaining", {
         quantity: format.quantity(listing.stockQuantity),
-        unit: listing.unit,
+        unit: format.unit(listing.unit, listing.stockQuantity),
       })}
     </p>
   );

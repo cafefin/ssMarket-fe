@@ -152,7 +152,7 @@ describe("ListingDetailView", () => {
     expect(screen.getByText("In stock")).toBeInTheDocument();
     expect(screen.getByText("Electronics")).toBeInTheDocument();
     expect(screen.getByText("500,000 VND")).toBeInTheDocument();
-    expect(screen.getByText("2 cái left")).toBeInTheDocument();
+    expect(screen.getByText("2 pieces left")).toBeInTheDocument();
     expect(
       screen.getByText("Bank transfer in advance by QR code · Pay on delivery"),
     ).toBeInTheDocument();

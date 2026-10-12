@@ -130,6 +130,23 @@ describe("BuyControls", () => {
     expect(screen.getByRole("button", { name: "Mua ngay" })).toBeEnabled();
   });
 
+  it("names the unit in English on an English page", async () => {
+    serve({ cart: cartOf([line({ quantity: 1 })]) });
+    renderWithIntl(
+      <QueryProvider>
+        <BuyControls product={product({ stockQuantity: 3 })} />
+      </QueryProvider>,
+      { locale: "en" },
+    );
+
+    const quantity = await screen.findByRole("textbox", { name: "Quantity" });
+    await waitFor(() => expect(quantity).toBeEnabled());
+    await userEvent.clear(quantity);
+    await userEvent.type(quantity, "3");
+
+    expect(screen.getByRole("status")).toHaveTextContent("Only 2 pieces left");
+  });
+
   it("cannot add the last piece twice", async () => {
     serve({ cart: cartOf([line({ quantity: 1 })]) });
     wrap(<BuyControls product={product({ stockQuantity: 1 })} />);

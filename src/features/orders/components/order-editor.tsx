@@ -122,7 +122,7 @@ export function OrderEditor({
           <Label htmlFor="editQuantity" className="min-w-0 flex-1 font-normal">
             <span className="block truncate">{line.title}</span>
             <span className="block text-[13px] text-muted-foreground">
-              {format.money(line.unitPrice)}/{line.unit}
+              {format.money(line.unitPrice)}/{format.unit(line.unit)}
             </span>
           </Label>
           <div className="flex shrink-0 items-center gap-2">
@@ -135,7 +135,9 @@ export function OrderEditor({
               onChange={(event) => setQuantityText(event.target.value)}
               className="w-20 bg-background text-right"
             />
-            <span className="w-8 text-sm text-muted-foreground">{line.unit}</span>
+            <span className="min-w-8 text-sm text-muted-foreground">
+              {format.unit(line.unit)}
+            </span>
           </div>
         </div>
         {showProblems && problem && (
