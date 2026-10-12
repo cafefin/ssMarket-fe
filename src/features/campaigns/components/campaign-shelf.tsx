@@ -8,7 +8,7 @@ import { useClosingCampaigns } from "../api/use-campaigns";
 import { CampaignCard } from "./campaign-card";
 
 const MAX_ITEMS = 10;
-const MIN_SLIDE = 266; // one card (250px) plus the gap
+const MIN_SLIDE = 296; // one card (up to 280px wide) plus the 16px gap
 
 const ARROW =
   "flex size-10 items-center justify-center rounded-full border border-border bg-background text-primary outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-disabled:cursor-default aria-disabled:text-border";

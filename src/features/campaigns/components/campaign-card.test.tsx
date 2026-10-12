@@ -41,6 +41,40 @@ describe("CampaignCard", () => {
     expect(screen.queryByTestId("image-placeholder")).not.toBeInTheDocument();
   });
 
+  it("renders only the first four of more thumbnails", () => {
+    const { container } = renderWithIntl(
+      <CampaignCard
+        campaign={campaignSummary("c1", {
+          thumbnails: ["/a.webp", "/b.webp", "/c.webp", "/d.webp", "/e.webp"],
+        })}
+      />,
+    );
+
+    const sources = Array.from(container.querySelectorAll("img")).map((image) =>
+      image.getAttribute("src"),
+    );
+    expect(sources).toEqual(["/a.webp", "/b.webp", "/c.webp", "/d.webp"]);
+  });
+
+  it("marks a round that closes today with the strong strip", () => {
+    renderWithIntl(
+      <CampaignCard
+        campaign={campaignSummary("c1", {
+          orderDeadline: new Date(Date.now() + 60_000).toISOString(),
+        })}
+      />,
+    );
+    const strip = screen.getByText(/^Chốt /);
+    expect(strip).toHaveClass("bg-deadline", "text-foreground");
+    expect(strip).not.toHaveClass("bg-deadline-soft");
+  });
+
+  it("uses the soft strip for a round that closes later", () => {
+    renderWithIntl(<CampaignCard campaign={campaignSummary("c1")} />);
+    const strip = screen.getByText(/^Chốt /);
+    expect(strip).toHaveClass("bg-deadline-soft", "text-deadline-deep");
+  });
+
   it("shows a placeholder when no product has a photo", () => {
     renderWithIntl(<CampaignCard campaign={campaignSummary("c1")} />);
     expect(screen.getByTestId("image-placeholder")).toBeInTheDocument();

@@ -214,9 +214,13 @@ export function ListingFilters({
       {filters.mode === "campaign" && (
         <div
           role="group"
-          aria-label={t("filters.viewGroup")}
+          aria-labelledby="listing-view-label"
           className="flex items-center gap-1.5"
         >
+          <span id="listing-view-label" className="text-xs text-muted-foreground">
+            {t("filters.viewGroup")}
+            <span aria-hidden="true">:</span>
+          </span>
           {VIEWS.map((view) => {
             const active = filters.view === view;
             return (

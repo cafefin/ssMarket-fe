@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
@@ -16,6 +16,7 @@ import {
 import { ListingCard } from "./listing-card";
 import { FilterLink } from "./filter-link";
 import { ListingFilters } from "./listing-filters";
+import { useLoadMoreOnView } from "@/shared/lib/use-load-more-on-view";
 import { cn } from "@/shared/lib/utils";
 import { LISTING_GRID } from "./listing-grid";
 
@@ -61,27 +62,15 @@ export function ListingBrowser({
   // Loads the next page when the end of the list comes into view. The
   // "load more" button stays as a fallback (and for browsers without the
   // observer).
-  const end = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const element = end.current;
-    if (!element || !hasNextPage || typeof IntersectionObserver === "undefined") {
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting) && !isFetchingNextPage) {
-          void fetchNextPage();
-        }
-      },
-      { rootMargin: "600px 0px" },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const end = useLoadMoreOnView<HTMLDivElement>({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
 
   return (
-      <>
-        {filters.mode === "in_stock" && !filtered && shelf}
+    <>
+      {filters.mode === "in_stock" && !filtered && shelf}
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-8">
         {filters.q ? (
           <h1 className="text-[22px] font-bold">
@@ -153,7 +142,7 @@ export function ListingBrowser({
               // While new filters load, the old cards stay, dimmed.
               listings.isPlaceholderData && "opacity-60 transition-opacity",
             )}
-            aria-busy={!roundsView && listings.isPlaceholderData}
+            aria-busy={listings.isPlaceholderData}
           >
             {items.map((listing) => (
               <li key={listing.id} className="flex">
@@ -186,6 +175,6 @@ export function ListingBrowser({
           </div>
         )}
       </div>
-      </>
+    </>
   );
 }

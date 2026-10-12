@@ -1,8 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useRef } from "react";
 import { FilterLink } from "@/features/listings";
+import { useLoadMoreOnView } from "@/shared/lib/use-load-more-on-view";
 import { cn } from "@/shared/lib/utils";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
@@ -37,23 +37,11 @@ export function CampaignGrid({ filters }: { filters: CampaignFilters }) {
 
   // Loads the next page when the end of the list comes into view; the
   // button stays as a fallback.
-  const end = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const element = end.current;
-    if (!element || !hasNextPage || typeof IntersectionObserver === "undefined") {
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting) && !isFetchingNextPage) {
-          void fetchNextPage();
-        }
-      },
-      { rootMargin: "600px 0px" },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const end = useLoadMoreOnView<HTMLDivElement>({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
 
   return (
     <>

@@ -123,6 +123,9 @@ describe("ListingFilters", () => {
     renderFilters({ mode: "campaign", q: "loa" });
 
     const group = screen.getByRole("group", { name: "Xem" });
+    // The label is visible text, not only the accessible name.
+    expect(screen.getByText("Xem")).toBeVisible();
+    expect(screen.getByText("Xem")).toHaveAttribute("id", group.getAttribute("aria-labelledby"));
     const [rounds, items] = within(group).getAllByRole("link");
     expect(rounds).toHaveTextContent("Đợt");
     expect(rounds).toHaveAttribute("href", "/?q=loa&mode=campaign");
