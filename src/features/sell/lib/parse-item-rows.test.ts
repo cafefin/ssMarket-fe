@@ -6,7 +6,11 @@ const unitLabels = {
   chai: ["chai", "bottle", "bottles"],
   "cái": ["cái", "piece", "pieces"],
 };
-const options = { defaultUnit: "cái", room: 50, unitLabels };
+const options = {
+  defaultUnit: "cái",
+  room: 50,
+  unitLabels: unitLabels as Record<string, string[]>,
+};
 const parse = (rows: Cell[][], override: Partial<typeof options> = {}) =>
   parseItemRows([HEADER, ...rows], { ...options, ...override });
 
@@ -75,6 +79,16 @@ describe("parseItemRows", () => {
     ]);
 
     expect(items.map((item) => item.unit)).toEqual(["chai", "chai", "cái"]);
+    expect(unknownUnits).toBe(0);
+  });
+
+  it("recognises a unit typed with decomposed characters (NFD)", () => {
+    const { items, unknownUnits } = parse(
+      [["A", 1000, "hộp".normalize("NFD"), null]],
+      { unitLabels: { "hộp": ["hộp", "box"] } },
+    );
+
+    expect(items[0].unit).toBe("hộp");
     expect(unknownUnits).toBe(0);
   });
 

@@ -75,7 +75,8 @@ export async function submitCampaign({
           "/listings/{listingId}/images/{imageId}",
           { params: { path: { listingId, imageId } } },
         );
-        if (removal.error) {
+        // An error response without a body has an empty `error`; the status tells.
+        if (!removal.response.ok) {
           failedRemovals += 1;
         }
       } catch {

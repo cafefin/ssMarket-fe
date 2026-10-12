@@ -21,9 +21,10 @@ const UNIT_LABELS: Record<string, string[]> = Object.fromEntries(
 );
 
 interface ImportItemsButtonProps {
-  defaultUnit: string;
-  /** How many more products the round can take; a function is asked at import time. */
-  room: number | (() => number);
+  /** Asked once the file has been read, so edits made meanwhile count. */
+  defaultUnit: () => string;
+  /** How many more products the round can take; asked once the file has been read. */
+  room: () => number;
   onImport: (items: ItemFormValues[]) => void;
   /** The outcome of the import, or why the file was refused. */
   onSummary: (text: string) => void;
@@ -55,8 +56,8 @@ export function ImportItemsButton({
     }
 
     const { items, unknownUnits, dropped } = parseItemRows(rows, {
-      defaultUnit,
-      room: typeof room === "function" ? room() : room,
+      defaultUnit: defaultUnit(),
+      room: room(),
       unitLabels: UNIT_LABELS,
     });
     if (items.length === 0) {

@@ -244,6 +244,40 @@ describe("CampaignForm", () => {
       expect(lastSubmit().publish).toBe(false);
     });
 
+    it("does not save when Enter commits an input-method composition", async () => {
+      await renderForm();
+      await fillShared();
+      await fillRow(1, "Bánh bao chay", "15.000");
+
+      fireEvent.keyDown(field("Tên đợt"), { key: "Enter", isComposing: true });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(submitCampaign).not.toHaveBeenCalled();
+    });
+
+    it("does not save when Enter is pressed in the description", async () => {
+      await renderForm();
+      await fillShared();
+      await fillRow(1, "Bánh bao chay", "15.000");
+
+      await userEvent.type(field("Mô tả"), "dòng 1{Enter}dòng 2");
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(submitCampaign).not.toHaveBeenCalled();
+      expect(field("Mô tả")).toHaveValue("dòng 1\ndòng 2");
+    });
+
+    it("saves a draft when Enter is pressed in a product's title", async () => {
+      await renderForm();
+      await fillShared();
+      await fillRow(1, "Bánh bao chay", "15.000");
+
+      await userEvent.type(field("Tên món 1"), "{Enter}");
+
+      await waitFor(() => expect(submitCampaign).toHaveBeenCalledTimes(1));
+      expect(lastSubmit().publish).toBe(false);
+    });
+
     it("shows each problem next to its field and sends nothing", async () => {
       await renderForm();
       await click("Thêm món");
@@ -539,6 +573,28 @@ describe("CampaignForm", () => {
       expect(screen.getByText("3/50")).toBeInTheDocument();
       expect(field("Tên món 1")).toHaveValue("Chè");
       expect(field("Tên món 3")).toHaveValue("Bánh 2");
+    });
+
+    it("keeps rows added while the file is being read and appends after them", async () => {
+      let finish: (rows: unknown[][]) => void = () => {};
+      vi.mocked(readXlsx).mockReturnValue(
+        new Promise((resolve) => {
+          finish = resolve as typeof finish;
+        }),
+      );
+      await renderForm();
+
+      chooseFile();
+      // The seller carries on while the file is read.
+      await click("Thêm món");
+      await fillRow(2, "Chè", "20000");
+      finish(sheet(2));
+
+      expect(await screen.findByText("Đã thêm 2 món")).toBeInTheDocument();
+      expect(screen.getByText("4/50")).toBeInTheDocument();
+      expect(field("Tên món 2")).toHaveValue("Chè");
+      expect(field("Tên món 3")).toHaveValue("Bánh 1");
+      expect(field("Tên món 4")).toHaveValue("Bánh 2");
     });
 
     it("shows an error at the cell of an imported row and saves the corrected one", async () => {

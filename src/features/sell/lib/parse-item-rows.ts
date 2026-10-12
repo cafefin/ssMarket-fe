@@ -27,10 +27,11 @@ export function parseItemRows(
     unitLabels: Record<string, string[]>;
   },
 ): ParsedItems {
+  const normal = (name: string) => name.trim().normalize("NFC").toLowerCase();
   const byName = new Map<string, string>();
   for (const [unit, labels] of Object.entries(options.unitLabels)) {
     for (const name of [unit, ...labels]) {
-      byName.set(name.trim().toLowerCase(), unit);
+      byName.set(normal(name), unit);
     }
   }
 
@@ -48,7 +49,7 @@ export function parseItemRows(
       continue;
     }
 
-    const unitName = text(unit).toLowerCase();
+    const unitName = normal(text(unit));
     const known = byName.get(unitName);
     if (unitName !== "" && known === undefined) {
       unknownUnits += 1;

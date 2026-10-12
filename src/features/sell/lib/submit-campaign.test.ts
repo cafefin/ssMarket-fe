@@ -201,6 +201,28 @@ describe("submitCampaign", () => {
     expect(result.published).toBe(true);
   });
 
+  it.each([404, 502, 504])(
+    "counts a removal answered with status %i and an empty body as failed",
+    async (status) => {
+      // openapi-fetch gives error "" for an error response without a body.
+      respond({
+        "DELETE /listings/{listingId}/images/{imageId}": {
+          error: "",
+          response: new Response(null, { status }),
+        },
+      });
+
+      const result = await submit({
+        campaignId: "c1",
+        photos: [{ newImages: [], removedImageIds: ["a"] }, none()],
+        publish: true,
+      });
+
+      expect(result.failedRemovals).toBe(1);
+      expect(result.published).toBe(true);
+    },
+  );
+
   it("counts a removal that throws as failed", async () => {
     respond();
     api.DELETE.mockRejectedValue(new TypeError("network"));

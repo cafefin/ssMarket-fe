@@ -25,8 +25,8 @@ describe("ImportItemsButton", () => {
   const renderButton = (props: Partial<Parameters<typeof ImportItemsButton>[0]> = {}) =>
     renderWithIntl(
       <ImportItemsButton
-        defaultUnit="cái"
-        room={50}
+        defaultUnit={() => "cái"}
+        room={() => 50}
         onImport={onImport}
         onSummary={onSummary}
         {...props}
@@ -118,7 +118,7 @@ describe("ImportItemsButton", () => {
       ["Bánh 2", 15000, null, null],
       ["Bánh 3", 15000, null, null],
     ]);
-    renderButton({ room: 1 });
+    renderButton({ room: () => 1 });
 
     choose(file());
 
@@ -130,7 +130,7 @@ describe("ImportItemsButton", () => {
 
   it("says the round is full when there is no room at all", async () => {
     readXlsx.mockResolvedValue([HEADER, ["Bánh", 15000, null, null]]);
-    renderButton({ room: 0 });
+    renderButton({ room: () => 0 });
 
     choose(file());
 
@@ -206,7 +206,7 @@ describe("ImportItemsButton", () => {
   it("speaks English", async () => {
     readXlsx.mockResolvedValue([HEADER, ["Bun", 15000, "bottle", null]]);
     renderWithIntl(
-      <ImportItemsButton defaultUnit="cái" room={50} onImport={onImport} onSummary={onSummary} />,
+      <ImportItemsButton defaultUnit={() => "cái"} room={() => 50} onImport={onImport} onSummary={onSummary} />,
       { locale: "en" },
     );
 

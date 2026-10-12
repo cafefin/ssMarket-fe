@@ -102,7 +102,6 @@ export function CampaignForm({
     keyName: "key",
   });
   const acceptsPrepaidQr = useWatch({ control, name: "acceptsPrepaidQr" });
-  const defaultUnit = useWatch({ control, name: "defaultUnit" });
   const [importSummary, setImportSummary] = useState("");
 
   useEffect(() => {
@@ -137,16 +136,18 @@ export function CampaignForm({
 
   // A form that still has its one untouched empty row takes the imported
   // products in its place instead of after it.
+  // Reads the live rows: the seller may have edited while a file was read.
   const startsEmpty = () => {
-    const [only] = getValues("items");
+    const rows = getValues("items");
+    const [only] = rows;
     return (
-      fields.length === 1 &&
+      rows.length === 1 &&
       only.id === "" &&
       only.title === "" &&
       only.unitPrice === "" &&
       only.description === "" &&
       only.combos.length === 0 &&
-      !photos.current.has(fields[0].key)
+      photos.current.size === 0
     );
   };
   const importItems = (imported: ItemFormValues[]) => {
@@ -218,6 +219,8 @@ export function CampaignForm({
         const target = event.target as HTMLElement;
         if (
           event.key === "Enter" &&
+          // Enter that commits a Telex / Unikey composition is not a save.
+          !event.nativeEvent.isComposing &&
           target instanceof HTMLInputElement &&
           !["checkbox", "radio", "file", "button", "submit"].includes(target.type)
         ) {
@@ -392,8 +395,10 @@ export function CampaignForm({
         actions={
           <>
             <ImportItemsButton
-              defaultUnit={defaultUnit}
-              room={() => (startsEmpty() ? MAX_ITEMS : MAX_ITEMS - fields.length)}
+              defaultUnit={() => getValues("defaultUnit")}
+              room={() =>
+                startsEmpty() ? MAX_ITEMS : MAX_ITEMS - getValues("items").length
+              }
               onImport={importItems}
               onSummary={setImportSummary}
             />
