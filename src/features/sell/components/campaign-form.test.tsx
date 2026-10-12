@@ -39,6 +39,7 @@ const categories = [
 const saved = (overrides: object = {}) => ({
   id: "c1",
   failedImages: [],
+  failedRemovals: 0,
   publishError: null,
   published: false,
   ...overrides,
@@ -225,6 +226,17 @@ describe("CampaignForm", () => {
       );
       expect(lastSubmit().publish).toBe(true);
       expect(toast.success).toHaveBeenCalledWith("Đã đăng đợt");
+    });
+
+    it("saves a draft when Enter is pressed in a text field, and does not publish", async () => {
+      await renderForm();
+      await fillShared();
+      await fillRow(1, "Bánh bao chay", "15.000");
+
+      await userEvent.type(field("Tên đợt"), "{Enter}");
+
+      await waitFor(() => expect(submitCampaign).toHaveBeenCalledTimes(1));
+      expect(lastSubmit().publish).toBe(false);
     });
 
     it("shows each problem next to its field and sends nothing", async () => {
@@ -431,6 +443,22 @@ describe("CampaignForm", () => {
       );
       expect(toast.error).toHaveBeenCalledWith(
         "Đã lưu đợt nhưng chưa tải được ảnh: hong.jpg. Hãy thử thêm lại ảnh.",
+      );
+    });
+
+    it("tells the seller when a photo could not be removed, and still publishes", async () => {
+      submitCampaign.mockResolvedValue(saved({ published: true, failedRemovals: 2 }));
+      await renderForm();
+      await fillShared();
+      await fillRow(1, "Bánh bao chay", "15.000");
+
+      await click("Đăng đợt");
+
+      await waitFor(() =>
+        expect(router.push).toHaveBeenCalledWith("/campaigns/c1"),
+      );
+      expect(toast.error).toHaveBeenCalledWith(
+        "Không xóa được 2 ảnh. Hãy mở món và xóa lại.",
       );
     });
 

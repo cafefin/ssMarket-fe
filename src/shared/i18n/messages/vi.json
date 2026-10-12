@@ -587,7 +587,8 @@
         "defaultUnitHint": "Món mới thêm sẽ dùng đơn vị này; từng món vẫn đổi được.",
         "publish": "Đăng đợt",
         "published": "Đã đăng đợt",
-        "imagesFailed": "Đã lưu đợt nhưng chưa tải được ảnh: {files}. Hãy thử thêm lại ảnh."
+        "imagesFailed": "Đã lưu đợt nhưng chưa tải được ảnh: {files}. Hãy thử thêm lại ảnh.",
+        "removalsFailed": "Không xóa được {count} ảnh. Hãy mở món và xóa lại."
       },
       "items": {
         "title": "Các món",

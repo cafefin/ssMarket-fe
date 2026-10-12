@@ -26,6 +26,8 @@ export interface SubmitCampaignResult {
   id: string;
   /** Names of the photos that could not be uploaded. */
   failedImages: string[];
+  /** How many photo removals the server refused; they do not block publishing. */
+  failedRemovals: number;
   /** Set when the round was saved but could not be published. */
   publishError: ApiError | null;
   published: boolean;
@@ -58,6 +60,7 @@ export async function submitCampaign({
   const id = saved.data.id;
 
   const failedImages: string[] = [];
+  let failedRemovals = 0;
   for (const [index, { newImages, removedImageIds }] of photos.entries()) {
     // A product of the round is a listing; its photos hang on that listing.
     const listingId = saved.data.items[index]?.id;
@@ -67,31 +70,44 @@ export async function submitCampaign({
     }
 
     for (const imageId of removedImageIds) {
-      await api.DELETE("/listings/{listingId}/images/{imageId}", {
-        params: { path: { listingId, imageId } },
-      });
+      try {
+        const removal = await api.DELETE(
+          "/listings/{listingId}/images/{imageId}",
+          { params: { path: { listingId, imageId } } },
+        );
+        if (removal.error) {
+          failedRemovals += 1;
+        }
+      } catch {
+        failedRemovals += 1;
+      }
     }
 
     for (const file of newImages) {
-      const upload = await api.POST("/listings/{listingId}/images", {
-        params: { path: { listingId } },
-        // The generated type describes the multipart field as a string; the
-        // serializer below sends the real file.
-        body: { file: file as unknown as string },
-        bodySerializer: () => {
-          const form = new FormData();
-          form.append("file", file);
-          return form;
-        },
-      });
-      if (!upload.data) {
+      try {
+        const upload = await api.POST("/listings/{listingId}/images", {
+          params: { path: { listingId } },
+          // The generated type describes the multipart field as a string; the
+          // serializer below sends the real file.
+          body: { file: file as unknown as string },
+          bodySerializer: () => {
+            const form = new FormData();
+            form.append("file", file);
+            return form;
+          },
+        });
+        if (!upload.data) {
+          failedImages.push(file.name);
+        }
+      } catch {
+        // A network error is a failed upload too; the round is already saved.
         failedImages.push(file.name);
       }
     }
   }
 
   if (!publish || failedImages.length > 0) {
-    return { id, failedImages, publishError: null, published: false };
+    return { id, failedImages, failedRemovals, publishError: null, published: false };
   }
 
   const published = await api.POST("/campaigns/{id}/publish", {
@@ -100,6 +116,7 @@ export async function submitCampaign({
   return {
     id,
     failedImages,
+    failedRemovals,
     publishError: published.data
       ? null
       : toApiError(published.error, published.response),

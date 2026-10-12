@@ -149,6 +149,9 @@ export function CampaignForm({
         );
         onSaved?.();
 
+        if (result.failedRemovals > 0) {
+          toast.error(t("removalsFailed", { count: result.failedRemovals }));
+        }
         if (result.failedImages.length > 0) {
           toast.error(
             t("imagesFailed", { files: result.failedImages.join(", ") }),
@@ -180,8 +183,22 @@ export function CampaignForm({
   return (
     <form
       noValidate
-      // Enter in a text field does what the primary button does.
-      onSubmit={(event) => void save(!isOpen)(event)}
+      // Enter in a text field saves; publishing only through its own button.
+      // With 50 rows of inputs an accidental publish is too easy.
+      onSubmit={(event) => void save(false)(event)}
+      onKeyDown={(event) => {
+        const target = event.target as HTMLElement;
+        if (
+          event.key === "Enter" &&
+          target instanceof HTMLInputElement &&
+          !["checkbox", "radio", "file", "button", "submit"].includes(target.type)
+        ) {
+          event.preventDefault();
+          if (submitting === null) {
+            void save(false)();
+          }
+        }
+      }}
       className="flex flex-col gap-8"
     >
       <section className="flex flex-col gap-4">

@@ -587,7 +587,8 @@
         "defaultUnitHint": "New products start with this unit; each one can still change it.",
         "publish": "Publish round",
         "published": "Round published",
-        "imagesFailed": "The round was saved, but these photos did not upload: {files}. Try adding them again."
+        "imagesFailed": "The round was saved, but these photos did not upload: {files}. Try adding them again.",
+        "removalsFailed": "{count, plural, one {# photo} other {# photos}} could not be removed. Open the product and remove again."
       },
       "items": {
         "title": "Products",

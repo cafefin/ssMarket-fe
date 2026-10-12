@@ -76,6 +76,7 @@ describe("submitCampaign", () => {
     expect(result).toEqual({
       id: "c1",
       failedImages: [],
+      failedRemovals: 0,
       publishError: null,
       published: true,
     });
@@ -176,11 +177,66 @@ describe("submitCampaign", () => {
     expect(result).toEqual({
       id: "c1",
       failedImages: ["broken.jpg"],
+      failedRemovals: 0,
       publishError: null,
       published: false,
     });
     expect(calls).not.toContain("POST /campaigns/{id}/publish");
     expect(uploads).toBe(2);
+  });
+
+  it("counts photo removals that failed and still publishes", async () => {
+    respond({
+      "DELETE /listings/{listingId}/images/{imageId}": fail(404, "NOT_FOUND"),
+    });
+    api.DELETE.mockImplementationOnce(() => Promise.resolve(ok({})));
+
+    const result = await submit({
+      campaignId: "c1",
+      photos: [{ newImages: [], removedImageIds: ["a", "b", "c"] }, none()],
+      publish: true,
+    });
+
+    expect(result.failedRemovals).toBe(2);
+    expect(result.published).toBe(true);
+  });
+
+  it("counts a removal that throws as failed", async () => {
+    respond();
+    api.DELETE.mockRejectedValue(new TypeError("network"));
+
+    const result = await submit({
+      campaignId: "c1",
+      photos: [{ newImages: [], removedImageIds: ["a"] }, none()],
+    });
+
+    expect(result.failedRemovals).toBe(1);
+  });
+
+  it("treats an upload that throws as a failed one and resolves with the saved round", async () => {
+    respond();
+    api.POST.mockImplementation((path: string) => {
+      calls.push(`POST ${path}`);
+      if (path === "/listings/{listingId}/images") {
+        return Promise.reject(new TypeError("network"));
+      }
+      return Promise.resolve(ok(round));
+    });
+
+    const result = await submit({
+      photos: [
+        { newImages: [photo("a.jpg")], removedImageIds: [] },
+        { newImages: [photo("b.jpg")], removedImageIds: [] },
+      ],
+      publish: true,
+    });
+
+    expect(result).toMatchObject({
+      id: "c1",
+      failedImages: ["a.jpg", "b.jpg"],
+      published: false,
+    });
+    expect(calls).not.toContain("POST /campaigns/{id}/publish");
   });
 
   it("reports the photos of a product the server did not answer with", async () => {
