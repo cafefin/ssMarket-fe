@@ -69,7 +69,8 @@
       "VALIDATION_FAILED": "Some details are not valid. Please check them.",
       "BAD_REQUEST": "Some details are not valid. Please check them.",
       "INVALID_CAMPAIGN": "The pre-order round is not valid. Please check it again.",
-      "CAMPAIGN_ITEM_HAS_ORDERS": "This product has orders, so it cannot be removed. Turn on “Stop selling” for it instead."
+      "CAMPAIGN_ITEM_HAS_ORDERS": "This product has orders, so it cannot be removed. Turn on “Stop selling” for it instead.",
+      "CART_FULL": "Your cart is full (50 products at most). Check out or remove some first."
     }
   },
   "orders": {
@@ -688,13 +689,18 @@
       "LISTING_NOT_OPEN": "The listing is closed or past its deadline",
       "OUT_OF_STOCK": "Only {available} {unit} left"
     },
-    "preorderCloses": "Pre-order · closes {deadline}",
     "selectedTotal": "Total for {count, plural, one {# item} other {# items}}",
     "checkout": "Check out ({count})",
     "allInCart": "{quantity} {unit} already in your cart",
     "onlyLeft": "Only {quantity} {unit} left",
     "soldOut": "Sold out",
-    "viewCart": "View cart"
+    "viewCart": "View cart",
+    "round": "Pre-order · closes {deadline} · delivered {delivery}",
+    "campaignBar": {
+      "label": "Chosen products",
+      "selected": "{count, plural, one {# item} other {# items}}",
+      "none": "Nothing chosen yet"
+    }
   },
   "checkout": {
     "title": "Checkout",
@@ -721,7 +727,8 @@
     "viewOrder": "View order {code}",
     "myOrders": "See my orders",
     "alreadyOrdered": "You already ordered from this round. To change the quantity, edit that order.",
-    "viewExisting": "View your order"
+    "viewExisting": "View your order",
+    "orderOfRound": "Order from {name} · {title}"
   },
   "units": {
     "cái": {
@@ -775,6 +782,39 @@
       "noMatch": "No round matches these filters",
       "tryOther": "Try other words or remove some filters.",
       "clearFilters": "Clear filters"
+    },
+    "picker": {
+      "quantityOf": "Quantity of {title}",
+      "stopped": "No longer on sale",
+      "aboveMax": "At most {max} {unit}",
+      "empty": "This round has no products yet."
+    },
+    "page": {
+      "kind": "Pre-order round",
+      "loading": "Loading the pre-order round",
+      "loadFailed": "Could not load the pre-order round.",
+      "notFound": "Pre-order round not found",
+      "notFoundHint": "The round may not be open yet, or it does not exist.",
+      "seller": "Seller:",
+      "terms": "Terms of the round",
+      "deadline": "Orders close",
+      "deliveryDate": "Delivery date",
+      "timeLeft": {
+        "days": "{count, plural, one {# day} other {# days}} left",
+        "hours": "{count, plural, one {# hour} other {# hours}} left",
+        "minutes": "{count, plural, one {# minute} other {# minutes}} left"
+      },
+      "closed": "Closed",
+      "closedHint": "This round has closed and takes no more orders.",
+      "draft": "This round is a draft. Only you can see it.",
+      "payment": "Payment",
+      "description": "Description",
+      "products": "Products in this round",
+      "ordered": "You have already ordered from this round",
+      "orderedHint": "To add products or change quantities, edit your existing order.",
+      "editOrder": "Edit order",
+      "edit": "Edit round",
+      "summary": "Summary"
     }
   }
 }

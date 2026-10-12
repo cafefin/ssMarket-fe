@@ -38,7 +38,7 @@ src/
 │   └── lib/                  utils.ts, format/, theme/
 └── features/
     ├── listings/             browse, search and read listings
-    ├── campaigns/            pre-order rounds: card, shelf, grid
+    ├── campaigns/            pre-order rounds: card, shelf, grid, round page
     ├── profile/              profile form, bank account
     ├── shell/                header, search, user menu, tab bar, nav items
     ├── sellers/              a seller's public page

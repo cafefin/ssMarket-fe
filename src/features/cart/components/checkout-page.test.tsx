@@ -123,9 +123,22 @@ describe("CheckoutPage", () => {
     const lan = await screen.findByRole("region", { name: "Đơn của Chị Lan" });
     expect(within(lan).getAllByText("900.000 đ").length).toBeGreaterThan(0);
     expect(within(lan).getByText("1.000.000 đ")).toHaveClass("line-through");
-    const minh = screen.getByRole("region", { name: "Đơn của Anh Minh" });
-    // The block of a pre-order round names the round and its dates.
-    expect(within(minh).getByText("Hoa quả tuần 41")).toBeInTheDocument();
+    // The block of a pre-order round is headed by the round, then its dates.
+    const minh = screen.getByRole("region", {
+      name: "Đơn của Anh Minh · Hoa quả tuần 41",
+    });
+    const heading = within(minh).getByRole("heading", { name: "Hoa quả tuần 41" });
+    expect(within(heading).getByRole("link")).toHaveAttribute(
+      "href",
+      "/campaigns/c1",
+    );
+    const seller = within(minh).getByText("Đơn của Anh Minh");
+    expect(
+      heading.compareDocumentPosition(seller) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      within(lan).getByRole("heading", { name: "Đơn của Chị Lan" }),
+    ).toBeInTheDocument();
     expect(
       within(minh).getByText(/Đặt trước · chốt .+ · giao 12\/10\/2026/),
     ).toBeInTheDocument();

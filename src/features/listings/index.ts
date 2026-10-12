@@ -31,6 +31,12 @@ export {
 } from "./lib/pricing";
 export type { Combo } from "./lib/pricing";
 export {
+  MAX_ORDER_QUANTITY,
+  normalizeQuantity,
+  quantityProblem,
+} from "./lib/quantity";
+export type { QuantityProblem } from "./lib/quantity";
+export {
   CONDITIONS,
   CONDITION_PERCENT,
   isCondition,

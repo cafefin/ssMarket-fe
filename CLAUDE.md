@@ -28,6 +28,7 @@ src/
 │   └── (app)/            everything that requires a session
 │       ├── page.tsx              browse and search
 │       ├── listings/[id]/        detail and edit
+│       ├── campaigns/[id]/       a pre-order round and its edit page
 │       ├── sell/                 my listings, new listing, received orders, summary
 │       ├── orders/               my orders, order page
 │       ├── cart/                 the cart, grouped by seller
@@ -50,7 +51,9 @@ src/
 └── features/
     ├── listings/         components/ (card, grid, filters, carousel, detail view, gallery),
     │                     api/ (listing and category hooks), lib/ (URL filters,
-    │                     pricing and combos, condition)
+    │                     pricing and combos, quantity rules, condition)
+    ├── campaigns/        components/ (card, shelf, grid, round page, item picker),
+    │                     api/ (use-campaigns), lib/ (selection, time left)
     ├── profile/          components/, api/ (banks, update profile), lib/ (schema)
     ├── shell/            components/ (header, search box, user menu, phone tab bar,
     │                     language switch and sync), api/ (update locale),
@@ -62,8 +65,9 @@ src/
     ├── sell/             components/ (mode step, listing form, round form and its
     │                     product rows, my listings, my rounds), api/ (my rounds),
     │                     lib/ (form schemas, units, draft store, save sequences)
-    └── cart/             components/ (buy controls, cart button, cart page,
-                          checkout page), api/ (use-cart), lib/ (checkout link, purchase)
+    └── cart/             components/ (buy controls, round buy bar, cart button,
+                          cart page, checkout page), api/ (use-cart),
+                          lib/ (checkout link, purchase)
 ```
 
 Each feature has `components/`, `api/`, `lib/` (only the ones it needs) and an
@@ -218,6 +222,31 @@ already serves a 400px thumbnail and a 1600px full size.
 - `MyCampaigns` (above `MyListings` on `/sell`) fetches all rounds once and
   splits them into tabs in the browser; an open round past its deadline
   (`isOpen` false) is listed under closed.
+
+## Pre-order rounds (buyer side)
+
+- `/campaigns/[id]` is `CampaignPage`: the round's terms, then
+  `CampaignItemPicker`, one row per product with a quantity that starts at
+  nothing. The page holds the selection (`Selection`: listing id to the text
+  typed) and reads lines, total and problems from it with
+  `features/campaigns/lib/selection.ts`, which prices with
+  `lineTotalWithCombos` and checks with `quantityProblem` (both in
+  `listings`).
+- `campaigns` and `cart` may not import each other. `app/` passes
+  `CampaignBuyBar` through `renderBuy`; the bar takes plain lines. "Thêm vào
+  giỏ" sends every line in one `PUT /cart/lines`, each quantity added to what
+  the cart holds (the API replaces); "Mua ngay" opens the checkout, where the
+  round becomes one order.
+- Who sees what: the seller gets "Sửa đợt" and "Tổng hợp" and no quantities;
+  a round that is not open says "Đã chốt" and has no quantities; a buyer
+  with an order in the round (`useMyCampaignOrder`, asked afresh on every
+  visit) gets "Bạn đã đặt đợt này" and a link to `/orders/<id>?edit=1`
+  instead of the bar.
+- The bar sits in a `sticky bottom-20 md:bottom-4 z-10` container, clear of
+  the phone tab bar.
+- In the cart a seller's pre-order lines are grouped under their round
+  (title, deadline, delivery date); at checkout a round's block is headed by
+  the round's title.
 
 ## Cart and checkout
 

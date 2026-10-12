@@ -69,7 +69,8 @@
       "VALIDATION_FAILED": "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.",
       "BAD_REQUEST": "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.",
       "INVALID_CAMPAIGN": "Thông tin đợt đặt trước chưa hợp lệ. Vui lòng kiểm tra lại.",
-      "CAMPAIGN_ITEM_HAS_ORDERS": "Món này đã có người đặt nên không xóa được. Hãy bật “Ngừng bán” cho món đó thay vì xóa."
+      "CAMPAIGN_ITEM_HAS_ORDERS": "Món này đã có người đặt nên không xóa được. Hãy bật “Ngừng bán” cho món đó thay vì xóa.",
+      "CART_FULL": "Giỏ hàng đã đầy (tối đa 50 món). Hãy đặt hoặc xóa bớt món trước."
     }
   },
   "orders": {
@@ -688,13 +689,18 @@
       "LISTING_NOT_OPEN": "Bài đăng đã đóng hoặc hết hạn chốt đơn",
       "OUT_OF_STOCK": "Chỉ còn {available} {unit}"
     },
-    "preorderCloses": "Đặt trước · chốt {deadline}",
     "selectedTotal": "Tổng {count} món đã chọn",
     "checkout": "Mua hàng ({count})",
     "allInCart": "Đã có {quantity} {unit} trong giỏ",
     "onlyLeft": "Chỉ còn {quantity} {unit}",
     "soldOut": "Hết hàng",
-    "viewCart": "Xem giỏ"
+    "viewCart": "Xem giỏ",
+    "round": "Đặt trước · chốt {deadline} · giao {delivery}",
+    "campaignBar": {
+      "label": "Các món đã chọn",
+      "selected": "{count} món",
+      "none": "Chưa chọn món nào"
+    }
   },
   "checkout": {
     "title": "Đặt hàng",
@@ -721,7 +727,8 @@
     "viewOrder": "Xem đơn {code}",
     "myOrders": "Xem đơn của tôi",
     "alreadyOrdered": "Bạn đã đặt đợt này. Muốn đổi số lượng, hãy sửa đơn đã có.",
-    "viewExisting": "Xem đơn của bạn"
+    "viewExisting": "Xem đơn của bạn",
+    "orderOfRound": "Đơn của {name} · {title}"
   },
   "units": {
     "cái": {
@@ -775,6 +782,39 @@
       "noMatch": "Chưa có đợt nào khớp bộ lọc",
       "tryOther": "Thử từ khóa khác hoặc bỏ bớt bộ lọc.",
       "clearFilters": "Xóa bộ lọc"
+    },
+    "picker": {
+      "quantityOf": "Số lượng {title}",
+      "stopped": "Ngừng bán",
+      "aboveMax": "Tối đa {max} {unit}",
+      "empty": "Đợt này chưa có món nào."
+    },
+    "page": {
+      "kind": "Đợt đặt trước",
+      "loading": "Đang tải đợt đặt trước",
+      "loadFailed": "Không tải được đợt đặt trước.",
+      "notFound": "Không tìm thấy đợt đặt trước",
+      "notFoundHint": "Đợt có thể chưa mở hoặc không tồn tại.",
+      "seller": "Người bán:",
+      "terms": "Điều kiện của đợt",
+      "deadline": "Chốt đơn",
+      "deliveryDate": "Ngày giao",
+      "timeLeft": {
+        "days": "Còn {count} ngày",
+        "hours": "Còn {count} giờ",
+        "minutes": "Còn {count} phút"
+      },
+      "closed": "Đã chốt",
+      "closedHint": "Đợt đã chốt đơn nên không nhận đặt thêm.",
+      "draft": "Đợt đang là bản nháp. Chỉ bạn nhìn thấy nó.",
+      "payment": "Thanh toán",
+      "description": "Mô tả",
+      "products": "Các món trong đợt",
+      "ordered": "Bạn đã đặt đợt này",
+      "orderedHint": "Muốn thêm món hoặc đổi số lượng, hãy sửa đơn đã có.",
+      "editOrder": "Sửa đơn",
+      "edit": "Sửa đợt",
+      "summary": "Tổng hợp"
     }
   }
 }

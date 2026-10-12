@@ -98,3 +98,27 @@ export function useCampaign(id: string) {
     },
   });
 }
+
+/**
+ * The id of the order the signed-in person has in a round, or null. Asked
+ * afresh every time the round page opens: a checkout elsewhere changes it,
+ * and the cart knows nothing of this query.
+ */
+export function useMyCampaignOrder(campaignId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: [...campaignQueryKey(campaignId), "my-order"],
+    enabled,
+    staleTime: 0,
+    gcTime: 0,
+    queryFn: async (): Promise<string | null> => {
+      const { data, error, response } = await api.GET(
+        "/campaigns/{campaignId}/my-order",
+        { params: { path: { campaignId } } },
+      );
+      if (!data) {
+        throw toApiError(error, response);
+      }
+      return data.orderId;
+    },
+  });
+}
