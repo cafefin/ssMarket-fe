@@ -57,8 +57,9 @@ src/
     ├── admin/            components/ (category admin), api/
     ├── orders/           components/ (order page, editor, QR block, actions, lists,
     │                     summary), api/ (use-orders), lib/ (order-math)
-    ├── sell/             components/ (mode step, listing form, my listings),
-    │                     lib/ (form schema, units, draft store, save sequence)
+    ├── sell/             components/ (mode step, listing form, round form and its
+    │                     product rows, my listings, my rounds), api/ (my rounds),
+    │                     lib/ (form schemas, units, draft store, save sequences)
     └── cart/             components/ (buy controls, stepper, cart button, cart page,
                           checkout page), api/ (use-cart), lib/ (checkout link, purchase)
 ```
@@ -154,9 +155,11 @@ locale routing: URLs never carry a language.
   the previous results (`keepPreviousData`) while new ones load, dimmed, with
   a progress bar under the filter bar, so the page never flashes. The mode defaults to `in_stock` (left out of the URL);
   `mode=all` asks the API without a mode.
-- **Unfinished new listing**: the Zustand store in `features/sell/lib/sell-draft-store.ts`
-  (sessionStorage). It exists so typed values survive the detour to the
-  profile page. Do not put server data in Zustand.
+- **Unfinished new listing or round**: the Zustand store in
+  `features/sell/lib/sell-draft-store.ts` (sessionStorage) keeps the chosen
+  way of selling, a listing's values and a round's values (`campaignValues`),
+  each apart. It exists so typed values survive the detour to the profile
+  page. Photos are never kept. Do not put server data in Zustand.
 
 ## Forms
 
@@ -189,6 +192,30 @@ already serves a 400px thumbnail and a 1600px full size.
   products. `nextCombo` gives the "buy N more" hint.
 - Price and condition filters are URL params (`minPrice`, `maxPrice`,
   `minCondition`) handled by `parseListingFilters` / `listingsHref`.
+
+## Pre-order rounds (seller side)
+
+- `/sell/new` first asks how to sell (`ModeStep`): a product in stock
+  (`ListingForm`) or a pre-order round (`CampaignForm`). The UI says "đợt đặt
+  trước" / "pre-order round" and "món" / "products"; code says campaign and
+  items.
+- `CampaignForm` holds the shared terms once and a field array of product
+  rows (`CampaignItemsField`, `ItemRow`; at most `MAX_ITEMS`). The field
+  array uses `keyName: "key"`, because `id` is the product's server id. Photo
+  changes live outside the form state, in a ref keyed by the row's key.
+- `submitCampaign` saves the round, then each product's photos through
+  `/listings/{listingId}/images` with the id the server answered at the same
+  index, then publishes.
+- A product an order refers to (`removable: false`) has no remove button,
+  only the "Ngừng bán" switch (`selling: false`).
+- `sell` may not import `campaigns`: the seller's hooks, including the fetch
+  of one round for editing, are in `features/sell/api/use-my-campaigns.ts`.
+  After a write invalidate `campaignKeysToInvalidate(id)`.
+- `EditCampaign` remounts the form after every save, so a second save never
+  adds the new products or uploads the new photos again.
+- `MyCampaigns` (above `MyListings` on `/sell`) fetches all rounds once and
+  splits them into tabs in the browser; an open round past its deadline
+  (`isOpen` false) is listed under closed.
 
 ## Cart and checkout
 

@@ -65,7 +65,9 @@
       "NOT_FOUND": "We could not find what you asked for.",
       "TOO_MANY_REQUESTS": "You are going too fast. Please try again in a few minutes.",
       "VALIDATION_FAILED": "Some details are not valid. Please check them.",
-      "BAD_REQUEST": "Some details are not valid. Please check them."
+      "BAD_REQUEST": "Some details are not valid. Please check them.",
+      "INVALID_CAMPAIGN": "The pre-order round is not valid. Please check it again.",
+      "CAMPAIGN_ITEM_HAS_ORDERS": "This product has orders, so it cannot be removed. Turn on “Stop selling” for it instead."
     }
   },
   "orders": {
@@ -456,7 +458,15 @@
     "title": "Sell",
     "modeStep": {
       "in_stock": {
-        "title": "In stock"
+        "title": "In stock",
+        "description": "Things you have now, sold until they run out.",
+        "example": "For example: a used speaker, books, household items."
+      },
+      "question": "How do you want to sell?",
+      "campaign": {
+        "title": "Open a pre-order round",
+        "description": "Many products, one deadline and one delivery date.",
+        "example": "For example: weekly fruit, daily food."
       }
     },
     "form": {
@@ -523,7 +533,15 @@
       "comboQuantity": "A combo quantity is more than 1 and a multiple of the step (kg: 0.1)",
       "comboPrice": "A combo costs from 1,000 VND and less than buying the same quantity singly",
       "comboDuplicate": "Another combo has this quantity",
-      "comboCount": "At most {max} combos"
+      "comboCount": "At most {max} combos",
+      "campaignTitle": "The round name has 5–120 characters",
+      "deadlineRequired": "Choose an order deadline",
+      "deadlineFuture": "The order deadline must be in the future",
+      "deliveryRequired": "Choose a delivery date",
+      "deliveryBeforeDeadline": "The delivery date cannot be before the order deadline",
+      "itemsRequired": "Add at least one product",
+      "itemsTooMany": "A round has at most {max} products",
+      "itemTitle": "A product name has 2–120 characters"
     },
     "edit": {
       "title": "Edit listing",
@@ -555,6 +573,84 @@
       "closeTitle": "Close this listing?",
       "closeBody": "“{title}” will no longer be shown to buyers. A closed listing cannot be opened again or edited.",
       "price": "{price}/{unit}"
+    },
+    "changeMode": "Change how you sell",
+    "campaign": {
+      "form": {
+        "shared": "Shared terms",
+        "title": "Round name",
+        "titlePlaceholder": "Fruit of the week",
+        "deadline": "Order deadline",
+        "deadlineHint": "Nobody can order after this time.",
+        "deliveryDate": "Delivery date",
+        "defaultUnit": "Default unit",
+        "defaultUnitHint": "New products start with this unit; each one can still change it.",
+        "publish": "Publish round",
+        "published": "Round published",
+        "imagesFailed": "The round was saved, but these photos did not upload: {files}. Try adding them again."
+      },
+      "items": {
+        "title": "Products",
+        "count": "{count}/{max}",
+        "add": "Add a product",
+        "limit": "A round has at most {max} products.",
+        "columnPhoto": "Photo",
+        "columnTitle": "Product name",
+        "columnPrice": "Price (VND)",
+        "columnUnit": "Unit"
+      },
+      "item": {
+        "label": "Product {number}",
+        "title": "Product {number} name",
+        "titlePlaceholder": "Vegetarian steamed bun",
+        "price": "Product {number} price (VND)",
+        "unit": "Product {number} unit",
+        "description": "Product {number} description",
+        "expand": "Open product {number}",
+        "collapse": "Close product {number}",
+        "remove": "Remove product {number}",
+        "photo": "Photo of product {number}",
+        "addPhoto": "Add photos to product {number}",
+        "stopSelling": "Stop selling",
+        "orders": "{count, plural, one {# order} other {# orders}}"
+      },
+      "new": {
+        "title": "Open a pre-order round"
+      },
+      "edit": {
+        "title": "Edit pre-order round",
+        "notFound": "Pre-order round not found",
+        "closed": "This round is closed and cannot be edited",
+        "loading": "Loading the pre-order round",
+        "backToSell": "Back to selling",
+        "reopened": "This is a copy of the previous round. Check the deadline, delivery date and prices before publishing."
+      },
+      "mine": {
+        "title": "My pre-order rounds",
+        "tabs": "Round status",
+        "empty": {
+          "open": "You have no open rounds.",
+          "draft": "You have no draft rounds.",
+          "closed": "You have no closed rounds."
+        },
+        "loading": "Loading your rounds",
+        "loadFailed": "Could not load your pre-order rounds.",
+        "meta": "{items, plural, one {# product} other {# products}} · Closes {deadline} · {orders, plural, one {# order} other {# orders}}",
+        "expired": "Deadline passed",
+        "view": "View",
+        "summary": "Summary",
+        "publish": "Publish",
+        "published": "Round published",
+        "close": "Close round",
+        "closed": "Round closed",
+        "closeTitle": "Close this round?",
+        "closeBody": "“{title}” will take no more orders. A closed round cannot be edited, but it can be reopened as a new round.",
+        "reopen": "Reopen round",
+        "delete": "Delete draft",
+        "deleted": "Draft deleted",
+        "deleteTitle": "Delete this draft?",
+        "deleteBody": "“{title}” and its products will be deleted for good."
+      }
     }
   },
   "cart": {
@@ -616,13 +712,34 @@
     "viewExisting": "View your order"
   },
   "units": {
-    "cái": { "one": "piece", "other": "pieces" },
-    "kg": { "one": "kg", "other": "kg" },
-    "hộp": { "one": "box", "other": "boxes" },
-    "túi": { "one": "bag", "other": "bags" },
-    "chai": { "one": "bottle", "other": "bottles" },
-    "bó": { "one": "bunch", "other": "bunches" },
-    "combo": { "one": "combo", "other": "combos" }
+    "cái": {
+      "one": "piece",
+      "other": "pieces"
+    },
+    "kg": {
+      "one": "kg",
+      "other": "kg"
+    },
+    "hộp": {
+      "one": "box",
+      "other": "boxes"
+    },
+    "túi": {
+      "one": "bag",
+      "other": "bags"
+    },
+    "chai": {
+      "one": "bottle",
+      "other": "bottles"
+    },
+    "bó": {
+      "one": "bunch",
+      "other": "bunches"
+    },
+    "combo": {
+      "one": "combo",
+      "other": "combos"
+    }
   },
   "campaigns": {
     "card": {

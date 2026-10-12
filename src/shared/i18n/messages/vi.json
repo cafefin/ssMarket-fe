@@ -65,7 +65,9 @@
       "NOT_FOUND": "Không tìm thấy nội dung bạn yêu cầu.",
       "TOO_MANY_REQUESTS": "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
       "VALIDATION_FAILED": "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.",
-      "BAD_REQUEST": "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại."
+      "BAD_REQUEST": "Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.",
+      "INVALID_CAMPAIGN": "Thông tin đợt đặt trước chưa hợp lệ. Vui lòng kiểm tra lại.",
+      "CAMPAIGN_ITEM_HAS_ORDERS": "Món này đã có người đặt nên không xóa được. Hãy bật “Ngừng bán” cho món đó thay vì xóa."
     }
   },
   "orders": {
@@ -456,7 +458,15 @@
     "title": "Đăng bán",
     "modeStep": {
       "in_stock": {
-        "title": "Hàng có sẵn"
+        "title": "Hàng có sẵn",
+        "description": "Đồ bạn đang có, bán đến khi hết.",
+        "example": "Ví dụ: loa cũ, sách, đồ gia dụng."
+      },
+      "question": "Bạn muốn bán theo cách nào?",
+      "campaign": {
+        "title": "Mở đợt đặt trước",
+        "description": "Nhiều món, một hạn chốt và một ngày giao.",
+        "example": "Ví dụ: hoa quả theo tuần, đồ ăn theo ngày."
       }
     },
     "form": {
@@ -523,7 +533,15 @@
       "comboQuantity": "Số lượng combo phải lớn hơn 1 và chia hết cho bước bán (kg: bước 0,1)",
       "comboPrice": "Giá combo từ 1.000 đ và rẻ hơn mua lẻ cùng số lượng",
       "comboDuplicate": "Đã có combo với số lượng này",
-      "comboCount": "Tối đa {max} combo"
+      "comboCount": "Tối đa {max} combo",
+      "campaignTitle": "Tên đợt gồm 5–120 ký tự",
+      "deadlineRequired": "Chọn hạn chốt đơn",
+      "deadlineFuture": "Hạn chốt đơn phải ở tương lai",
+      "deliveryRequired": "Chọn ngày giao",
+      "deliveryBeforeDeadline": "Ngày giao không được trước hạn chốt đơn",
+      "itemsRequired": "Thêm ít nhất một món",
+      "itemsTooMany": "Mỗi đợt tối đa {max} món",
+      "itemTitle": "Tên món gồm 2–120 ký tự"
     },
     "edit": {
       "title": "Sửa bài đăng",
@@ -555,6 +573,84 @@
       "closeTitle": "Đóng bài đăng?",
       "closeBody": "“{title}” sẽ không còn hiện với người mua. Bài đã đóng không mở lại và không sửa được.",
       "price": "{price}/{unit}"
+    },
+    "changeMode": "Đổi cách bán",
+    "campaign": {
+      "form": {
+        "shared": "Thông tin chung",
+        "title": "Tên đợt",
+        "titlePlaceholder": "Hoa quả tuần này",
+        "deadline": "Hạn chốt đơn",
+        "deadlineHint": "Sau thời điểm này không ai đặt thêm được.",
+        "deliveryDate": "Ngày giao",
+        "defaultUnit": "Đơn vị mặc định",
+        "defaultUnitHint": "Món mới thêm sẽ dùng đơn vị này; từng món vẫn đổi được.",
+        "publish": "Đăng đợt",
+        "published": "Đã đăng đợt",
+        "imagesFailed": "Đã lưu đợt nhưng chưa tải được ảnh: {files}. Hãy thử thêm lại ảnh."
+      },
+      "items": {
+        "title": "Các món",
+        "count": "{count}/{max}",
+        "add": "Thêm món",
+        "limit": "Mỗi đợt tối đa {max} món.",
+        "columnPhoto": "Ảnh",
+        "columnTitle": "Tên món",
+        "columnPrice": "Giá (đ)",
+        "columnUnit": "Đơn vị"
+      },
+      "item": {
+        "label": "Món {number}",
+        "title": "Tên món {number}",
+        "titlePlaceholder": "Bánh bao chay",
+        "price": "Giá món {number} (đ)",
+        "unit": "Đơn vị món {number}",
+        "description": "Mô tả món {number}",
+        "expand": "Mở rộng món {number}",
+        "collapse": "Thu gọn món {number}",
+        "remove": "Xóa món {number}",
+        "photo": "Ảnh món {number}",
+        "addPhoto": "Thêm ảnh cho món {number}",
+        "stopSelling": "Ngừng bán",
+        "orders": "{count} đơn"
+      },
+      "new": {
+        "title": "Mở đợt đặt trước"
+      },
+      "edit": {
+        "title": "Sửa đợt đặt trước",
+        "notFound": "Không tìm thấy đợt đặt trước",
+        "closed": "Đợt đã đóng nên không sửa được",
+        "loading": "Đang tải đợt đặt trước",
+        "backToSell": "Về trang bán hàng",
+        "reopened": "Đây là bản sao của đợt trước. Kiểm tra hạn chốt, ngày giao và giá trước khi đăng."
+      },
+      "mine": {
+        "title": "Đợt đặt trước của tôi",
+        "tabs": "Trạng thái đợt đặt trước",
+        "empty": {
+          "open": "Bạn chưa có đợt đặt trước nào đang mở.",
+          "draft": "Bạn không có đợt nháp nào.",
+          "closed": "Bạn chưa có đợt nào đã đóng."
+        },
+        "loading": "Đang tải các đợt đặt trước",
+        "loadFailed": "Không tải được các đợt đặt trước của bạn.",
+        "meta": "{items} món · Chốt {deadline} · {orders} đơn",
+        "expired": "Đã hết hạn",
+        "view": "Xem",
+        "summary": "Tổng hợp",
+        "publish": "Đăng",
+        "published": "Đã đăng đợt",
+        "close": "Đóng đợt",
+        "closed": "Đã đóng đợt",
+        "closeTitle": "Đóng đợt đặt trước?",
+        "closeBody": "“{title}” sẽ không nhận thêm đơn. Đợt đã đóng không sửa được, nhưng có thể mở lại thành một đợt mới.",
+        "reopen": "Mở lại đợt",
+        "delete": "Xóa nháp",
+        "deleted": "Đã xóa đợt nháp",
+        "deleteTitle": "Xóa đợt nháp?",
+        "deleteBody": "“{title}” và các món trong đợt sẽ bị xóa hẳn."
+      }
     }
   },
   "cart": {
@@ -616,13 +712,34 @@
     "viewExisting": "Xem đơn của bạn"
   },
   "units": {
-    "cái": { "one": "cái", "other": "cái" },
-    "kg": { "one": "kg", "other": "kg" },
-    "hộp": { "one": "hộp", "other": "hộp" },
-    "túi": { "one": "túi", "other": "túi" },
-    "chai": { "one": "chai", "other": "chai" },
-    "bó": { "one": "bó", "other": "bó" },
-    "combo": { "one": "combo", "other": "combo" }
+    "cái": {
+      "one": "cái",
+      "other": "cái"
+    },
+    "kg": {
+      "one": "kg",
+      "other": "kg"
+    },
+    "hộp": {
+      "one": "hộp",
+      "other": "hộp"
+    },
+    "túi": {
+      "one": "túi",
+      "other": "túi"
+    },
+    "chai": {
+      "one": "chai",
+      "other": "chai"
+    },
+    "bó": {
+      "one": "bó",
+      "other": "bó"
+    },
+    "combo": {
+      "one": "combo",
+      "other": "combo"
+    }
   },
   "campaigns": {
     "card": {
