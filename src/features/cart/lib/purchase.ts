@@ -1,4 +1,4 @@
-import { stepFor } from "./step";
+import { stepFor } from "@/shared/lib/quantity-step";
 
 /** Rounds away floating-point noise from decimal steps. */
 function tidy(value: number): number {

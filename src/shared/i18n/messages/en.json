@@ -31,7 +31,9 @@
     "save": "Save",
     "cancel": "Cancel",
     "edit": "Edit",
-    "no": "No"
+    "no": "No",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity"
   },
   "login": {
     "tagline": "An internal marketplace for employees.",
@@ -672,8 +674,6 @@
     "added": "Added to your cart",
     "buyNow": "Buy now",
     "quantity": "Quantity",
-    "decrease": "Decrease quantity",
-    "increase": "Increase quantity",
     "title": "Cart",
     "loading": "Loading your cart",
     "loadFailed": "Could not load your cart.",

@@ -18,7 +18,7 @@ import {
   initialQuantity,
   normalizeQuantity,
 } from "../lib/purchase";
-import { QuantityStepper } from "./quantity-stepper";
+import { QuantityStepper } from "@/shared/ui/molecules/quantity-stepper";
 
 /** What the controls need to know about a product. */
 export interface BuyableProduct {

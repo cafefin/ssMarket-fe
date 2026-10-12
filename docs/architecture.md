@@ -29,7 +29,7 @@ src/
 │   ├── ui/
 │   │   ├── atoms/            logo-mark, wordmark, price
 │   │   │   └── shadcn/       generated shadcn/ui primitives
-│   │   └── molecules/        field, user-avatar
+│   │   └── molecules/        field, user-avatar, quantity-stepper
 │   ├── api/                  client, auth-fetch, api-error, schema.d.ts,
 │   │                         query-provider, use-current-user, use-public-user,
 │   │                         use-user-message
@@ -97,7 +97,9 @@ static imports and re-exports, including relative paths that leave a feature,
 - **Molecule:** built from atoms. It does not call the API and knows nothing
   about the business. It exists only when two or more features use it.
   Example: `UserAvatar` (an `Avatar` with the picture, or the initials of the
-  name; `aria-hidden` when the name is shown next to it). `Field` is the other.
+  name; `aria-hidden` when the name is shown next to it). `Field` and
+  `QuantityStepper` (− quantity +, used by the cart and the round page) are
+  the others.
 - **Anything that knows the business is a feature component**, however small.
   `ModeBadge` knows "in stock / pre-order", so it lives in `listings`.
 

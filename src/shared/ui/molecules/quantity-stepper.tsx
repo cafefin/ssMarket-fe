@@ -3,7 +3,7 @@
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/utils";
-import { stepFor } from "../lib/step";
+import { stepFor } from "@/shared/lib/quantity-step";
 
 /** Rounds away floating-point noise from adding 0.5 steps. */
 function tidy(value: number): string {
@@ -33,7 +33,7 @@ export function QuantityStepper({
   label: string;
   className?: string;
 }) {
-  const t = useTranslations("cart");
+  const t = useTranslations("common");
   const step = stepFor(unit);
   const current = Number(value.replace(",", "."));
   const valid = Number.isFinite(current) && current > 0;
@@ -50,7 +50,7 @@ export function QuantityStepper({
     >
       <button
         type="button"
-        aria-label={t("decrease")}
+        aria-label={t("decreaseQuantity")}
         disabled={disabled || !valid || current <= step}
         onClick={() => onChange(tidy(Math.max(step, current - step)))}
         className={button}
@@ -67,7 +67,7 @@ export function QuantityStepper({
       />
       <button
         type="button"
-        aria-label={t("increase")}
+        aria-label={t("increaseQuantity")}
         disabled={disabled || atMax}
         onClick={() =>
           onChange(tidy(valid ? current + step : step))

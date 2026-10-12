@@ -21,7 +21,7 @@ import {
   useSetCartLine,
 } from "../api/use-cart";
 import { checkoutHref } from "../lib/checkout-link";
-import { QuantityStepper } from "./quantity-stepper";
+import { QuantityStepper } from "@/shared/ui/molecules/quantity-stepper";
 
 const DECIMAL = /^\d{1,7}(\.\d{1,3})?$/;
 

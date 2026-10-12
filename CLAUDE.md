@@ -39,12 +39,14 @@ src/
 │   ├── ui/
 │   │   ├── atoms/        logo-mark, wordmark, price
 │   │   │   └── shadcn/   shadcn/ui primitives (Base UI); change only to apply design tokens
-│   │   └── molecules/    field (and shared control styles), user-avatar
+│   │   └── molecules/    field (and shared control styles), user-avatar,
+│   │                     quantity-stepper
 │   ├── api/              typed client, session refresh, ApiError, schema.d.ts,
 │   │                     query provider, use-current-user, use-public-user, use-user-message
 │   ├── i18n/             locales, request config (cookie), messages/vi.json and en.json,
 │   │                     locale cookie, Translator type, test-utils (renderWithIntl)
-│   └── lib/              utils.ts, format/ (money, dates, quantities, initials, useFormat), theme/
+│   └── lib/              utils.ts, quantity-step.ts, format/ (money, dates, quantities,
+│                         initials, useFormat), theme/
 └── features/
     ├── listings/         components/ (card, grid, filters, carousel, detail view, gallery),
     │                     api/ (listing and category hooks), lib/ (URL filters,
@@ -60,7 +62,7 @@ src/
     ├── sell/             components/ (mode step, listing form, round form and its
     │                     product rows, my listings, my rounds), api/ (my rounds),
     │                     lib/ (form schemas, units, draft store, save sequences)
-    └── cart/             components/ (buy controls, stepper, cart button, cart page,
+    └── cart/             components/ (buy controls, cart button, cart page,
                           checkout page), api/ (use-cart), lib/ (checkout link, purchase)
 ```
 

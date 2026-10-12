@@ -31,7 +31,9 @@
     "save": "Lưu",
     "cancel": "Hủy",
     "edit": "Sửa",
-    "no": "Không"
+    "no": "Không",
+    "decreaseQuantity": "Giảm số lượng",
+    "increaseQuantity": "Tăng số lượng"
   },
   "login": {
     "tagline": "Sàn mua bán nội bộ dành cho nhân viên.",
@@ -672,8 +674,6 @@
     "added": "Đã thêm vào giỏ",
     "buyNow": "Mua ngay",
     "quantity": "Số lượng",
-    "decrease": "Giảm số lượng",
-    "increase": "Tăng số lượng",
     "title": "Giỏ hàng",
     "loading": "Đang tải giỏ hàng",
     "loadFailed": "Không tải được giỏ hàng.",
