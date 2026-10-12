@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { Button } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import type { Order } from "../api/use-orders";
-import { formatDateTime } from "@/shared/lib/format/datetime";
+import { formatDate, formatDateTime } from "@/shared/lib/format/datetime";
 import { useFormat } from "@/shared/lib/format/use-format";
 import { OrderActions } from "./order-actions";
 import { OrderStatusBadges } from "./status-badges";
@@ -85,6 +85,21 @@ export function OrderList({
                         })
                       : order.listing.title}
                   </p>
+                  {order.campaign && (
+                    <p className="text-[13px] text-deadline-deep">
+                      <Link
+                        href={`/campaigns/${order.campaign.id}`}
+                        className="font-medium underline-offset-4 hover:underline"
+                      >
+                        {t("round", { title: order.campaign.title })}
+                      </Link>{" "}
+                      ·{" "}
+                      {t("roundDates", {
+                        deadline: format.deadline(order.campaign.orderDeadline),
+                        delivery: formatDate(order.campaign.deliveryDate),
+                      })}
+                    </p>
+                  )}
                   <p className="text-[13px] text-muted-foreground">
                     {seller
                       ? `${order.buyer.name} · ${order.deliveryLocation}`

@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { screen, waitFor } from "@testing-library/react";
 import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
@@ -17,10 +18,30 @@ vi.mock("sonner", () => ({ toast }));
 const FUTURE = "2099-01-01T10:00:00.000Z";
 const PAST = "2020-01-01T10:00:00.000Z";
 
+const ROUND = {
+  id: "c1",
+  title: "Hoa quả tuần này",
+  orderDeadline: FUTURE,
+  deliveryDate: "2099-01-03",
+};
+
+const CAM = { listingId: "l1", title: "Cam ngọt", unit: "kg", unitPrice: 35000, quantity: 1.5, lineTotal: 52500, listTotal: 52500, combos: [] };
+const XOAI = {
+  listingId: "l2",
+  title: "Xoài cát",
+  unit: "hộp",
+  unitPrice: 40000,
+  quantity: 2,
+  lineTotal: 80000,
+  listTotal: 80000,
+  combos: [{ quantity: "3", price: 100000 }],
+};
+
 const order = (overrides: Partial<Order> = {}): Order => ({
   id: "o1",
   code: "SSM7K2Q9X",
-  listing: { id: "l1", title: "Hoa quả tuần này", orderDeadline: FUTURE, deliveryDate: "2099-01-03" },
+  listing: { id: "l1", title: "Cam ngọt" },
+  campaign: ROUND,
   listingCount: 1,
   buyer: { id: "b", name: "Anh Minh" },
   seller: { id: "s", name: "Chị Lan" },
@@ -32,9 +53,7 @@ const order = (overrides: Partial<Order> = {}): Order => ({
   totalAmount: 52500,
   deliveryLocation: "Tầng 7",
   note: null,
-  lines: [
-    { listingId: "l1", title: "Cam ngọt", unit: "kg", unitPrice: 35000, quantity: 1.5, lineTotal: 52500, listTotal: 52500, combos: [] },
-  ],
+  lines: [CAM],
   refundNeeded: false,
   cancelledBy: null,
   cancelReason: null,
@@ -81,10 +100,14 @@ describe("editBlockedReason", () => {
     );
     expect(
       editBlockedReason(
-        order({ listing: { ...order().listing, orderDeadline: PAST } }),
+        order({ campaign: { ...ROUND, orderDeadline: PAST } }),
         now,
       ),
     ).toBe("pastDeadline");
+  });
+
+  it("has no deadline to wait for without a round", () => {
+    expect(editBlockedReason(order({ campaign: null }), now)).toBeNull();
   });
 });
 
@@ -124,7 +147,7 @@ describe("editing an order", () => {
     expect(api.PATCH).toHaveBeenCalledWith("/orders/{id}", {
       params: { path: { id: "o1" } },
       body: {
-        quantity: "2",
+        lines: [{ listingId: "l1", quantity: "2" }],
         paymentMethod: "pay_on_delivery",
         deliveryLocation: "Tầng 7",
         note: null,
@@ -146,6 +169,136 @@ describe("editing an order", () => {
       await screen.findByText("Nhập số lượng. Muốn bỏ hẳn, hãy hủy đơn."),
     ).toBeInTheDocument();
     expect(api.PATCH).not.toHaveBeenCalled();
+  });
+
+  describe("with two products", () => {
+    const two = () => order({ listingCount: 2, lines: [CAM, XOAI], totalAmount: 132500 });
+    const fields = async () => ({
+      cam: await screen.findByRole("textbox", { name: /^Cam ngọt/ }),
+      xoai: screen.getByRole("textbox", { name: /^Xoài cát/ }),
+    });
+    const total = () => screen.getByRole("status", { name: "Tổng tiền mới" });
+
+    it("has one quantity per product and adds the lines up, combos included", async () => {
+      renderOrder(two());
+      await openEditor();
+      const { cam, xoai } = await fields();
+
+      expect(cam).toHaveValue("1,5");
+      expect(xoai).toHaveValue("2");
+      expect(xoai).toHaveAccessibleName(/40\.000 đ\/hộp/);
+      expect(total()).toHaveTextContent("132.500 đ");
+
+      await userEvent.clear(xoai);
+      await userEvent.type(xoai, "4");
+      // 1,5 kg x 35.000 + one combo of 3 (100.000) + 1 x 40.000.
+      expect(total()).toHaveTextContent("192.500 đ");
+    });
+
+    it("sends every product as a line", async () => {
+      renderOrder(two());
+      await openEditor();
+      const { cam, xoai } = await fields();
+
+      await userEvent.clear(cam);
+      await userEvent.type(cam, "2,5");
+      await userEvent.clear(xoai);
+      await userEvent.type(xoai, "3");
+      await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+
+      await waitFor(() => expect(api.PATCH).toHaveBeenCalledTimes(1));
+      expect(api.PATCH).toHaveBeenCalledWith("/orders/{id}", {
+        params: { path: { id: "o1" } },
+        body: {
+          lines: [
+            { listingId: "l1", quantity: "2.5" },
+            { listingId: "l2", quantity: "3" },
+          ],
+          paymentMethod: "pay_on_delivery",
+          deliveryLocation: "Tầng 7",
+          note: null,
+        },
+      });
+    });
+
+    it.each(["0", ""])("leaves out a product set to %j", async (text) => {
+      renderOrder(two());
+      await openEditor();
+      const { cam } = await fields();
+
+      await userEvent.clear(cam);
+      if (text) {
+        await userEvent.type(cam, text);
+      }
+      expect(total()).toHaveTextContent("80.000 đ");
+      await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+
+      await waitFor(() => expect(api.PATCH).toHaveBeenCalledTimes(1));
+      expect(api.PATCH.mock.calls[0][1].body.lines).toEqual([
+        { listingId: "l2", quantity: "2" },
+      ]);
+    });
+
+    it("keeps at least one product", async () => {
+      renderOrder(two());
+      await openEditor();
+      const { cam, xoai } = await fields();
+
+      await userEvent.clear(cam);
+      await userEvent.clear(xoai);
+      await userEvent.type(xoai, "0");
+      await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+
+      expect(
+        await screen.findByText("Nhập số lượng. Muốn bỏ hẳn, hãy hủy đơn."),
+      ).toBeInTheDocument();
+      expect(api.PATCH).not.toHaveBeenCalled();
+    });
+
+    it("points at the product whose quantity is wrong and saves nothing", async () => {
+      renderOrder(two());
+      await openEditor();
+      const { xoai } = await fields();
+
+      await userEvent.clear(xoai);
+      await userEvent.type(xoai, "1,5");
+      await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(/số nguyên/i);
+      expect(xoai).toHaveAttribute("aria-invalid", "true");
+      expect(screen.getByRole("textbox", { name: /^Cam ngọt/ })).toHaveAttribute(
+        "aria-invalid",
+        "false",
+      );
+      expect(total()).toHaveTextContent("0 đ");
+      expect(api.PATCH).not.toHaveBeenCalled();
+    });
+  });
+
+  it.each<[string, Partial<Order>, unknown[]]>([
+    ["the round of a pre-order", {}, ["campaign", "c1"]],
+    ["the listing of an order without a round", { campaign: null }, ["listing", "l1"]],
+  ])("refreshes %s after saving", async (_label, overrides, queryKey) => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const invalidate = vi.spyOn(client, "invalidateQueries");
+    const value = order(overrides);
+    api.GET.mockResolvedValue(ok(value));
+    api.PATCH.mockResolvedValue(ok(value));
+    renderWithIntl(
+      <QueryClientProvider client={client}>
+        <OrderView id="o1" />
+      </QueryClientProvider>,
+    );
+    await openEditor();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Lưu thay đổi" }));
+
+    await waitFor(() => expect(invalidate).toHaveBeenCalledWith({ queryKey }));
+    const keys = invalidate.mock.calls.map(([filters]) => filters?.queryKey);
+    expect(keys).toContainEqual(["orders"]);
+    expect(keys.filter((key) => key?.[0] === "campaign" || key?.[0] === "listing")).toEqual([
+      queryKey,
+    ]);
   });
 
   it("validates quantities like the order form", async () => {

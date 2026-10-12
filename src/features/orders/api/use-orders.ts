@@ -169,8 +169,11 @@ export function useEditOrder() {
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY }),
         queryClient.invalidateQueries({ queryKey: LISTINGS_QUERY_KEY }),
+        // A pre-order belongs to a round, whose page counts its orders.
         queryClient.invalidateQueries({
-          queryKey: listingQueryKey(order.listing.id),
+          queryKey: order.campaign
+            ? ["campaign", order.campaign.id]
+            : listingQueryKey(order.listing.id),
         }),
       ]);
     },

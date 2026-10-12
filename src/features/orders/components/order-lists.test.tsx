@@ -24,7 +24,8 @@ vi.mock("next/navigation", () => ({
 const order = (overrides: Partial<Order> = {}): Order => ({
   id: "o1",
   code: "SSM7K2Q9X",
-  listing: { id: "l1", title: "Hoa quả tuần này", orderDeadline: null, deliveryDate: null },
+  listing: { id: "l1", title: "Hoa quả tuần này" },
+  campaign: null,
   listingCount: 1,
   buyer: { id: "b", name: "Anh Minh" },
   seller: { id: "s", name: "Chị Lan" },
@@ -86,6 +87,31 @@ describe("MyOrders", () => {
     expect(row).toHaveTextContent("Hoa quả tuần này và 2 sản phẩm khác");
   });
 
+  it("names the pre-order round of an order, with its dates", async () => {
+    serve({
+      "/orders": [
+        page([
+          order({
+            campaign: {
+              id: "c1",
+              title: "Trái cây tuần 41",
+              orderDeadline: "2026-10-09T10:00:00.000Z",
+              deliveryDate: "2026-10-12",
+            },
+          }),
+        ]),
+      ],
+    });
+
+    renderList();
+
+    const row = await screen.findByRole("listitem", { name: "Đơn SSM7K2Q9X" });
+    expect(
+      within(row).getByRole("link", { name: "Đợt: Trái cây tuần 41" }),
+    ).toHaveAttribute("href", "/campaigns/c1");
+    expect(row).toHaveTextContent(/Chốt \d{2}:\d{2} .+ · Giao 12\/10\/2026/);
+  });
+
   it("lists the buyer's orders with total, seller and status", async () => {
     serve({ "/orders": [page([order()])] });
 
@@ -101,6 +127,9 @@ describe("MyOrders", () => {
     expect(row).toHaveTextContent("122.500 đ");
     expect(within(row).getByText("Chưa thanh toán")).toBeInTheDocument();
     expect(within(row).queryByRole("button")).not.toBeInTheDocument();
+    // An in-stock order belongs to no round.
+    expect(within(row).getAllByRole("link")).toHaveLength(1);
+    expect(row).not.toHaveTextContent("Chốt");
   });
 
   it("invites browsing when there are no orders", async () => {

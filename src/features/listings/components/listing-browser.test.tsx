@@ -13,9 +13,6 @@ vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(location.search),
 }));
-vi.mock("./closing-soon-shelf", () => ({
-  ClosingSoonShelf: () => <div data-testid="closing-soon-shelf" />,
-}));
 
 const categories = [
   { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food", isPerishable: true },
@@ -35,13 +32,12 @@ const summary = (id: string, title: string) => ({
   hasCombos: false,
   condition: null,
   conditionPercent: null,
-  orderDeadline: null,
-  deliveryDate: null,
+  campaign: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
   orderCount: 0,
 });
 
-type Page = { items: ReturnType<typeof summary>[]; nextCursor: string | null };
+type Page = { items: object[]; nextCursor: string | null };
 const ok = (data: unknown) => ({ data, response: new Response() });
 
 /** Routes api.GET by path; `/listings` responses are served in order. */
@@ -92,30 +88,16 @@ describe("ListingBrowser", () => {
     expect(screen.queryByRole("button", { name: "Xem thêm" })).not.toBeInTheDocument();
   });
 
-  it("opens with the closing-soon shelf and a heading for the full list", async () => {
+  it("opens with a heading for the full list", async () => {
     serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
 
     renderBrowser();
 
-    expect(screen.getByTestId("closing-soon-shelf")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Tất cả món đang bán" }),
     ).toBeInTheDocument();
     expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
   });
-
-  it.each(["q=loa", "category=dien-tu", "mode=preorder", "mode=all"])(
-    "hides the shelf when the list is narrowed by %s",
-    async (search) => {
-      location.search = search;
-      serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
-
-      renderBrowser();
-
-      expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
-      expect(screen.queryByTestId("closing-soon-shelf")).not.toBeInTheDocument();
-    },
-  );
 
   it("shows headings, filters and category names in English", async () => {
     serve([{ items: [summary("1", "Loa cũ")], nextCursor: null }]);
@@ -126,8 +108,9 @@ describe("ListingBrowser", () => {
       screen.getByRole("heading", { name: "Everything for sale" }),
     ).toBeInTheDocument();
     const modes = screen.getByRole("group", { name: "Selling mode" });
-    expect(within(modes).getByRole("button", { name: "Pre-order" })).toBeInTheDocument();
-    expect(within(modes).getByRole("button", { name: "All" })).toBeInTheDocument();
+    expect(
+      within(modes).getByRole("button", { name: "Pre-order rounds" }),
+    ).toBeInTheDocument();
     expect(
       await screen.findByRole("link", { name: "Electronics" }),
     ).toBeInTheDocument();
@@ -186,7 +169,7 @@ describe("ListingBrowser", () => {
     expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
 
-    location.search = "mode=preorder";
+    location.search = "mode=campaign";
     view.rerender(ui());
 
     expect(await screen.findByRole("progressbar", { name: "Đang lọc" })).toBeInTheDocument();
@@ -201,7 +184,7 @@ describe("ListingBrowser", () => {
   });
 
   it("sends the filters from the URL to the API", async () => {
-    location.search = "q=hoa+qua&category=thuc-pham-tuoi&mode=preorder";
+    location.search = "q=hoa+qua&category=thuc-pham-tuoi&mode=campaign";
     serve([{ items: [], nextCursor: null }]);
 
     renderBrowser();
@@ -219,7 +202,7 @@ describe("ListingBrowser", () => {
     });
   });
 
-  it("asks for goods in stock by default and for every mode on All", async () => {
+  it("asks for goods in stock by default", async () => {
     serve([{ items: [], nextCursor: null }]);
     renderBrowser();
     await waitFor(() => expect(listingCalls()).toHaveLength(1));
@@ -228,15 +211,41 @@ describe("ListingBrowser", () => {
     });
   });
 
-  it("does not filter by mode when All is chosen", async () => {
-    location.search = "mode=all";
-    serve([{ items: [], nextCursor: null }]);
-    renderBrowser();
-    await waitFor(() => expect(listingCalls()).toHaveLength(1));
-    expect(listingCalls()[0][1]).toMatchObject({
-      params: { query: { mode: undefined } },
-    });
-  });
+  it.each(["mode=campaign", "mode=campaign&view=items"])(
+    "lists the products of pre-order rounds for %s",
+    async (search) => {
+      location.search = search;
+      serve([
+        {
+          items: [
+            {
+              ...summary("9", "Cam sành"),
+              mode: "preorder",
+              stockQuantity: null,
+              campaign: {
+                id: "c1",
+                title: "Hoa quả tuần 41",
+                orderDeadline: "2026-10-10T10:00:00.000Z",
+                deliveryDate: "2026-10-12",
+              },
+            },
+          ],
+          nextCursor: null,
+        },
+      ]);
+
+      renderBrowser();
+
+      expect(await screen.findByText("Cam sành")).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: "Đợt: Hoa quả tuần 41" }),
+      ).toHaveAttribute("href", "/campaigns/c1");
+      expect(listingCalls()).toHaveLength(1);
+      expect(listingCalls()[0][1]).toMatchObject({
+        params: { query: { mode: "preorder", minCondition: undefined } },
+      });
+    },
+  );
 
   it("invites the first listing when the marketplace is empty", async () => {
     serve([{ items: [], nextCursor: null }]);
@@ -269,7 +278,7 @@ describe("ListingBrowser", () => {
   });
 
   it("explains an empty result caused by filters alone", async () => {
-    location.search = "mode=preorder";
+    location.search = "mode=campaign";
     serve([{ items: [], nextCursor: null }]);
 
     renderBrowser();
@@ -312,7 +321,7 @@ describe("ListingBrowser", () => {
   });
 
   describe("filters", () => {
-    it("put In stock first, then Pre-order and All, with In stock chosen", async () => {
+    it("put In stock first, then pre-order rounds, with In stock chosen", async () => {
       serve([{ items: [], nextCursor: null }]);
 
       renderBrowser();
@@ -321,12 +330,11 @@ describe("ListingBrowser", () => {
       const buttons = within(modes).getAllByRole("button");
       expect(buttons.map((button) => button.textContent)).toEqual([
         "Có sẵn",
-        "Đặt trước",
-        "Tất cả",
+        "Đợt đặt trước",
       ]);
       expect(buttons[0]).toHaveAttribute("aria-pressed", "true");
       expect(buttons[0]).toHaveAttribute("href", "/");
-      expect(buttons[2]).toHaveAttribute("href", "/?mode=all");
+      expect(buttons[1]).toHaveAttribute("href", "/?mode=campaign");
     });
 
     it("link to the URL with that filter added, keeping the others", async () => {
@@ -338,14 +346,14 @@ describe("ListingBrowser", () => {
       expect(
         await screen.findByRole("link", { name: "Điện tử" }),
       ).toHaveAttribute("href", "/?q=loa&category=dien-tu");
-      expect(screen.getByRole("button", { name: "Đặt trước" })).toHaveAttribute(
+      expect(screen.getByRole("button", { name: "Đợt đặt trước" })).toHaveAttribute(
         "href",
-        "/?q=loa&mode=preorder",
+        "/?q=loa&mode=campaign",
       );
     });
 
     it("offer categories as chips in a menu, and show the chosen one", async () => {
-      location.search = "category=dien-tu&mode=preorder";
+      location.search = "category=dien-tu&mode=campaign";
       serve([{ items: [], nextCursor: null }]);
 
       renderBrowser();
@@ -356,10 +364,10 @@ describe("ListingBrowser", () => {
       expect(screen.getByText("Điện tử", { selector: "summary" })).toBeInTheDocument();
       expect(
         screen.getByRole("link", { name: "Bỏ lọc Điện tử" }),
-      ).toHaveAttribute("href", "/?mode=preorder");
+      ).toHaveAttribute("href", "/?mode=campaign");
       expect(
         screen.getByRole("link", { name: "Mọi danh mục" }),
-      ).toHaveAttribute("href", "/?mode=preorder");
+      ).toHaveAttribute("href", "/?mode=campaign");
     });
 
     it("close the menu once a choice is made", async () => {

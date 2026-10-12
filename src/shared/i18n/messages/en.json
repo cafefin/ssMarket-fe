@@ -93,7 +93,9 @@
       "loadFailed": "Could not load the orders.",
       "order": "Order {code}",
       "seller": "Seller: {name}",
-      "moreListings": "{title} and {count, plural, one {# other product} other {# other products}}"
+      "moreListings": "{title} and {count, plural, one {# other product} other {# other products}}",
+      "round": "Round: {title}",
+      "roundDates": "Closes {deadline} · Delivery {delivery}"
     },
     "mine": {
       "title": "My orders",
@@ -196,7 +198,9 @@
       "deliveryDate": "Expected delivery",
       "note": "Note",
       "savedWithCombos": "{listTotal} without combos",
-      "products": "Products"
+      "products": "Products",
+      "round": "Pre-order round",
+      "deadline": "Order deadline"
     },
     "summary": {
       "filters": {
@@ -217,7 +221,6 @@
       "backToMine": "Back to my listings",
       "updated": "{count, plural, one {# order updated} other {# orders updated}}",
       "eyebrow": "Order summary",
-      "dates": "Order deadline {deadline} · Delivery {delivery}",
       "figures": {
         "orders": "Orders",
         "total": "Total",
@@ -289,7 +292,8 @@
     "card": {
       "remaining": "{quantity} {unit} left",
       "closes": "Closes {deadline}",
-      "seller": "@{handle}"
+      "seller": "@{handle}",
+      "inRound": "Round: {title}"
     },
     "filters": {
       "modeGroup": "Selling mode",
@@ -309,15 +313,8 @@
       "clear": "Remove filter {name}",
       "modes": {
         "in_stock": "In stock",
-        "preorder": "Pre-order",
-        "all": "All"
+        "campaign": "Pre-order rounds"
       }
-    },
-    "shelf": {
-      "title": "Closing soon",
-      "subtitle": "Order before time runs out; the seller buys everything in one go.",
-      "previous": "Show previous items",
-      "next": "Show next items"
     },
     "gallery": {
       "photo": "Photo {number} of {title}",
@@ -355,7 +352,8 @@
       "summary": "Order summary",
       "condition": "Condition",
       "combos": "Buy more, pay less",
-      "combo": "{quantity} {unit}: {price}"
+      "combo": "{quantity} {unit}: {price}",
+      "inRound": "Part of the round {title}"
     },
     "condition": {
       "new": "New",
@@ -449,34 +447,19 @@
   },
   "sell": {
     "title": "Sell",
-    "changeMode": "Change selling mode",
     "modeStep": {
-      "question": "How do you want to sell?",
       "in_stock": {
-        "title": "In stock",
-        "description": "Things you have now, sold until they run out.",
-        "example": "For example: a used speaker, books, household items."
-      },
-      "preorder": {
-        "title": "Pre-order",
-        "description": "Take orders until a deadline, then deliver in one round.",
-        "example": "For example: weekly fruit, daily food."
+        "title": "In stock"
       }
     },
     "form": {
       "modeLabel": "Selling mode:",
       "title": "Title",
-      "titlePlaceholder": {
-        "preorder": "This week's fruit",
-        "in_stock": "Used JBL bluetooth speaker"
-      },
+      "titlePlaceholder": "Used JBL bluetooth speaker",
       "category": "Category",
       "chooseCategory": "Choose a category",
       "hiddenCategory": "{name} (hidden)",
       "description": "Description",
-      "deadline": "Order deadline",
-      "deadlineHint": "Nobody can order after this time.",
-      "deliveryDate": "Delivery date",
       "payment": "Payment",
       "payOnDeliveryHint": "You deliver, then collect cash or receive a transfer later.",
       "prepaidQrHint": "Buyers scan a code with the amount filled in. Needs bank details in your profile.",
@@ -498,10 +481,7 @@
     },
     "product": {
       "title": "Price and quantity",
-      "hint": {
-        "in_stock": "Each listing is one product. Sell other kinds or sizes as their own listings.",
-        "preorder": "Each listing is one product that people order until the deadline. No quantity needed."
-      },
+      "hint": "Each listing is one product. Sell other kinds or sizes as their own listings.",
       "unit": "Unit",
       "unitPrice": "Unit price (VND)",
       "stock": "Quantity in stock",
@@ -528,10 +508,6 @@
       "category": "Choose a category",
       "description": "The description has at most 5000 characters",
       "payment": "Choose at least one payment method",
-      "deadlineRequired": "Choose an order deadline",
-      "deadlineFuture": "The order deadline must be in the future",
-      "deliveryRequired": "Choose a delivery date",
-      "deliveryBeforeDeadline": "The delivery date cannot be before the order deadline",
       "unit": "Choose a unit",
       "unitPrice": "The unit price is from 1,000 VND to 1,000,000,000 VND",
       "stockPositive": "Enter a quantity greater than 0",
@@ -547,8 +523,7 @@
       "notFound": "Listing not found",
       "closed": "This listing is closed and cannot be edited",
       "loading": "Loading the listing",
-      "backToMine": "Back to my listings",
-      "reopened": "This is a copy of the previous round. Check the deadline, delivery date and prices before publishing."
+      "backToMine": "Back to my listings"
     },
     "mine": {
       "title": "My listings",
@@ -565,12 +540,9 @@
       },
       "loading": "Loading listings",
       "loadFailed": "Could not load your listings.",
-      "closes": "Closes {time}",
       "publishedAt": "Published {time}",
-      "expired": "Past the deadline. Buyers can no longer see this listing.",
       "view": "View",
       "summary": "Summary",
-      "reopen": "Reopen",
       "close": "Close",
       "closed": "Listing closed",
       "closeTitle": "Close this listing?",

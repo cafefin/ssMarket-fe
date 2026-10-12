@@ -18,7 +18,6 @@ import { api } from "@/shared/api/client";
 import { CONDITION_PERCENT, CONDITIONS, categoryName, useCategories, MY_LISTINGS_QUERY_KEY, type ListingDetail, LISTINGS_QUERY_KEY, listingQueryKey } from "@/features/listings";
 import {
   type ListingFormValues,
-  type ListingMode,
   listingSchema,
   needsCondition,
   toListingBody,
@@ -28,7 +27,6 @@ import { ImagesField } from "./images-field";
 import { ProductField } from "./product-field";
 
 interface ListingFormProps {
-  mode: ListingMode;
   initialValues: ListingFormValues;
   /** Present when editing an existing listing. */
   listing?: Pick<ListingDetail, "id" | "status" | "images"> &
@@ -39,8 +37,8 @@ interface ListingFormProps {
   onSaved?: () => void;
 }
 
+/** The form of a product in stock. Pre-orders are created as a round. */
 export function ListingForm({
-  mode,
   initialValues,
   listing,
   onValuesChange,
@@ -74,8 +72,8 @@ export function ListingForm({
     [perishableIds],
   );
   const schema = useMemo(
-    () => listingSchema(mode, tv, isPerishable),
-    [mode, tv, isPerishable],
+    () => listingSchema(tv, isPerishable),
+    [tv, isPerishable],
   );
   const [addedImages, setAddedImages] = useState<File[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
@@ -134,7 +132,7 @@ export function ListingForm({
         const result = await submitListing({
           api,
           listingId: listing?.id,
-          body: toListingBody(mode, values, isPerishable),
+          body: toListingBody(values, isPerishable),
           newImages: addedImages,
           removedImageIds,
           publish,
@@ -184,7 +182,7 @@ export function ListingForm({
       <p className="text-sm text-muted-foreground">
         {t("modeLabel")}{" "}
         <span className="font-medium text-foreground">
-          {tm(`${mode}.title`)}
+          {tm("in_stock.title")}
         </span>
       </p>
 
@@ -192,7 +190,7 @@ export function ListingForm({
         <Field htmlFor="title" label={t("title")} error={errors.title?.message}>
           <Input
             id="title"
-            placeholder={t(`titlePlaceholder.${mode}`)}
+            placeholder={t("titlePlaceholder")}
             aria-invalid={Boolean(errors.title)}
             {...register("title")}
           />
@@ -232,7 +230,7 @@ export function ListingForm({
         </Field>
       </section>
 
-      {needsCondition(mode, categoryId, isPerishable) && (
+      {needsCondition(categoryId, isPerishable) && (
         <Field
           htmlFor="condition"
           label={t("condition")}
@@ -258,37 +256,7 @@ export function ListingForm({
         </Field>
       )}
 
-      {mode === "preorder" && (
-        <section className="grid gap-4 sm:grid-cols-2">
-          <Field
-            htmlFor="orderDeadline"
-            label={t("deadline")}
-            hint={t("deadlineHint")}
-            error={errors.orderDeadline?.message}
-          >
-            <Input
-              id="orderDeadline"
-              type="datetime-local"
-              aria-invalid={Boolean(errors.orderDeadline)}
-              {...register("orderDeadline")}
-            />
-          </Field>
-          <Field
-            htmlFor="deliveryDate"
-            label={t("deliveryDate")}
-            error={errors.deliveryDate?.message}
-          >
-            <Input
-              id="deliveryDate"
-              type="date"
-              aria-invalid={Boolean(errors.deliveryDate)}
-              {...register("deliveryDate")}
-            />
-          </Field>
-        </section>
-      )}
-
-      <ProductField mode={mode} control={control} register={register} errors={errors} />
+      <ProductField control={control} register={register} errors={errors} />
 
       <ImagesField
         existing={existingImages}

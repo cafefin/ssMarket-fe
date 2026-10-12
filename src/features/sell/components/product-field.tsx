@@ -16,14 +16,12 @@ import { Input } from "@/shared/ui/atoms/shadcn/input";
 import {
   LISTING_UNITS,
   type ListingFormValues,
-  type ListingMode,
   MAX_COMBOS,
   parsePrice,
   parseQuantity,
 } from "../lib/listing-schema";
 
 interface ProductFieldProps {
-  mode: ListingMode;
   control: Control<ListingFormValues>;
   register: UseFormRegister<ListingFormValues>;
   errors: FieldErrors<ListingFormValues>;
@@ -37,7 +35,7 @@ function CombosField({
   control,
   register,
   errors,
-}: Omit<ProductFieldProps, "mode">) {
+}: ProductFieldProps) {
   const t = useTranslations("sell.product");
   const format = useFormat();
   const { fields, append, remove } = useFieldArray({ control, name: "combos" });
@@ -124,18 +122,17 @@ function CombosField({
 }
 
 /**
- * Price, unit and, for goods in stock, how many there are. One listing is
- * one product: sell another product as another listing.
+ * Price, unit and how many there are. One listing is one product: sell
+ * another product as another listing.
  */
-export function ProductField({ mode, control, register, errors }: ProductFieldProps) {
+export function ProductField({ control, register, errors }: ProductFieldProps) {
   const t = useTranslations("sell.product");
   const format = useFormat();
-  const showStock = mode === "in_stock";
 
   return (
     <fieldset className="flex flex-col gap-4">
       <legend className="text-lg font-semibold">{t("title")}</legend>
-      <p className="-mt-2 text-sm text-muted-foreground">{t(`hint.${mode}`)}</p>
+      <p className="-mt-2 text-sm text-muted-foreground">{t("hint")}</p>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-[minmax(0,1fr)_7rem_minmax(0,1fr)] sm:items-start">
         <div className="col-span-2 sm:col-span-1">
@@ -162,20 +159,18 @@ export function ProductField({ mode, control, register, errors }: ProductFieldPr
             ))}
           </select>
         </Field>
-        {showStock && (
-          <Field
-            htmlFor="stockQuantity"
-            label={t("stock")}
-            error={errors.stockQuantity?.message}
-          >
-            <Input
-              id="stockQuantity"
-              inputMode="decimal"
-              aria-invalid={Boolean(errors.stockQuantity)}
-              {...register("stockQuantity")}
-            />
-          </Field>
-        )}
+        <Field
+          htmlFor="stockQuantity"
+          label={t("stock")}
+          error={errors.stockQuantity?.message}
+        >
+          <Input
+            id="stockQuantity"
+            inputMode="decimal"
+            aria-invalid={Boolean(errors.stockQuantity)}
+            {...register("stockQuantity")}
+          />
+        </Field>
       </div>
 
       <CombosField control={control} register={register} errors={errors} />

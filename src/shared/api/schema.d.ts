@@ -180,22 +180,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/listings/{id}/reopen": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ListingsController_reopen"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/listings/{id}/close": {
         parameters: {
             query?: never;
@@ -255,6 +239,102 @@ export interface paths {
         put?: never;
         post?: never;
         delete: operations["ListingImagesController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CampaignsController_search"];
+        put?: never;
+        post: operations["CampaignsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/campaigns/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CampaignsController_listMine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/campaigns/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CampaignsController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["CampaignsController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["CampaignsController_update"];
+        trace?: never;
+    };
+    "/campaigns/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CampaignsController_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/campaigns/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CampaignsController_close"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/campaigns/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CampaignsController_reopen"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -436,6 +516,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/campaigns/{campaignId}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CampaignSummaryController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/campaigns/{campaignId}/summary.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CampaignSummaryController_csv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/campaigns/{campaignId}/orders/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CampaignSummaryController_bulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/campaigns/{campaignId}/my-order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CampaignSummaryController_myOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/cart": {
         parameters: {
             query?: never;
@@ -461,6 +605,22 @@ export interface paths {
         };
         get: operations["CartController_count"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cart/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["CartController_setLines"];
         post?: never;
         delete?: never;
         options?: never;
@@ -621,7 +781,10 @@ export interface components {
             avatarUrl: string | null;
             deliveryLocation: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description Only `in_stock`; pre-orders are created as a round
+         * @enum {string}
+         */
         ListingMode: "in_stock" | "preorder";
         /**
          * @description Required for in-stock goods outside food categories; null otherwise
@@ -641,6 +804,7 @@ export interface components {
             price: number;
         };
         ListingInputDto: {
+            /** @description Only `in_stock`; pre-orders are created as a round */
             mode: components["schemas"]["ListingMode"];
             /** @example Loa JBL Go 3 */
             title: string;
@@ -650,16 +814,6 @@ export interface components {
             description: string;
             acceptsPrepaidQr: boolean;
             acceptsPayOnDelivery: boolean;
-            /**
-             * Format: date-time
-             * @description Pre-order only
-             */
-            orderDeadline?: string | null;
-            /**
-             * Format: date
-             * @description Pre-order only, YYYY-MM-DD
-             */
-            deliveryDate?: string | null;
             /** @description Required for in-stock goods outside food categories; null otherwise */
             condition?: components["schemas"]["ListingCondition"] | null;
             /**
@@ -673,7 +827,7 @@ export interface components {
              */
             unitPrice: number;
             /**
-             * @description Decimal string, up to 3 fraction digits. Required for in-stock products, null for pre-orders.
+             * @description Decimal string, up to 3 fraction digits. Required for in-stock products.
              * @example 2
              */
             stockQuantity?: string | null;
@@ -689,6 +843,18 @@ export interface components {
             /** @description The part of the work email before @, e.g. "an.nguyen" */
             handle: string;
             avatarUrl: string | null;
+        };
+        ListingCampaignDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: date-time */
+            orderDeadline: string;
+            /**
+             * Format: date
+             * @description YYYY-MM-DD
+             */
+            deliveryDate: string;
         };
         ComboDto: {
             /**
@@ -712,16 +878,14 @@ export interface components {
             description: string;
             mode: components["schemas"]["ListingMode"];
             status: components["schemas"]["ListingStatus"];
-            /** @description True while buyers can see the listing */
+            /** @description True while buyers can order: the listing is open and, for a product of a round, so is the round */
             isOpen: boolean;
             category: components["schemas"]["CategoryResponseDto"];
             seller: components["schemas"]["ListingSellerDto"];
             acceptsPrepaidQr: boolean;
             acceptsPayOnDelivery: boolean;
-            /** Format: date-time */
-            orderDeadline: string | null;
-            /** Format: date */
-            deliveryDate: string | null;
+            /** @description The pre-order round of the product; null for in-stock goods */
+            campaign: components["schemas"]["ListingCampaignDto"] | null;
             /** Format: date-time */
             publishedAt: string | null;
             /** @description Orders that have not been cancelled */
@@ -729,11 +893,6 @@ export interface components {
             condition: components["schemas"]["ListingCondition"] | null;
             /** @description The percentage of `condition`, e.g. 99 */
             conditionPercent: number | null;
-            /**
-             * Format: uuid
-             * @description The earlier round this listing was reopened from
-             */
-            reopenedFromId: string | null;
             /** @example cái */
             unit: string;
             /** @description Integer VND */
@@ -744,8 +903,6 @@ export interface components {
             combos: components["schemas"]["ComboDto"][];
             images: components["schemas"]["ListingImageDto"][];
         };
-        /** @enum {string} */
-        ListingSort: "recent" | "deadline";
         ListingSummaryDto: {
             /** Format: uuid */
             id: string;
@@ -767,10 +924,8 @@ export interface components {
             condition: components["schemas"]["ListingCondition"] | null;
             /** @example 99 */
             conditionPercent: number | null;
-            /** Format: date-time */
-            orderDeadline: string | null;
-            /** Format: date */
-            deliveryDate: string | null;
+            /** @description The pre-order round of the product; null for in-stock goods */
+            campaign: components["schemas"]["ListingCampaignDto"] | null;
             /** Format: date-time */
             publishedAt: string;
         };
@@ -779,14 +934,162 @@ export interface components {
             /** @description Pass as `cursor` to get the next page; null on the last page */
             nextCursor: string | null;
         };
+        CampaignItemInputDto: {
+            /**
+             * Format: uuid
+             * @description The product to change; leave out to add a product. A product of the round that is not sent is removed.
+             */
+            id?: string;
+            /** @example Bánh bao chay */
+            title: string;
+            /** @default  */
+            description: string;
+            /**
+             * @example cái
+             * @enum {string}
+             */
+            unit: "cái" | "kg" | "hộp" | "túi" | "chai" | "bó" | "combo";
+            /**
+             * @description Integer VND
+             * @example 15000
+             */
+            unitPrice: number;
+            /** @description "N units for a set price"; at most 3 */
+            combos?: components["schemas"]["ComboInputDto"][];
+            /**
+             * @description False stops selling the product without removing it
+             * @default true
+             */
+            selling: boolean;
+        };
+        CampaignInputDto: {
+            /** @example Bánh bao tuần này */
+            title: string;
+            /** @default  */
+            description: string;
+            /** @example 2 */
+            categoryId: number;
+            /** Format: date-time */
+            orderDeadline: string;
+            /**
+             * Format: date
+             * @description YYYY-MM-DD
+             */
+            deliveryDate: string;
+            acceptsPrepaidQr: boolean;
+            acceptsPayOnDelivery: boolean;
+            /** @description The products of the round, in display order; 1 to 50 */
+            items: components["schemas"]["CampaignItemInputDto"][];
+        };
+        /** @enum {string} */
+        CampaignStatus: "draft" | "open" | "closed";
+        CampaignItemDto: {
+            /**
+             * Format: uuid
+             * @description Also the id of its listing
+             */
+            id: string;
+            title: string;
+            description: string;
+            /** @example cái */
+            unit: string;
+            /** @description Integer VND */
+            unitPrice: number;
+            /** @description "N units for a set price", smallest first */
+            combos: components["schemas"]["ComboDto"][];
+            images: components["schemas"]["ListingImageDto"][];
+            /** @description False when the seller stopped selling it */
+            selling: boolean;
+            /** @description Orders that are not cancelled; 0 for non-owners */
+            orderCount: number;
+            /** @description True when no order line ever referenced it, so it can be removed; false for non-owners */
+            removable: boolean;
+        };
+        CampaignDetailDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            seller: components["schemas"]["ListingSellerDto"];
+            category: components["schemas"]["CategoryResponseDto"];
+            /** Format: date-time */
+            orderDeadline: string;
+            /**
+             * Format: date
+             * @description YYYY-MM-DD
+             */
+            deliveryDate: string;
+            /** @description Products on sale */
+            itemCount: number;
+            /** @description Lowest unit price among items on sale, integer VND */
+            minPrice: number;
+            /** @description Up to 4 thumbnails of the first items that have a photo */
+            thumbnails: string[];
+            description: string;
+            status: components["schemas"]["CampaignStatus"];
+            /** @description True while buyers can order: open and the deadline is ahead */
+            isOpen: boolean;
+            acceptsPrepaidQr: boolean;
+            acceptsPayOnDelivery: boolean;
+            /** Format: date-time */
+            publishedAt: string | null;
+            /**
+             * Format: uuid
+             * @description The earlier round this one was reopened from
+             */
+            reopenedFromId: string | null;
+            /** @description Products in display order. The seller gets all of them; others only those on sale. */
+            items: components["schemas"]["CampaignItemDto"][];
+        };
+        CampaignSummaryDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            seller: components["schemas"]["ListingSellerDto"];
+            category: components["schemas"]["CategoryResponseDto"];
+            /** Format: date-time */
+            orderDeadline: string;
+            /**
+             * Format: date
+             * @description YYYY-MM-DD
+             */
+            deliveryDate: string;
+            /** @description Products on sale */
+            itemCount: number;
+            /** @description Lowest unit price among items on sale, integer VND */
+            minPrice: number;
+            /** @description Up to 4 thumbnails of the first items that have a photo */
+            thumbnails: string[];
+        };
+        CampaignPageDto: {
+            items: components["schemas"]["CampaignSummaryDto"][];
+            /** @description Pass as `cursor` to get the next page; null on the last page */
+            nextCursor: string | null;
+        };
+        CampaignMineDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            status: components["schemas"]["CampaignStatus"];
+            /** @description True while buyers can order: open and the deadline is ahead */
+            isOpen: boolean;
+            /** Format: date-time */
+            orderDeadline: string;
+            /**
+             * Format: date
+             * @description YYYY-MM-DD
+             */
+            deliveryDate: string;
+            /** @description Products, on sale or not */
+            itemCount: number;
+            /** @description Orders that are not cancelled */
+            orderCount: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
         OrderListingDto: {
             /** Format: uuid */
             id: string;
             title: string;
-            /** Format: date-time */
-            orderDeadline: string | null;
-            /** Format: date */
-            deliveryDate: string | null;
         };
         OrderPersonDto: {
             /** Format: uuid */
@@ -833,8 +1136,10 @@ export interface components {
             id: string;
             /** @example SSM7K2Q9X */
             code: string;
-            /** @description The pre-order round, or for an in-stock order the listing of its first line */
+            /** @description The listing of the first line, as a label for the order */
             listing: components["schemas"]["OrderListingDto"];
+            /** @description The pre-order round; null for an in-stock order */
+            campaign: components["schemas"]["ListingCampaignDto"] | null;
             /** @description How many listings the lines come from */
             listingCount: number;
             buyer: components["schemas"]["OrderPersonDto"];
@@ -861,12 +1166,18 @@ export interface components {
             items: components["schemas"]["OrderDetailDto"][];
             nextCursor: string | null;
         };
-        EditOrderDto: {
+        EditOrderLineDto: {
+            /** Format: uuid */
+            listingId: string;
             /**
              * @description Decimal string, so no precision is lost in transit
              * @example 1.5
              */
             quantity: string;
+        };
+        EditOrderDto: {
+            /** @description The whole order after the change: products of its round, each once */
+            lines: components["schemas"]["EditOrderLineDto"][];
             paymentMethod: components["schemas"]["PaymentMethod"];
             /** @example Tầng 7 */
             deliveryLocation: string;
@@ -882,10 +1193,6 @@ export interface components {
             title: string;
             /** @example cái */
             unit: string;
-            /** Format: date-time */
-            orderDeadline: string | null;
-            /** Format: date */
-            deliveryDate: string | null;
         };
         SummaryBuyerDto: {
             name: string;
@@ -940,6 +1247,56 @@ export interface components {
         BulkResponseDto: {
             results: components["schemas"]["BulkResultDto"][];
         };
+        CampaignSummaryItemDto: {
+            /** Format: uuid */
+            listingId: string;
+            title: string;
+            /** @example cái */
+            unit: string;
+        };
+        CampaignSummaryRowDto: {
+            /** Format: uuid */
+            orderId: string;
+            code: string;
+            buyer: components["schemas"]["SummaryBuyerDto"];
+            deliveryLocation: string;
+            /** @description Units of each product, in the order of `items`; 0 when not ordered */
+            quantities: number[];
+            /** @description Integer VND */
+            totalAmount: number;
+            paymentMethod: components["schemas"]["PaymentMethod"];
+            paymentStatus: components["schemas"]["PaymentStatus"];
+            fulfillmentStatus: components["schemas"]["FulfillmentStatus"];
+            note: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CampaignSummaryTotalsDto: {
+            orderCount: number;
+            /** @description Integer VND */
+            totalAmount: number;
+            /** @description Sum of orders whose payment is confirmed */
+            paidAmount: number;
+            /** @description totalAmount minus paidAmount */
+            outstandingAmount: number;
+        };
+        CampaignSummaryTableDto: {
+            campaign: components["schemas"]["ListingCampaignDto"];
+            /** @description Products on sale or ordered, in the order of the round; one column each */
+            items: components["schemas"]["CampaignSummaryItemDto"][];
+            rows: components["schemas"]["CampaignSummaryRowDto"][];
+            /** @description Units per product in live orders, in the order of `items` */
+            itemTotals: number[];
+            /** @description Cancelled orders never count towards totals */
+            totals: components["schemas"]["CampaignSummaryTotalsDto"];
+        };
+        CampaignMyOrderDto: {
+            /**
+             * Format: uuid
+             * @description The buyer’s live order in this round, or null
+             */
+            orderId: string | null;
+        };
         /** @enum {string} */
         CartProblem: "LISTING_NOT_OPEN" | "OUT_OF_STOCK";
         CartLineDto: {
@@ -955,8 +1312,8 @@ export interface components {
             /** @description What is left of an in-stock product; null for a pre-order */
             stockQuantity: number | null;
             thumbnailUrl: string | null;
-            /** Format: date-time */
-            orderDeadline: string | null;
+            /** @description The pre-order round of the product; null for in-stock goods */
+            campaign: components["schemas"]["ListingCampaignDto"] | null;
             /** @description Integer VND, with combos applied */
             lineTotal: number;
             /** @description Integer VND, unit price × quantity */
@@ -975,19 +1332,22 @@ export interface components {
         CartCountDto: {
             count: number;
         };
-        SetCartLineDto: {
-            /**
-             * @description Decimal string
-             * @example 2
-             */
-            quantity: string;
-        };
         CheckoutLineDto: {
             /** Format: uuid */
             listingId: string;
             /**
              * @description Decimal string
              * @example 1.5
+             */
+            quantity: string;
+        };
+        SetCartLinesDto: {
+            lines: components["schemas"]["CheckoutLineDto"][];
+        };
+        SetCartLineDto: {
+            /**
+             * @description Decimal string
+             * @example 2
              */
             quantity: string;
         };
@@ -1013,10 +1373,8 @@ export interface components {
             key: string;
             seller: components["schemas"]["ListingSellerDto"];
             isPreorder: boolean;
-            /** Format: date-time */
-            orderDeadline: string | null;
-            /** Format: date */
-            deliveryDate: string | null;
+            /** @description The pre-order round; null for an order of in-stock goods */
+            campaign: components["schemas"]["ListingCampaignDto"] | null;
             lines: components["schemas"]["CheckoutPreviewLineDto"][];
             /** @description Integer VND, with combos applied */
             totalAmount: number;
@@ -1321,9 +1679,8 @@ export interface operations {
                 q?: string;
                 /** @description Category slug */
                 category?: string;
+                /** @description `in_stock` lists goods that can still be bought, newest first; `preorder` lists the products of open rounds, closing soonest first */
                 mode?: components["schemas"]["ListingMode"];
-                /** @description `deadline` returns only pre-orders, closing soonest first; it cannot be combined with `q` or `mode=in_stock` */
-                sort?: components["schemas"]["ListingSort"];
                 /** @description Only this seller */
                 seller?: string;
                 /** @description Lowest unit price of the listing at least this, integer VND */
@@ -1441,28 +1798,6 @@ export interface operations {
             };
         };
     };
-    ListingsController_reopen: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description A new draft copied from this finished pre-order round */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListingDetailDto"];
-                };
-            };
-        };
-    };
     ListingsController_close: {
         parameters: {
             query?: never;
@@ -1551,6 +1886,212 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    CampaignsController_search: {
+        parameters: {
+            query?: {
+                /** @description Keywords, with or without diacritics; matches the round or any of its products */
+                q?: string;
+                /** @description Category slug */
+                category?: string;
+                /** @description Only rounds with a product priced at least this, integer VND */
+                minPrice?: number;
+                /** @description Only rounds with a product priced at most this, integer VND */
+                maxPrice?: number;
+                /** @description Only this seller */
+                sellerId?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Open rounds, closing soonest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignPageDto"];
+                };
+            };
+        };
+    };
+    CampaignsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignInputDto"];
+            };
+        };
+        responses: {
+            /** @description A draft pre-order round with its products */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetailDto"];
+                };
+            };
+        };
+    };
+    CampaignsController_listMine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignMineDto"][];
+                };
+            };
+        };
+    };
+    CampaignsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetailDto"];
+                };
+            };
+        };
+    };
+    CampaignsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The draft was deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CampaignsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetailDto"];
+                };
+            };
+        };
+    };
+    CampaignsController_publish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetailDto"];
+                };
+            };
+        };
+    };
+    CampaignsController_close: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetailDto"];
+                };
+            };
+        };
+    };
+    CampaignsController_reopen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A new draft copied from a finished round */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetailDto"];
+                };
             };
         };
     };
@@ -1824,6 +2365,97 @@ export interface operations {
             };
         };
     };
+    CampaignSummaryController_get: {
+        parameters: {
+            query?: {
+                includeCancelled?: boolean;
+            };
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignSummaryTableDto"];
+                };
+            };
+        };
+    };
+    CampaignSummaryController_csv: {
+        parameters: {
+            query?: {
+                includeCancelled?: boolean;
+            };
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The round summary as a CSV file for Excel, in the caller's language */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CampaignSummaryController_bulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkOrdersDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkResponseDto"];
+                };
+            };
+        };
+    };
+    CampaignSummaryController_myOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignMyOrderDto"];
+                };
+            };
+        };
+    };
     CartController_get: {
         parameters: {
             query?: never;
@@ -1858,6 +2490,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CartCountDto"];
+                };
+            };
+        };
+    };
+    CartController_setLines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCartLinesDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartDto"];
                 };
             };
         };

@@ -15,7 +15,6 @@ import {
   useBulkOrders,
   useSummary,
 } from "../api/use-orders";
-import { formatDate, formatDateTime } from "@/shared/lib/format/datetime";
 import { useFormat } from "@/shared/lib/format/use-format";
 import { cn } from "@/shared/lib/utils";
 import { OrderStatusBadges } from "./status-badges";
@@ -182,14 +181,6 @@ export function SalesSummary({ listingId }: { listingId: string }) {
             {listing.title}
           </Link>
         </h1>
-        {listing.orderDeadline && listing.deliveryDate && (
-          <p className="text-sm text-muted-foreground">
-            {t("dates", {
-              deadline: formatDateTime(listing.orderDeadline),
-              delivery: formatDate(listing.deliveryDate),
-            })}
-          </p>
-        )}
       </header>
 
       <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">

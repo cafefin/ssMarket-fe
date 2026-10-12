@@ -108,10 +108,10 @@ function Line({
             price: format.money(line.unitPrice),
             unit: format.unit(line.unit),
           })}
-          {line.mode === "preorder" && line.orderDeadline && (
+          {line.campaign && (
             <span className="ml-2 rounded-full bg-deadline-soft px-2 py-0.5 text-deadline-deep">
               {t("preorderCloses", {
-                deadline: format.deadline(line.orderDeadline),
+                deadline: format.deadline(line.campaign.orderDeadline),
               })}
             </span>
           )}

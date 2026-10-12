@@ -224,13 +224,16 @@ export function CheckoutPage() {
                 />
                 {t("orderOf", { name: order.seller.name })}
               </p>
-              {order.isPreorder && order.orderDeadline && order.deliveryDate && (
-                <p className="text-[13px] text-deadline-deep">
-                  {t("preorder", {
-                    deadline: format.deadline(order.orderDeadline),
-                    delivery: formatDate(order.deliveryDate),
-                  })}
-                </p>
+              {order.campaign && (
+                <>
+                  <p className="text-sm font-medium">{order.campaign.title}</p>
+                  <p className="text-[13px] text-deadline-deep">
+                    {t("preorder", {
+                      deadline: format.deadline(order.campaign.orderDeadline),
+                      delivery: formatDate(order.campaign.deliveryDate),
+                    })}
+                  </p>
+                </>
               )}
             </header>
 

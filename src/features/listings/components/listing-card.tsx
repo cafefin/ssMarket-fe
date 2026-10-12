@@ -32,13 +32,20 @@ function Stock({ listing }: { listing: ListingSummary }) {
   );
 }
 
-/** A pre-order shows when it closes on an orange strip, like a ticket stub. */
-function Deadline({ listing }: { listing: ListingSummary }) {
+/**
+ * A product of a pre-order round shows when the round closes on an orange
+ * strip, like a ticket stub.
+ */
+function Deadline({
+  listing,
+  orderDeadline,
+}: {
+  listing: ListingSummary;
+  orderDeadline: string;
+}) {
   const t = useTranslations("listings");
   const format = useFormat();
-  const today = listing.orderDeadline
-    ? closesToday(listing.orderDeadline)
-    : false;
+  const today = closesToday(orderDeadline);
   return (
     <p
       className={cn(
@@ -48,11 +55,7 @@ function Deadline({ listing }: { listing: ListingSummary }) {
           : "bg-deadline-soft text-deadline-deep",
       )}
     >
-      <span>
-        {listing.orderDeadline
-          ? t("card.closes", { deadline: format.deadline(listing.orderDeadline) })
-          : t("mode.preorder")}
-      </span>
+      <span>{t("card.closes", { deadline: format.deadline(orderDeadline) })}</span>
       {listing.orderCount > 0 && (
         <span className="font-normal">
           {t("orderCount", { count: listing.orderCount })}
@@ -87,7 +90,8 @@ function Facts({ listing }: { listing: ListingSummary }) {
 
 /**
  * A product in a grid of two columns on phones and more on wider screens:
- * a square photo, then title, price, condition, stock and seller.
+ * a square photo, then title, price, condition, stock and seller. A product
+ * of a pre-order round also names its round, as a link of its own.
  */
 export function ListingCard({
   listing,
@@ -122,7 +126,12 @@ export function ListingCard({
           <ImagePlaceholder className="aspect-square w-full" />
         )}
 
-        {listing.mode === "preorder" && <Deadline listing={listing} />}
+        {listing.campaign && (
+          <Deadline
+            listing={listing}
+            orderDeadline={listing.campaign.orderDeadline}
+          />
+        )}
 
         <div className="flex min-w-0 flex-1 flex-col gap-1 p-2.5">
           <h3 className="line-clamp-2 text-sm leading-snug font-medium group-hover:text-primary">
@@ -136,6 +145,16 @@ export function ListingCard({
           </p>
         </div>
       </Link>
+
+      {listing.campaign && (
+        // Outside the product link: a link cannot sit inside another.
+        <Link
+          href={`/campaigns/${listing.campaign.id}`}
+          className="mx-2.5 mb-2.5 truncate rounded-sm text-xs font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {t("card.inRound", { title: listing.campaign.title })}
+        </Link>
+      )}
 
       {actions && <div className="px-2.5 pb-2.5">{actions}</div>}
     </div>

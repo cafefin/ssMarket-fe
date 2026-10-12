@@ -30,7 +30,7 @@ const line = (overrides: Partial<CartLine> = {}): CartLine => ({
   quantity: 90,
   stockQuantity: 500,
   thumbnailUrl: null,
-  orderDeadline: null,
+  campaign: null,
   lineTotal: 900000,
   listTotal: 900000,
   problem: null,
@@ -254,6 +254,30 @@ describe("CartPage", () => {
     expect(router.push).toHaveBeenCalledWith(
       `/checkout?items=${ITEM}%3A90&from=cart`,
     );
+  });
+
+  it("says when the round of a pre-order product closes", async () => {
+    serve({
+      cart: cartOf([
+        line(),
+        line({
+          listingId: OTHER,
+          title: "Cam sành",
+          mode: "preorder",
+          stockQuantity: null,
+          campaign: {
+            id: "c1",
+            title: "Hoa quả tuần 41",
+            orderDeadline: "2026-10-09T10:00:00.000Z",
+            deliveryDate: "2026-10-12",
+          },
+        }),
+      ]),
+    });
+    wrap(<CartPage />);
+
+    await screen.findByText("Cam sành");
+    expect(screen.getAllByText(/^Đặt trước · chốt \d{2}:\d{2}/)).toHaveLength(1);
   });
 
   it("changes a quantity and removes a line", async () => {

@@ -6,16 +6,14 @@ import type { ListingDetail } from "@/features/listings";
 import { QueryProvider } from "@/shared/api/query-provider";
 import { MyListings } from "./my-listings";
 
-const { api, toast, location, router } = vi.hoisted(() => ({
+const { api, toast, location } = vi.hoisted(() => ({
   api: { GET: vi.fn(), POST: vi.fn() },
   toast: { success: vi.fn(), error: vi.fn() },
   location: { search: "" },
-  router: { push: vi.fn() },
 }));
 vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("sonner", () => ({ toast }));
 vi.mock("next/navigation", () => ({
-  useRouter: () => router,
   useSearchParams: () => new URLSearchParams(location.search),
 }));
 
@@ -30,11 +28,9 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   seller: { id: "me", name: "Tôi", handle: "toi", avatarUrl: null },
   acceptsPrepaidQr: false,
   acceptsPayOnDelivery: true,
-  orderDeadline: null,
-  deliveryDate: null,
+  campaign: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
   orderCount: 0,
-  reopenedFromId: null,
   condition: null,
   conditionPercent: null,
   unit: "cái",
@@ -116,26 +112,11 @@ describe("MyListings", () => {
     expect(
       within(item).queryByRole("button", { name: "Đăng bán" }),
     ).not.toBeInTheDocument();
-  });
-
-  it("flags an open pre-order whose deadline has passed", async () => {
-    api.GET.mockResolvedValue(
-      ok([
-        listing({
-          mode: "preorder",
-          isOpen: false,
-          orderDeadline: "2026-10-01T10:00:00.000Z",
-        }),
-      ]),
-    );
-
-    renderPage();
-
-    const item = await row("Loa bluetooth cũ");
-    expect(item).toHaveTextContent("Chốt đơn");
-    expect(item).toHaveTextContent(
-      "Đã quá hạn chốt. Người mua không còn nhìn thấy bài này.",
-    );
+    // Pre-order rounds have their own list: no deadline, nothing to reopen.
+    expect(item).not.toHaveTextContent("Chốt đơn");
+    expect(
+      within(item).queryByRole("button", { name: "Mở lại" }),
+    ).not.toBeInTheDocument();
   });
 
   it("publishes a draft from the list", async () => {
@@ -164,41 +145,6 @@ describe("MyListings", () => {
     expect(within(item).getByRole("link", { name: "Xem" })).toBeInTheDocument();
     expect(within(item).queryByRole("link", { name: "Sửa" })).not.toBeInTheDocument();
     expect(within(item).queryByRole("button")).not.toBeInTheDocument();
-  });
-
-  it("reopens a finished pre-order round and goes to the new draft", async () => {
-    location.search = "tab=closed";
-    api.GET.mockResolvedValue(
-      ok([listing({ mode: "preorder", status: "closed", isOpen: false })]),
-    );
-    api.POST.mockResolvedValue(ok(listing({ id: "l2", status: "draft" })));
-    renderPage();
-    const item = await row("Loa bluetooth cũ");
-
-    await userEvent.click(within(item).getByRole("button", { name: "Mở lại" }));
-
-    await waitFor(() =>
-      expect(router.push).toHaveBeenCalledWith("/listings/l2/edit?reopened=1"),
-    );
-    expect(api.POST).toHaveBeenCalledWith("/listings/{id}/reopen", {
-      params: { path: { id: "l1" } },
-    });
-  });
-
-  it("offers reopening for an expired pre-order that was never closed", async () => {
-    api.GET.mockResolvedValue(
-      ok([
-        listing({
-          mode: "preorder",
-          isOpen: false,
-          orderDeadline: "2026-10-01T10:00:00.000Z",
-        }),
-      ]),
-    );
-    renderPage();
-
-    const item = await row("Loa bluetooth cũ");
-    expect(within(item).getByRole("button", { name: "Mở lại" })).toBeInTheDocument();
   });
 
   it("links each published listing to its order summary", async () => {

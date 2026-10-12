@@ -8,18 +8,24 @@ import { NewListing } from "./new-listing";
 
 vi.mock("./listing-form", () => ({
   ListingForm: ({
-    mode,
     initialValues,
+    onValuesChange,
     onSaved,
   }: {
-    mode: string;
-    initialValues: { title: string };
+    initialValues: { title: string; orderDeadline?: string };
+    onValuesChange: (values: unknown) => void;
     onSaved: () => void;
   }) => (
     <div>
       <p>
-        form:{mode}:{initialValues.title}
+        form:{initialValues.title}:{String("orderDeadline" in initialValues)}
       </p>
+      <button
+        type="button"
+        onClick={() => onValuesChange({ ...emptyListing(), title: "Sách cũ" })}
+      >
+        typed
+      </button>
       <button type="button" onClick={onSaved}>
         saved
       </button>
@@ -32,48 +38,44 @@ describe("NewListing", () => {
     useSellDraftStore.getState().reset();
   });
 
-  it("starts by asking how the person wants to sell", () => {
+  it("opens the form for a product in stock at once, without asking how to sell", () => {
     renderWithIntl(<NewListing />);
 
-    expect(screen.getByText("Bạn muốn bán theo cách nào?")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Hàng có sẵn/ })).toHaveTextContent(
-      "Đồ bạn đang có, bán đến khi hết.",
-    );
-    expect(screen.getByRole("button", { name: /Đặt trước/ })).toHaveTextContent(
-      "Nhận đăng ký đến hạn chốt, giao theo đợt.",
-    );
-    expect(screen.queryByText(/^form:/)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Đăng bán" })).toBeInTheDocument();
+    expect(screen.getByText("form::false")).toBeInTheDocument();
+    expect(screen.queryByText("Bạn muốn bán theo cách nào?")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Đặt trước/ }),
+    ).not.toBeInTheDocument();
   });
 
-  it("shows the form for the chosen mode", async () => {
+  it("starts from what was typed before, dropping fields the form no longer has", () => {
+    useSellDraftStore.getState().setValues({
+      ...emptyListing(),
+      title: "Loa cũ",
+      // A draft written by an older version of the form.
+      ...({ orderDeadline: "2026-10-09T17:00" } as object),
+    });
+
     renderWithIntl(<NewListing />);
 
-    await userEvent.click(screen.getByRole("button", { name: /Đặt trước/ }));
-
-    expect(screen.getByText("form:preorder:")).toBeInTheDocument();
-    expect(useSellDraftStore.getState().mode).toBe("preorder");
+    expect(screen.getByText("form:Loa cũ:false")).toBeInTheDocument();
   });
 
-  it("goes back to the choice without losing what was typed", async () => {
-    useSellDraftStore.getState().setMode("in_stock");
-    useSellDraftStore.getState().setValues({ ...emptyListing(), title: "Loa cũ" });
+  it("keeps what is typed as a draft", async () => {
     renderWithIntl(<NewListing />);
-    expect(screen.getByText("form:in_stock:Loa cũ")).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Đổi hình thức" }));
-    await userEvent.click(screen.getByRole("button", { name: /Đặt trước/ }));
+    await userEvent.click(screen.getByRole("button", { name: "typed" }));
 
-    expect(screen.getByText("form:preorder:Loa cũ")).toBeInTheDocument();
+    expect(useSellDraftStore.getState().values?.title).toBe("Sách cũ");
   });
 
   it("clears the draft once the listing is saved", async () => {
-    useSellDraftStore.getState().setMode("in_stock");
     useSellDraftStore.getState().setValues({ ...emptyListing(), title: "Loa cũ" });
     renderWithIntl(<NewListing />);
 
     await userEvent.click(screen.getByRole("button", { name: "saved" }));
 
     expect(useSellDraftStore.getState()).toMatchObject({ mode: null, values: null });
-    expect(screen.getByText("Bạn muốn bán theo cách nào?")).toBeInTheDocument();
   });
 });

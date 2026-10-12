@@ -132,8 +132,9 @@ function MenuChip({
 }
 
 /**
- * The filter bar under the header: how the goods are sold (in stock first,
- * the default), then category, price and condition as menus. Every choice
+ * The filter bar under the header: goods in stock (the default) or pre-order
+ * rounds, then category, price and, for goods in stock, condition as menus.
+ * Every choice
  * is a FilterLink, so the page keeps its place and the URL can be shared.
  */
 export function ListingFilters({
@@ -173,6 +174,8 @@ export function ListingFilters({
     ? categoryName(category, locale)
     : t("filters.category");
   const priceText = currentRange ? priceLabel(currentRange) : t("filters.price");
+  // Pre-order products have no condition.
+  const showCondition = filters.mode === "in_stock";
   const conditionText = filters.minCondition
     ? conditionLabel(filters.minCondition)
     : t("filters.condition");
@@ -251,28 +254,30 @@ export function ListingFilters({
             </MenuChip>
           ))}
         </Menu>
-        <Menu
-          label={conditionText}
-          active={filters.minCondition !== null}
-          clearHref={listingsHref({ ...filters, minCondition: null })}
-          clearLabel={t("filters.clear", { name: conditionText })}
-        >
-          <MenuChip
-            href={listingsHref({ ...filters, minCondition: null })}
-            active={filters.minCondition === null}
+        {showCondition && (
+          <Menu
+            label={conditionText}
+            active={filters.minCondition !== null}
+            clearHref={listingsHref({ ...filters, minCondition: null })}
+            clearLabel={t("filters.clear", { name: conditionText })}
           >
-            {t("filters.anyCondition")}
-          </MenuChip>
-          {CONDITIONS.map((condition) => (
             <MenuChip
-              key={condition}
-              href={listingsHref({ ...filters, minCondition: condition })}
-              active={filters.minCondition === condition}
+              href={listingsHref({ ...filters, minCondition: null })}
+              active={filters.minCondition === null}
             >
-              {conditionLabel(condition)}
+              {t("filters.anyCondition")}
             </MenuChip>
-          ))}
-        </Menu>
+            {CONDITIONS.map((condition) => (
+              <MenuChip
+                key={condition}
+                href={listingsHref({ ...filters, minCondition: condition })}
+                active={filters.minCondition === condition}
+              >
+                {conditionLabel(condition)}
+              </MenuChip>
+            ))}
+          </Menu>
+        )}
         {(category !== undefined || !anyPrice || filters.minCondition !== null) && (
           <FilterLink
             href={listingsHref({

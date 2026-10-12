@@ -17,7 +17,13 @@ vi.mock("sonner", () => ({ toast }));
 const order = (overrides: Partial<Order> = {}): Order => ({
   id: "o1",
   code: "SSM7K2Q9X",
-  listing: { id: "l1", title: "Hoa quả tuần này", orderDeadline: null, deliveryDate: "2026-10-12" },
+  listing: { id: "l1", title: "Cam sành" },
+  campaign: {
+    id: "c1",
+    title: "Hoa quả tuần này",
+    orderDeadline: "2026-10-09T10:00:00.000Z",
+    deliveryDate: "2026-10-12",
+  },
   listingCount: 1,
   buyer: { id: "b", name: "Anh Minh" },
   seller: { id: "s", name: "Chị Lan" },
@@ -129,6 +135,29 @@ describe("OrderView", () => {
     expect(screen.getByText("Tầng 7")).toBeInTheDocument();
     expect(screen.getByText("12/10/2026")).toBeInTheDocument();
     expect(screen.getByText("Giao sau 14h")).toBeInTheDocument();
+  });
+
+  it("names the pre-order round, with its deadline and delivery date", async () => {
+    renderView(order());
+
+    const round = await screen.findByRole("link", { name: "Hoa quả tuần này" });
+    expect(round).toHaveAttribute("href", "/campaigns/c1");
+    expect(screen.getByText("Đợt đặt trước")).toBeInTheDocument();
+    expect(screen.getByText("Chốt đơn").nextElementSibling).toHaveTextContent(
+      /^\d{2}:\d{2} .+$/,
+    );
+    expect(screen.getByText("Ngày giao dự kiến").nextElementSibling).toHaveTextContent(
+      "12/10/2026",
+    );
+  });
+
+  it("shows nothing about a round on an in-stock order", async () => {
+    renderView(order({ campaign: null, isPreorder: false }));
+
+    await screen.findByRole("heading", { name: "Đơn SSM7K2Q9X" });
+    expect(screen.queryByText("Đợt đặt trước")).not.toBeInTheDocument();
+    expect(screen.queryByText("Chốt đơn")).not.toBeInTheDocument();
+    expect(screen.queryByText("Ngày giao dự kiến")).not.toBeInTheDocument();
   });
 
   it("shows the order in English", async () => {

@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ModeBadge, type ListingDetail, type ListingStatus, useCloseListing, useMyListings, usePublishListing, useReopenListing } from "@/features/listings";
+import { ModeBadge, type ListingDetail, type ListingStatus, useCloseListing, useMyListings, usePublishListing } from "@/features/listings";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,9 +30,6 @@ function when(
   listing: ListingDetail,
   t: Translator<"sell.mine">,
 ): string | null {
-  if (listing.orderDeadline) {
-    return t("closes", { time: formatDateTime(listing.orderDeadline) });
-  }
   return listing.publishedAt
     ? t("publishedAt", { time: formatDateTime(listing.publishedAt) })
     : null;
@@ -49,18 +46,6 @@ export function MyListings() {
   const userMessage = useUserMessage();
   const publish = usePublishListing();
   const close = useCloseListing();
-  const reopen = useReopenListing();
-  const router = useRouter();
-
-  async function reopenRound(id: string): Promise<void> {
-    try {
-      const draft = await reopen.mutateAsync(id);
-      // Straight to the form: the dates are only a suggestion to review.
-      router.push(`/listings/${draft.id}/edit?reopened=1`);
-    } catch (error) {
-      toast.error(userMessage(error));
-    }
-  }
   const [closing, setClosing] = useState<ListingDetail | null>(null);
 
   async function run(
@@ -138,7 +123,6 @@ export function MyListings() {
       {listings.data && listings.data.length > 0 && (
         <ul className="flex flex-col gap-3">
           {listings.data.map((listing) => {
-            const expired = listing.status === "open" && !listing.isOpen;
             const time = when(listing, t);
             return (
               <li
@@ -158,11 +142,6 @@ export function MyListings() {
                     })}
                     {time && ` · ${time}`}
                   </p>
-                  {expired && (
-                    <p className="text-sm text-warn-deep">
-                      {t("expired")}
-                    </p>
-                  )}
                 </div>
 
                 <div className="flex shrink-0 flex-wrap gap-2">
@@ -199,16 +178,6 @@ export function MyListings() {
                       {ts("form.publish")}
                     </Button>
                   )}
-                  {listing.mode === "preorder" &&
-                    (listing.status === "closed" || expired) && (
-                      <Button
-                        {...small}
-                        disabled={reopen.isPending}
-                        onClick={() => void reopenRound(listing.id)}
-                      >
-                        {t("reopen")}
-                      </Button>
-                    )}
                   {listing.status === "open" && (
                     <Button
                       {...small}

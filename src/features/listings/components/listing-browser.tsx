@@ -10,7 +10,6 @@ import { useCategories } from "../api/use-categories";
 import { type ListingSummary, useListings } from "../api/use-listings";
 import { isDefault, parseListingFilters } from "../lib/filters";
 import { ListingCard } from "./listing-card";
-import { ClosingSoonShelf } from "./closing-soon-shelf";
 import { FilterLink } from "./filter-link";
 import { ListingFilters } from "./listing-filters";
 import { cn } from "@/shared/lib/utils";
@@ -27,7 +26,10 @@ function CardSkeleton() {
   );
 }
 
-/** The home page: filters from the URL, then the matching listings. */
+/**
+ * The home page: filters from the URL, then the matching listings. On the
+ * tab of pre-order rounds it lists the products of the rounds.
+ */
 export function ListingBrowser({
   renderCardActions,
 }: {
@@ -66,8 +68,6 @@ export function ListingBrowser({
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <>
-      {!filtered && <ClosingSoonShelf />}
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-8">
         {filters.q ? (
           <h1 className="text-[22px] font-bold">
@@ -168,6 +168,5 @@ export function ListingBrowser({
           </div>
         )}
       </div>
-    </>
   );
 }

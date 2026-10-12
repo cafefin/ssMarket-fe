@@ -1,13 +1,16 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { ListingFormValues, ListingMode } from "./listing-schema";
+import type { ListingFormValues } from "./listing-schema";
+
+/** What is being sold: a product in stock, or a pre-order round. */
+export type SellMode = "in_stock" | "campaign";
 
 interface SellDraftState {
   /** Chosen in the first step of selling; null until then. */
-  mode: ListingMode | null;
+  mode: SellMode | null;
   /** What has been typed so far, so it survives a detour to the profile page. */
   values: ListingFormValues | null;
-  setMode: (mode: ListingMode | null) => void;
+  setMode: (mode: SellMode | null) => void;
   setValues: (values: ListingFormValues) => void;
   reset: () => void;
 }
@@ -22,25 +25,13 @@ export const useSellDraftStore = create<SellDraftState>()(
     (set) => ({
       mode: null,
       values: null,
-      setMode: (mode) =>
-        set((state) => ({
-          mode,
-          // Stock and dates belong to one mode only; do not carry them over.
-          values:
-            state.values && mode !== state.mode
-              ? {
-                  ...state.values,
-                  orderDeadline: "",
-                  deliveryDate: "",
-                  stockQuantity: "",
-                }
-              : state.values,
-        })),
+      setMode: (mode) => set({ mode }),
       setValues: (values) => set({ values }),
       reset: () => set({ mode: null, values: null }),
     }),
     {
-      name: "ssmarket-sell-draft",
+      // "-2": drafts of the form that still had pre-order fields are not read.
+      name: "ssmarket-sell-draft-2",
       storage: createJSONStorage(() => sessionStorage),
     },
   ),

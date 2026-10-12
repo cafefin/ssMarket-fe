@@ -208,11 +208,32 @@ export function OrderView({ id }: { id: string }) {
             {tc(`paymentMethods.${order.paymentMethod}`)}
           </dd>
         </div>
-        {order.listing.deliveryDate && (
-          <div>
-            <dt className="text-muted-foreground">{t("deliveryDate")}</dt>
-            <dd className="font-medium">{formatDate(order.listing.deliveryDate)}</dd>
-          </div>
+        {order.campaign && (
+          <>
+            <div>
+              <dt className="text-muted-foreground">{t("round")}</dt>
+              <dd className="font-medium">
+                <Link
+                  href={`/campaigns/${order.campaign.id}`}
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  {order.campaign.title}
+                </Link>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">{t("deadline")}</dt>
+              <dd className="font-medium">
+                {format.deadline(order.campaign.orderDeadline)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">{t("deliveryDate")}</dt>
+              <dd className="font-medium">
+                {formatDate(order.campaign.deliveryDate)}
+              </dd>
+            </div>
+          </>
         )}
         {order.note && (
           <div className="sm:col-span-2">

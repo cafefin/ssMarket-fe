@@ -93,7 +93,9 @@
       "loadFailed": "Không tải được danh sách đơn hàng.",
       "order": "Đơn {code}",
       "seller": "Người bán: {name}",
-      "moreListings": "{title} và {count} sản phẩm khác"
+      "moreListings": "{title} và {count} sản phẩm khác",
+      "round": "Đợt: {title}",
+      "roundDates": "Chốt {deadline} · Giao {delivery}"
     },
     "mine": {
       "title": "Đơn của tôi",
@@ -196,7 +198,9 @@
       "deliveryDate": "Ngày giao dự kiến",
       "note": "Ghi chú",
       "savedWithCombos": "Giá lẻ {listTotal}",
-      "products": "Sản phẩm"
+      "products": "Sản phẩm",
+      "round": "Đợt đặt trước",
+      "deadline": "Chốt đơn"
     },
     "summary": {
       "filters": {
@@ -217,7 +221,6 @@
       "backToMine": "Về bài đăng của tôi",
       "updated": "Đã cập nhật {count} đơn",
       "eyebrow": "Bảng tổng hợp đơn hàng",
-      "dates": "Chốt đơn {deadline} · Giao ngày {delivery}",
       "figures": {
         "orders": "Số đơn",
         "total": "Tổng tiền",
@@ -289,7 +292,8 @@
     "card": {
       "remaining": "Còn {quantity} {unit}",
       "closes": "Chốt {deadline}",
-      "seller": "@{handle}"
+      "seller": "@{handle}",
+      "inRound": "Đợt: {title}"
     },
     "filters": {
       "modeGroup": "Hình thức bán",
@@ -309,15 +313,8 @@
       "clear": "Bỏ lọc {name}",
       "modes": {
         "in_stock": "Có sẵn",
-        "preorder": "Đặt trước",
-        "all": "Tất cả"
+        "campaign": "Đợt đặt trước"
       }
-    },
-    "shelf": {
-      "title": "Sắp chốt đơn",
-      "subtitle": "Đặt trước khi hết giờ, người bán gom một lượt.",
-      "previous": "Xem các món trước",
-      "next": "Xem các món tiếp theo"
     },
     "gallery": {
       "photo": "Ảnh {number} của {title}",
@@ -355,7 +352,8 @@
       "summary": "Bảng tổng hợp đơn hàng",
       "condition": "Độ mới",
       "combos": "Mua nhiều giá tốt",
-      "combo": "{quantity} {unit}: {price}"
+      "combo": "{quantity} {unit}: {price}",
+      "inRound": "Thuộc đợt {title}"
     },
     "condition": {
       "new": "Mới",
@@ -449,34 +447,19 @@
   },
   "sell": {
     "title": "Đăng bán",
-    "changeMode": "Đổi hình thức",
     "modeStep": {
-      "question": "Bạn muốn bán theo cách nào?",
       "in_stock": {
-        "title": "Hàng có sẵn",
-        "description": "Đồ bạn đang có, bán đến khi hết.",
-        "example": "Ví dụ: loa cũ, sách, đồ gia dụng."
-      },
-      "preorder": {
-        "title": "Đặt trước",
-        "description": "Nhận đăng ký đến hạn chốt, giao theo đợt.",
-        "example": "Ví dụ: hoa quả theo tuần, đồ ăn theo ngày."
+        "title": "Hàng có sẵn"
       }
     },
     "form": {
       "modeLabel": "Hình thức:",
       "title": "Tiêu đề",
-      "titlePlaceholder": {
-        "preorder": "Hoa quả tuần này",
-        "in_stock": "Loa bluetooth JBL cũ"
-      },
+      "titlePlaceholder": "Loa bluetooth JBL cũ",
       "category": "Loại hàng",
       "chooseCategory": "Chọn loại hàng",
       "hiddenCategory": "{name} (đã ẩn)",
       "description": "Mô tả",
-      "deadline": "Hạn chốt đơn",
-      "deadlineHint": "Sau thời điểm này không ai đặt thêm được.",
-      "deliveryDate": "Ngày giao",
       "payment": "Thanh toán",
       "payOnDeliveryHint": "Bạn giao hàng rồi thu tiền trực tiếp hoặc nhận chuyển khoản sau.",
       "prepaidQrHint": "Người mua quét mã có sẵn số tiền. Cần thông tin ngân hàng trong hồ sơ của bạn.",
@@ -498,10 +481,7 @@
     },
     "product": {
       "title": "Giá và số lượng",
-      "hint": {
-        "in_stock": "Mỗi bài là một sản phẩm. Có nhiều loại hoặc cỡ thì đăng mỗi loại một bài.",
-        "preorder": "Mỗi bài là một sản phẩm, người mua đặt đến hạn chốt. Không cần nhập số lượng."
-      },
+      "hint": "Mỗi bài là một sản phẩm. Có nhiều loại hoặc cỡ thì đăng mỗi loại một bài.",
       "unit": "Đơn vị",
       "unitPrice": "Đơn giá (đ)",
       "stock": "Số lượng có",
@@ -528,10 +508,6 @@
       "category": "Chọn loại hàng",
       "description": "Mô tả tối đa 5000 ký tự",
       "payment": "Chọn ít nhất một hình thức thanh toán",
-      "deadlineRequired": "Chọn hạn chốt đơn",
-      "deadlineFuture": "Hạn chốt đơn phải ở tương lai",
-      "deliveryRequired": "Chọn ngày giao",
-      "deliveryBeforeDeadline": "Ngày giao không được trước hạn chốt đơn",
       "unit": "Chọn đơn vị",
       "unitPrice": "Đơn giá từ 1.000 đ đến 1.000.000.000 đ",
       "stockPositive": "Nhập số lượng lớn hơn 0",
@@ -547,8 +523,7 @@
       "notFound": "Không tìm thấy bài đăng",
       "closed": "Bài đăng đã đóng nên không sửa được",
       "loading": "Đang tải bài đăng",
-      "backToMine": "Về bài đăng của tôi",
-      "reopened": "Đây là bản sao của đợt trước. Kiểm tra hạn chốt, ngày giao và giá trước khi đăng."
+      "backToMine": "Về bài đăng của tôi"
     },
     "mine": {
       "title": "Bài đăng của tôi",
@@ -565,12 +540,9 @@
       },
       "loading": "Đang tải bài đăng",
       "loadFailed": "Không tải được bài đăng của bạn.",
-      "closes": "Chốt đơn {time}",
       "publishedAt": "Đăng lúc {time}",
-      "expired": "Đã quá hạn chốt. Người mua không còn nhìn thấy bài này.",
       "view": "Xem",
       "summary": "Tổng hợp",
-      "reopen": "Mở lại",
       "close": "Đóng bài",
       "closed": "Đã đóng bài đăng",
       "closeTitle": "Đóng bài đăng?",

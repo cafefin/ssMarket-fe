@@ -154,6 +154,7 @@ export function ListingDetailView({
 
   const isOwner = me?.id === listing.seller.id;
   const note = isOwner ? ownerNote(listing) : null;
+  const campaign = listing.campaign;
 
   return (
     <article className="mx-auto grid max-w-5xl gap-8 px-4 py-8 sm:px-8 md:grid-cols-2">
@@ -206,20 +207,26 @@ export function ListingDetailView({
           </div>
         </header>
 
-        {listing.mode === "preorder" &&
-          listing.orderDeadline &&
-          listing.deliveryDate && (
+        {/* The round a pre-order product belongs to, and the round's dates. */}
+        {campaign && (
+          <div className="flex flex-col gap-2">
+            <Link
+              href={`/campaigns/${campaign.id}`}
+              className="w-fit text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              {t("inRound", { title: campaign.title })}
+            </Link>
             <dl className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2 rounded-md bg-deadline-soft p-4 text-sm">
               <div>
                 <dt className="text-deadline-deep">{t("deadline")}</dt>
                 <dd className="text-lg leading-tight font-semibold text-deadline-deep">
-                  {formatDeadline(listing.orderDeadline, locale)}
+                  {formatDeadline(campaign.orderDeadline, locale)}
                 </dd>
               </div>
               <div>
                 <dt className="text-deadline-deep">{t("deliveryDate")}</dt>
                 <dd className="font-semibold">
-                  {formatDate(listing.deliveryDate)}
+                  {formatDate(campaign.deliveryDate)}
                 </dd>
               </div>
               {listing.orderCount > 0 && (
@@ -231,7 +238,8 @@ export function ListingDetailView({
                 </div>
               )}
             </dl>
-          )}
+          </div>
+        )}
 
         <ProductFacts listing={listing} />
 
@@ -254,7 +262,8 @@ export function ListingDetailView({
           </section>
         )}
 
-        {isOwner && (
+        {/* A round's product is edited and summarised through its round. */}
+        {isOwner && !campaign && (
           <div className="flex flex-wrap gap-3">
             {listing.status !== "closed" && (
               <Link

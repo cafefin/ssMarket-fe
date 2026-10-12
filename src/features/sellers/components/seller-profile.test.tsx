@@ -18,8 +18,7 @@ const summary = (id: string, title: string) => ({
   stockQuantity: 3,
   minUnitPrice: 35000,
   minPriceUnit: "cái",
-  orderDeadline: null,
-  deliveryDate: null,
+  campaign: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
   orderCount: 0,
 });

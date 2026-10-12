@@ -15,60 +15,36 @@ describe("sell draft store", () => {
   });
 
   it("remembers the mode and the typed values", () => {
-    store().setMode("preorder");
-    store().setValues({ ...emptyListing(), title: "Hoa quả tuần 41" });
+    store().setMode("campaign");
+    store().setValues({ ...emptyListing(), title: "Loa cũ" });
 
-    expect(store().mode).toBe("preorder");
-    expect(store().values?.title).toBe("Hoa quả tuần 41");
+    expect(store().mode).toBe("campaign");
+    expect(store().values?.title).toBe("Loa cũ");
   });
 
-  it("keeps shared fields and clears mode-specific ones when the mode changes", () => {
+  it("keeps the typed values when the mode changes", () => {
     store().setMode("in_stock");
-    store().setValues({
-      ...emptyListing(),
-      title: "Cam sành",
-      orderDeadline: "2026-10-09T17:00",
-      deliveryDate: "2026-10-12",
-      unit: "kg",
-      unitPrice: "35000",
-      stockQuantity: "10",
-    });
-
-    store().setMode("preorder");
-
-    expect(store().values).toMatchObject({
-      title: "Cam sành",
-      orderDeadline: "",
-      deliveryDate: "",
-      unit: "kg",
-      unitPrice: "35000",
-      stockQuantity: "",
-    });
-  });
-
-  it("does not touch the values when the same mode is chosen again", () => {
-    store().setMode("in_stock");
-    const values = {
-      ...emptyListing(),
-      unitPrice: "5000",
-      stockQuantity: "2",
-    };
+    const values = { ...emptyListing(), unitPrice: "5000", stockQuantity: "2" };
     store().setValues(values);
 
-    store().setMode("in_stock");
+    store().setMode("campaign");
+    store().setMode(null);
 
+    expect(store().mode).toBeNull();
     expect(store().values).toEqual(values);
   });
 
-  it("is written to sessionStorage and cleared by reset", () => {
+  it("is written to sessionStorage under a new name and cleared by reset", () => {
     store().setMode("in_stock");
     store().setValues({ ...emptyListing(), title: "Loa cũ" });
 
-    expect(sessionStorage.getItem("ssmarket-sell-draft")).toContain("Loa cũ");
+    expect(sessionStorage.getItem("ssmarket-sell-draft-2")).toContain("Loa cũ");
+    // A draft of the old form, with pre-order fields, is never read again.
+    expect(sessionStorage.getItem("ssmarket-sell-draft")).toBeNull();
 
     store().reset();
 
     expect(store()).toMatchObject({ mode: null, values: null });
-    expect(sessionStorage.getItem("ssmarket-sell-draft")).not.toContain("Loa cũ");
+    expect(sessionStorage.getItem("ssmarket-sell-draft-2")).not.toContain("Loa cũ");
   });
 });

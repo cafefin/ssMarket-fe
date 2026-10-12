@@ -1,23 +1,27 @@
 import { isCondition, type ListingCondition } from "./condition";
 
-/** "in_stock" is the default: goods that can be bought right now. */
-export type ListingModeFilter = "in_stock" | "preorder" | "all";
+/**
+ * "in_stock" is the default: goods that can be bought right now. "campaign"
+ * is the tab of pre-order rounds.
+ */
+export type ListingModeFilter = "in_stock" | "campaign";
+
+/** A round as one card, or each of its products as a card. */
+export type CampaignView = "campaigns" | "items";
 
 /** In the order the filter bar shows them. */
-export const MODE_FILTERS: readonly ListingModeFilter[] = [
-  "in_stock",
-  "preorder",
-  "all",
-];
+export const MODE_FILTERS: readonly ListingModeFilter[] = ["in_stock", "campaign"];
 
 export interface ListingFilters {
   q: string;
   category: string | null;
   mode: ListingModeFilter;
+  /** How the round tab is shown; only meaningful when mode is "campaign". */
+  view: CampaignView;
   /** Bounds on the unit price, integer VND. */
   minPrice: number | null;
   maxPrice: number | null;
-  /** Second-hand goods at least this good. */
+  /** Second-hand goods at least this good; never set for pre-order rounds. */
   minCondition: ListingCondition | null;
 }
 
@@ -25,6 +29,7 @@ export const NO_FILTERS: ListingFilters = {
   q: "",
   category: null,
   mode: "in_stock",
+  view: "campaigns",
   minPrice: null,
   maxPrice: null,
   minCondition: null,
@@ -47,7 +52,8 @@ function price(value: string | null): number | null {
 
 /** Reads the browse filters from a URL query string, dropping anything invalid. */
 export function parseListingFilters(params: URLSearchParams): ListingFilters {
-  const mode = params.get("mode");
+  const mode: ListingModeFilter =
+    params.get("mode") === "campaign" ? "campaign" : NO_FILTERS.mode;
   const condition = params.get("minCondition");
   let minPrice = price(params.get("minPrice"));
   let maxPrice = price(params.get("maxPrice"));
@@ -59,13 +65,15 @@ export function parseListingFilters(params: URLSearchParams): ListingFilters {
   return {
     q: (params.get("q") ?? "").trim(),
     category: params.get("category")?.trim() || null,
-    mode:
-      mode && (MODE_FILTERS as readonly string[]).includes(mode)
-        ? (mode as ListingModeFilter)
-        : NO_FILTERS.mode,
+    mode,
+    view:
+      mode === "campaign" && params.get("view") === "items"
+        ? "items"
+        : NO_FILTERS.view,
     minPrice,
     maxPrice,
-    minCondition: isCondition(condition) ? condition : null,
+    // Pre-order products have no condition.
+    minCondition: mode === "in_stock" && isCondition(condition) ? condition : null,
   };
 }
 
@@ -81,13 +89,16 @@ export function toSearchParams(filters: ListingFilters): URLSearchParams {
   if (filters.mode !== NO_FILTERS.mode) {
     params.set("mode", filters.mode);
   }
+  if (filters.mode === "campaign" && filters.view === "items") {
+    params.set("view", filters.view);
+  }
   if (filters.minPrice !== null) {
     params.set("minPrice", String(filters.minPrice));
   }
   if (filters.maxPrice !== null) {
     params.set("maxPrice", String(filters.maxPrice));
   }
-  if (filters.minCondition) {
+  if (filters.minCondition && filters.mode !== "campaign") {
     params.set("minCondition", filters.minCondition);
   }
   return params;
@@ -103,9 +114,7 @@ export function isDefault(filters: ListingFilters): boolean {
   return toSearchParams(filters).toString() === "";
 }
 
-/** The `mode` the API understands: "all" means not filtering by mode. */
-export function apiMode(
-  filters: ListingFilters,
-): "in_stock" | "preorder" | undefined {
-  return filters.mode === "all" ? undefined : filters.mode;
+/** The `mode` the API understands: the products of rounds are pre-orders. */
+export function apiMode(filters: ListingFilters): "in_stock" | "preorder" {
+  return filters.mode === "campaign" ? "preorder" : "in_stock";
 }
