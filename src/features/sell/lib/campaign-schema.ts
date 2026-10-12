@@ -86,6 +86,41 @@ export const emptyCampaign = (): CampaignFormValues => ({
   items: [emptyItem(DEFAULT_UNIT)],
 });
 
+/** Adds the issues of one product of a round. */
+function checkItem(
+  item: ItemFormValues,
+  issue: (path: (string | number)[], message: string) => void,
+  t: Translator<"sell.validation">,
+): void {
+  // Food often has a short name ("Xoi", "Che"), so two characters are enough.
+  const itemTitle = item.title.trim();
+  if (itemTitle.length < 2 || itemTitle.length > 120) {
+    issue(["title"], t("itemTitle"));
+  }
+  if (item.description.length > 5000) {
+    issue(["description"], t("description"));
+  }
+  checkProduct(item, issue, t);
+}
+
+/** How many of these products break the product rules of a round. */
+export function invalidItemCount(
+  items: ItemFormValues[],
+  t: Translator<"sell.validation">,
+): number {
+  return items.filter((item) => {
+    let broken = false;
+    checkItem(
+      item,
+      () => {
+        broken = true;
+      },
+      t,
+    );
+    return broken;
+  }).length;
+}
+
 /**
  * The form rules of a pre-order round and its products. They mirror the
  * backend's validation of a round; the backend remains the authority. `t`
@@ -132,15 +167,7 @@ export function campaignSchema(
       issue(["items"], t("itemsTooMany", { max: MAX_ITEMS }));
     }
     value.items.forEach((item, index) => {
-      // Food often has a short name ("Xoi", "Che"), so two characters are enough.
-      const itemTitle = item.title.trim();
-      if (itemTitle.length < 2 || itemTitle.length > 120) {
-        issue(["items", index, "title"], t("itemTitle"));
-      }
-      if (item.description.length > 5000) {
-        issue(["items", index, "description"], t("description"));
-      }
-      checkProduct(
+      checkItem(
         item,
         (path, message) => issue(["items", index, ...path], message),
         t,

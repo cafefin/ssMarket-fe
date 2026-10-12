@@ -26,11 +26,14 @@ import {
   type CampaignFormValues,
   campaignSchema,
   emptyItem,
+  type ItemFormValues,
+  MAX_ITEMS,
   toCampaignBody,
 } from "../lib/campaign-schema";
 import { type ItemPhotos, submitCampaign } from "../lib/submit-campaign";
 import { LISTING_UNITS } from "../lib/units";
 import { CampaignItemsField } from "./campaign-items-field";
+import { ImportItemsButton } from "./import-items-button";
 
 interface CampaignFormProps {
   initialValues: CampaignFormValues;
@@ -92,13 +95,15 @@ export function CampaignForm({
     resolver: zodResolver(schema),
     defaultValues: initialValues,
   });
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control,
     name: "items",
     // The default key name, "id", would overwrite a product's server id.
     keyName: "key",
   });
   const acceptsPrepaidQr = useWatch({ control, name: "acceptsPrepaidQr" });
+  const defaultUnit = useWatch({ control, name: "defaultUnit" });
+  const [importSummary, setImportSummary] = useState("");
 
   useEffect(() => {
     if (!onValuesChange) {
@@ -129,6 +134,29 @@ export function CampaignForm({
   // refusal covers the rest.
   const needsBank =
     bankRequired || (acceptsPrepaidQr && me != null && !me.bankAccountNumber);
+
+  // A form that still has its one untouched empty row takes the imported
+  // products in its place instead of after it.
+  const startsEmpty = () => {
+    const [only] = getValues("items");
+    return (
+      fields.length === 1 &&
+      only.id === "" &&
+      only.title === "" &&
+      only.unitPrice === "" &&
+      only.description === "" &&
+      only.combos.length === 0 &&
+      !photos.current.has(fields[0].key)
+    );
+  };
+  const importItems = (imported: ItemFormValues[]) => {
+    if (startsEmpty()) {
+      photos.current.clear();
+      replace(imported);
+    } else {
+      append(imported);
+    }
+  };
 
   const save = (publish: boolean) =>
     handleSubmit(async (values) => {
@@ -361,8 +389,25 @@ export function CampaignForm({
           remove(index);
         }}
         onPhotosChange={(key, changed) => photos.current.set(key, changed)}
-        actions={itemActions}
-        notice={itemNotice}
+        actions={
+          <>
+            <ImportItemsButton
+              defaultUnit={defaultUnit}
+              room={() => (startsEmpty() ? MAX_ITEMS : MAX_ITEMS - fields.length)}
+              onImport={importItems}
+              onSummary={setImportSummary}
+            />
+            {itemActions}
+          </>
+        }
+        notice={
+          (importSummary || itemNotice) && (
+            <>
+              {importSummary && <p role="status">{importSummary}</p>}
+              {itemNotice}
+            </>
+          )
+        }
       />
 
       <div className="flex flex-wrap gap-3">

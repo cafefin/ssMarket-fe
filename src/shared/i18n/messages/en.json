@@ -651,6 +651,17 @@
         "deleted": "Draft deleted",
         "deleteTitle": "Delete this draft?",
         "deleteBody": "“{title}” and its products will be deleted for good."
+      },
+      "import": {
+        "template": "Download template",
+        "button": "Import from Excel",
+        "fileLabel": "Choose an Excel file (.xlsx)",
+        "summary": "Added {added, plural, one {# product} other {# products}}{invalid, plural, =0 {} other {, # to fix}}{unknown, plural, =0 {} other {, # with an unknown unit given the default unit}}{dropped, plural, =0 {} other {, # rows dropped over the limit of {max}}}",
+        "notXlsx": "Only .xlsx files are accepted. Download the template and fill it in.",
+        "tooLarge": "The file is larger than 1 MB and cannot be imported.",
+        "unreadable": "This file could not be read. Use the template.",
+        "noRows": "The file has no rows to import.",
+        "full": "The round already has {max} products; none can be added."
       }
     }
   },

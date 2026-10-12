@@ -651,6 +651,17 @@
         "deleted": "Đã xóa đợt nháp",
         "deleteTitle": "Xóa đợt nháp?",
         "deleteBody": "“{title}” và các món trong đợt sẽ bị xóa hẳn."
+      },
+      "import": {
+        "template": "Tải file mẫu",
+        "button": "Nhập từ Excel",
+        "fileLabel": "Chọn file Excel (.xlsx)",
+        "summary": "Đã thêm {added} món{invalid, plural, =0 {} other {, # món cần sửa}}{unknown, plural, =0 {} other {, # món có đơn vị lạ nên dùng đơn vị mặc định}}{dropped, plural, =0 {} other {, bỏ # dòng vì vượt {max} món}}",
+        "notXlsx": "Chỉ nhận file .xlsx. Hãy tải file mẫu và điền vào đó.",
+        "tooLarge": "File lớn hơn 1 MB nên không nhập được.",
+        "unreadable": "Không đọc được file này. Hãy dùng file mẫu.",
+        "noRows": "File không có dòng dữ liệu nào để nhập.",
+        "full": "Đã đủ {max} món, không nhập thêm được."
       }
     }
   },

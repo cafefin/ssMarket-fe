@@ -11,6 +11,7 @@ import {
   emptyItem,
   fromCampaign,
 } from "../lib/campaign-schema";
+import { readXlsx } from "../lib/read-xlsx";
 import { useSellDraftStore } from "../lib/sell-draft-store";
 import type { SubmitCampaignInput } from "../lib/submit-campaign";
 import { CampaignForm } from "./campaign-form";
@@ -30,6 +31,10 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/sell/new",
 }));
 vi.mock("../lib/submit-campaign", () => ({ submitCampaign }));
+vi.mock("../lib/read-xlsx", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../lib/read-xlsx")>()),
+  readXlsx: vi.fn(),
+}));
 
 const categories = [
   { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food", isPerishable: true },
@@ -497,6 +502,90 @@ describe("CampaignForm", () => {
       expect(screen.getByLabelText("Product 1 name")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Add a product" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Save draft" })).toBeInTheDocument();
+    });
+  });
+
+  describe("importing from Excel", () => {
+    const sheet = (count: number) => [
+      ["Tên", "Giá", "Đơn vị", "Mô tả"],
+      ...Array.from({ length: count }, (_, index) => [`Bánh ${index + 1}`, 15000, null, null]),
+    ];
+    const chooseFile = (name = "mon.xlsx") =>
+      fireEvent.change(field("Chọn file Excel (.xlsx)"), {
+        target: { files: [new File(["x"], name)] },
+      });
+
+    it("replaces the untouched empty row and imports with the default unit", async () => {
+      vi.mocked(readXlsx).mockResolvedValue(sheet(2));
+      await renderForm();
+      await userEvent.selectOptions(field("Đơn vị mặc định"), "hộp");
+
+      chooseFile();
+
+      expect(await screen.findByText("Đã thêm 2 món")).toBeInTheDocument();
+      expect(screen.getByText("2/50")).toBeInTheDocument();
+      expect(field("Tên món 1")).toHaveValue("Bánh 1");
+      expect(field("Đơn vị món 2")).toHaveValue("hộp");
+    });
+
+    it("appends after a row that has been filled in", async () => {
+      vi.mocked(readXlsx).mockResolvedValue(sheet(2));
+      await renderForm();
+      await fillRow(1, "Chè", "20000");
+
+      chooseFile();
+
+      expect(await screen.findByText("Đã thêm 2 món")).toBeInTheDocument();
+      expect(screen.getByText("3/50")).toBeInTheDocument();
+      expect(field("Tên món 1")).toHaveValue("Chè");
+      expect(field("Tên món 3")).toHaveValue("Bánh 2");
+    });
+
+    it("shows an error at the cell of an imported row and saves the corrected one", async () => {
+      vi.mocked(readXlsx).mockResolvedValue([
+        ["Tên", "Giá"],
+        ["Bánh bao chay", "abc"],
+      ]);
+      await renderForm();
+      await fillShared();
+      chooseFile();
+      expect(await screen.findByText("Đã thêm 1 món, 1 món cần sửa")).toBeInTheDocument();
+
+      await click("Lưu nháp");
+      await screen.findByText("Đơn giá từ 1.000 đ đến 1.000.000.000 đ");
+      expect(submitCampaign).not.toHaveBeenCalled();
+
+      await userEvent.clear(field("Giá món 1 (đ)"));
+      await userEvent.type(field("Giá món 1 (đ)"), "15000");
+      await click("Lưu nháp");
+
+      await waitFor(() => expect(submitCampaign).toHaveBeenCalled());
+      expect(lastSubmit().body.items).toMatchObject([
+        { title: "Bánh bao chay", unitPrice: 15000 },
+      ]);
+    });
+
+    it("drops what does not fit under 50 products", async () => {
+      vi.mocked(readXlsx).mockResolvedValue(sheet(3));
+      await renderForm({ initialValues: items(49) });
+
+      chooseFile();
+
+      expect(
+        await screen.findByText("Đã thêm 1 món, bỏ 2 dòng vì vượt 50 món"),
+      ).toBeInTheDocument();
+      expect(screen.getByText("50/50")).toBeInTheDocument();
+    }, 15_000);
+
+    it("adds nothing for a refused file", async () => {
+      await renderForm();
+
+      chooseFile("mon.csv");
+
+      expect(
+        await screen.findByText("Chỉ nhận file .xlsx. Hãy tải file mẫu và điền vào đó."),
+      ).toBeInTheDocument();
+      expect(screen.getByText("1/50")).toBeInTheDocument();
     });
   });
 
