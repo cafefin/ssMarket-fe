@@ -6,6 +6,8 @@
   "format": {
     "today": "today",
     "currency": "VND",
+    "thousand": "K",
+    "million": "M",
     "weekdays": {
       "Mon": "Mon",
       "Tue": "Tue",
@@ -302,6 +304,8 @@
       "anyCondition": "Any condition",
       "atLeast": "{percent}% or better ({level})",
       "category": "Category",
+      "clearAll": "Clear filters",
+      "updating": "Updating results",
       "clear": "Remove filter {name}",
       "modes": {
         "in_stock": "In stock",

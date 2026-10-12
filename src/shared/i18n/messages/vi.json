@@ -6,6 +6,8 @@
   "format": {
     "today": "hôm nay",
     "currency": "đ",
+    "thousand": "k",
+    "million": "tr",
     "weekdays": {
       "Mon": "thứ Hai",
       "Tue": "thứ Ba",
@@ -302,6 +304,8 @@
       "anyCondition": "Mọi độ mới",
       "atLeast": "Từ {percent}% ({level})",
       "category": "Danh mục",
+      "clearAll": "Xóa bộ lọc",
+      "updating": "Đang lọc",
       "clear": "Bỏ lọc {name}",
       "modes": {
         "in_stock": "Có sẵn",

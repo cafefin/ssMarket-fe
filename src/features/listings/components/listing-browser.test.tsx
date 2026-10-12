@@ -142,13 +142,13 @@ describe("ListingBrowser", () => {
 
     expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Dưới 50.000 đ" }),
+      screen.getByRole("link", { name: "Dưới 50k" }),
     ).toHaveAttribute("href", "/?maxPrice=50000");
     expect(
-      screen.getByRole("link", { name: "Bỏ lọc 50.000 đ – 200.000 đ" }),
+      screen.getByRole("link", { name: "Bỏ lọc 50k – 200k" }),
     ).toHaveAttribute("href", "/");
     expect(
-      screen.getByRole("link", { name: "50.000 đ – 200.000 đ" }),
+      screen.getByRole("link", { name: "50k – 200k" }),
     ).toHaveAttribute("aria-current", "true");
     expect(
       screen.getByRole("link", { name: "Từ 90% (Tốt)" }),
@@ -159,6 +159,45 @@ describe("ListingBrowser", () => {
     expect(listingCalls()[0][1]).toMatchObject({
       params: { query: { minPrice: 50000, maxPrice: 200000 } },
     });
+  });
+
+  it("keeps the old cards and shows a progress bar while a new filter loads", async () => {
+    let deliver: (page: Page) => void = () => {};
+    const first: Page = { items: [summary("1", "Loa cũ")], nextCursor: null };
+    let calls = 0;
+    api.GET.mockImplementation((path: string) => {
+      if (path === "/categories") {
+        return Promise.resolve(ok(categories));
+      }
+      calls += 1;
+      return calls === 1
+        ? Promise.resolve(ok(first))
+        : new Promise((resolve) => {
+            deliver = (page) => resolve(ok(page));
+          });
+    });
+    // A new element each time, so the rerender reads the URL again.
+    const ui = () => (
+      <QueryProvider>
+        <ListingBrowser />
+      </QueryProvider>
+    );
+    const view = renderWithIntl(ui());
+    expect(await screen.findByText("Loa cũ")).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+
+    location.search = "mode=preorder";
+    view.rerender(ui());
+
+    expect(await screen.findByRole("progressbar", { name: "Đang lọc" })).toBeInTheDocument();
+    expect(screen.getByText("Loa cũ")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Đang tải bài đăng")).not.toBeInTheDocument();
+
+    deliver({ items: [summary("2", "Bánh chưng")], nextCursor: null });
+
+    expect(await screen.findByText("Bánh chưng")).toBeInTheDocument();
+    expect(screen.queryByText("Loa cũ")).not.toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 
   it("sends the filters from the URL to the API", async () => {

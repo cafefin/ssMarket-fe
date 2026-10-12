@@ -111,8 +111,13 @@ test("a buyer narrows the list by price and condition", async ({ browser }) => {
 
   await page.goto(`/?q=${encodeURIComponent(word)}`);
   await page.getByText("Giá", { exact: true }).click();
-  await page.getByRole("link", { name: "200.000 đ – 1.000.000 đ" }).click();
+  await page.getByRole("link", { name: "200k – 1tr" }).click();
   await expect(
     page.getByRole("heading", { name: `Không tìm thấy kết quả cho “${word}”` }),
   ).toBeVisible();
+
+  // Clearing the filters keeps the search and brings the products back.
+  await page.getByRole("link", { name: "Xóa bộ lọc" }).first().click();
+  await expect(page).toHaveURL(new RegExp(`/\\?q=${word}$`));
+  await expect(page.getByRole("link", { name: new RegExp(`${word} cũ`) })).toBeVisible();
 });

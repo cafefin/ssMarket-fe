@@ -11,6 +11,7 @@ import { type ListingSummary, useListings } from "../api/use-listings";
 import { isDefault, parseListingFilters } from "../lib/filters";
 import { ListingCard } from "./listing-card";
 import { ClosingSoonShelf } from "./closing-soon-shelf";
+import { FilterLink } from "./filter-link";
 import { ListingFilters } from "./listing-filters";
 import { cn } from "@/shared/lib/utils";
 import { LISTING_GRID } from "./listing-grid";
@@ -76,7 +77,11 @@ export function ListingBrowser({
           <h2 className="text-[22px] font-bold">{t("all")}</h2>
         )}
 
-        <ListingFilters filters={filters} categories={categories} />
+        <ListingFilters
+          filters={filters}
+          categories={categories}
+          busy={listings.isPlaceholderData}
+        />
 
         {listings.isPending && (
           <div className={LISTING_GRID} aria-busy="true" aria-label={t("loading")}>
@@ -112,9 +117,9 @@ export function ListingBrowser({
                 : t("emptyHint")}
             </p>
             {filtered ? (
-              <Link href="/" className={buttonVariants({ variant: "outline" })}>
+              <FilterLink href="/" className={buttonVariants({ variant: "outline" })}>
                 {t("clearFilters")}
-              </Link>
+              </FilterLink>
             ) : (
               <Link href="/sell/new" className={buttonVariants()}>
                 {t("sellFirst")}
