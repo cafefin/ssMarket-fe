@@ -45,7 +45,8 @@ src/
 │   │   └── molecules/    field (and shared control styles), user-avatar,
 │   │                     quantity-stepper
 │   ├── api/              typed client, session refresh, ApiError, schema.d.ts,
-│   │                     query provider, use-current-user, use-public-user, use-user-message
+│   │                     query provider, use-current-user, use-public-user,
+│   │                     use-user-message, campaign-keys (query keys of rounds)
 │   ├── i18n/             locales, request config (cookie), messages/vi.json and en.json,
 │   │                     locale cookie, Translator type, test-utils (renderWithIntl)
 │   └── lib/              utils.ts, quantity-step.ts, format/ (money, dates, quantities,
@@ -66,7 +67,8 @@ src/
     │                     SalesSummary, CampaignSummary, summary-shared), api/ (use-orders),
     │                     lib/ (order-math)
     ├── sell/             components/ (mode step, listing form, round form and its
-    │                     product rows, my listings, my rounds), api/ (my rounds),
+    │                     product rows, my selling page with my rounds and my
+    │                     listings), api/ (my rounds),
     │                     lib/ (form schemas, units, draft store, save sequences)
     └── cart/             components/ (buy controls, round buy bar, cart button,
                           cart page, checkout page), api/ (use-cart),
@@ -79,9 +81,10 @@ features import each other only through `index.ts`, following `FEATURE_DEPS`:
 only `campaigns`, `orders`, `sell`, `sellers`, `admin` and `cart` may import
 `listings`; `sellers` and `orders` also import `campaigns`, and `cart` also
 imports `orders`. `campaigns` and `cart` do not know each other, and `sell`
-may not import `campaigns`. `app/` is the one place that joins two features. ESLint enforces this (`FEATURE_DEPS` in
-`eslint.config.mjs`). See `docs/architecture.md` for the rules, the atom and
-molecule definitions, and how to add a feature.
+may not import `campaigns`. `app/` is the one place that joins two features.
+ESLint enforces this (`FEATURE_DEPS` in `eslint.config.mjs`). See
+`docs/architecture.md` for the rules, the atom and molecule definitions, and
+how to add a feature.
 
 Pages under `app/` stay thin: they render one component from a feature,
 which holds the behaviour and has the tests.
@@ -108,6 +111,9 @@ which holds the behaviour and has the tests.
 - Show `useUserMessage()(error)` to people. Backend messages are English text
   for developers and must never be rendered. Add new codes to `errors.codes` in
   **both** `vi.json` and `en.json`.
+- The backend reuses the listing codes (`INVALID_LISTING_STATE`,
+  `LISTING_NOT_OPEN`, `OWN_LISTING`) for pre-order rounds, so their messages
+  must be true of a product and of a round: never "bài đăng" / "listing".
 
 ## Languages
 
@@ -124,9 +130,10 @@ locale routing: URLs never carry a language.
   page has no switch: it only follows the cookie.
 - Every piece of UI text, `aria-label`, placeholder, toast and validation
   message lives in `src/shared/i18n/messages/{vi,en}.json`, grouped by
-  namespace (`common`, `errors`, `format`, `shell`, `listings`, `sell`,
-  `campaigns`, `orders`, `profile`, `sellers`, `admin`, `login`, `metadata`). Keys are
-  English camelCase; numbers and names are ICU arguments, counts use `plural`.
+  namespace (`metadata`, `format`, `common`, `login`, `errors`, `orders`,
+  `shell`, `listings`, `sellers`, `profile`, `admin`, `sell`, `cart`,
+  `checkout`, `units`, `campaigns`). Keys are English camelCase; numbers and
+  names are ICU arguments, counts use `plural`.
   Add every key to both files; `messages.test.ts` checks keys and arguments.
 - `no-hardcoded-vietnamese.test.ts` fails on Vietnamese letters in any source
   file except tests, the message files, `schema.d.ts` and
@@ -156,7 +163,15 @@ locale routing: URLs never carry a language.
 - **Closing soon and seller page**: the home shelf of rounds closing soon uses
   `useClosingCampaigns` (`features/campaigns/api/use-campaigns.ts`, under the
   campaigns key) and the seller page uses `useSellerListings` (`["listings"]`).
-  After a write to a round, invalidate `campaignKeysToInvalidate(id)` (sell).
+- **Rounds**: their query keys live in `shared/api/campaign-keys.ts`
+  (`CAMPAIGNS_QUERY_KEY`, `campaignQueryKey`, `campaignSummaryQueryKey`,
+  `MY_CAMPAIGNS_QUERY_KEY`), because `campaigns`, `orders` and `sell` all use
+  them and may not all import each other. After a write to a round,
+  invalidate `campaignKeysToInvalidate(id)` (sell), which includes the
+  seller's summary. After a write to an order of a round (`useOrderAction`,
+  `useEditOrder`), also invalidate the round's summary and
+  `MY_CAMPAIGNS_QUERY_KEY` (it shows the order count); an edit invalidates
+  `campaignQueryKey(id)` too.
 - **Browse filters**: the URL query string, through
   `parseListingFilters` / `listingsHref`. Every filter is a `FilterLink`: a
   real `<a href>` (shareable, opens in a new tab) whose plain click only
@@ -243,9 +258,10 @@ already serves a 400px thumbnail and a 1600px full size.
   template `public/templates/campaign-items.xlsx` is generated by
   `node scripts/make-campaign-template.mjs` (commit the result).
 - Enter in a single-line input of the form saves a draft; it never publishes.
-- `MyCampaigns` (above `MyListings` on `/sell`) fetches all rounds once and
-  splits them into tabs in the browser; an open round past its deadline
-  (`isOpen` false) is listed under closed.
+- `/sell` is `MySelling`: the page's `h1` and "Đăng bán", then `MyCampaigns`
+  and `MyListings`, each a section under an `h2`. `MyCampaigns` fetches all
+  rounds once and splits them into tabs in the browser; an open round past
+  its deadline (`isOpen` false) is listed under closed.
 
 ## Pre-order rounds (buyer side)
 
@@ -260,7 +276,8 @@ already serves a 400px thumbnail and a 1600px full size.
   `CampaignBuyBar` through `renderBuy`; the bar takes plain lines. "Thêm vào
   giỏ" sends every line in one `PUT /cart/lines`, each quantity added to what
   the cart holds (the API replaces); "Mua ngay" opens the checkout, where the
-  round becomes one order.
+  round becomes one order. When the cart cannot be loaded the bar says so
+  with a retry and only "Mua ngay" works, since it does not need the cart.
 - Who sees what: the seller gets "Sửa đợt" and "Tổng hợp" and no quantities;
   a round that is not open says "Đã chốt" and has no quantities; a buyer
   with an order in the round (`useMyCampaignOrder`, asked afresh on every
@@ -269,8 +286,11 @@ already serves a 400px thumbnail and a 1600px full size.
 - The bar sits in a `sticky bottom-20 md:bottom-4 z-10` container, clear of
   the phone tab bar.
 - `QuantityStepper` lives in `shared/ui/molecules`; its step comes from
-  `shared/lib/quantity-step.ts`, the quantity rules from
-  `features/listings/lib/quantity.ts`.
+  `shared/lib/quantity-step.ts` (`stepFor`, and `roundQuantity`, the one
+  place that rounds a quantity to thousandths), the quantity rules from
+  `features/listings/lib/quantity.ts`. The parent validates: it passes
+  `invalid` for `aria-invalid`, as `CampaignItemPicker` does for a row with
+  a problem.
 - In the cart a seller's pre-order lines are grouped under their round
   (title, deadline, delivery date); at checkout a round's block is headed by
   the round's title.
@@ -321,6 +341,11 @@ already serves a 400px thumbnail and a 1600px full size.
   order keeps the price it was ordered at (as the server charges it), a product
   added now is priced as listed, and one set to 0 leaves the order (one must
   remain). `/orders/<id>?edit=1` opens it for an editable order.
+- The editor's rows are the round's products, then every order line the round
+  does not show. A buyer's `GET /campaigns/{id}` holds only products on sale,
+  so a product the seller stopped selling is known from the order line alone;
+  its row is built from the line ("Ngừng bán", no photo) and its quantity can
+  only go down. The PATCH body is the whole order: a line left out is deleted.
 
 ## Admin screens
 
