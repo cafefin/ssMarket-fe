@@ -114,6 +114,13 @@ describe("CampaignItemPicker", () => {
     );
   });
 
+  it("marks the field of a quantity that cannot be ordered as invalid", () => {
+    renderPicker({ a: "1,5", b: "2" });
+
+    expect(screen.getByRole("textbox", { name: "Số lượng Xôi gà" })).toBeInvalid();
+    expect(screen.getByRole("textbox", { name: "Số lượng Cam sành" })).toBeValid();
+  });
+
   it("marks a stopped product and never lets it go above its limit", () => {
     renderWithIntl(
       <CampaignItemPicker

@@ -64,15 +64,8 @@ export function MyListings() {
   const small = { size: "sm" } as const;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-[28px] leading-tight font-semibold">
-          {t("title")}
-        </h1>
-        <Link href="/sell/new" className={buttonVariants()}>
-          {ts("title")}
-        </Link>
-      </div>
+    <section className="flex flex-col gap-6">
+      <h2 className="text-[22px] leading-tight font-semibold">{t("title")}</h2>
 
       <nav aria-label={t("tabs")} className="flex gap-6 border-b border-border">
         {TABS.map((candidate) => {
@@ -225,6 +218,6 @@ export function MyListings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </section>
   );
 }

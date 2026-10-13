@@ -3,12 +3,7 @@
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/utils";
-import { stepFor } from "@/shared/lib/quantity-step";
-
-/** Rounds away floating-point noise from adding 0.5 steps. */
-function tidy(value: number): string {
-  return String(Math.round(value * 1000) / 1000);
-}
+import { roundQuantity, stepFor } from "@/shared/lib/quantity-step";
 
 /**
  * − quantity + for one product. The value is a decimal string like the API's;
@@ -22,6 +17,7 @@ export function QuantityStepper({
   max,
   onChange,
   disabled = false,
+  invalid = false,
   label,
   className,
 }: {
@@ -33,6 +29,8 @@ export function QuantityStepper({
   max?: number | null;
   onChange: (value: string) => void;
   disabled?: boolean;
+  /** True while the parent shows a problem with this quantity. */
+  invalid?: boolean;
   /** Accessible name of the field. */
   label: string;
   className?: string;
@@ -52,6 +50,7 @@ export function QuantityStepper({
     <div
       className={cn(
         "inline-flex items-center rounded-full border border-border",
+        invalid && "border-error",
         className,
       )}
     >
@@ -59,13 +58,14 @@ export function QuantityStepper({
         type="button"
         aria-label={t("decreaseQuantity")}
         disabled={disabled || !valid || current <= least}
-        onClick={() => onChange(tidy(Math.max(least, current - step)))}
+        onClick={() => onChange(String(roundQuantity(Math.max(least, current - step))))}
         className={button}
       >
         <MinusIcon aria-hidden="true" className="size-4" />
       </button>
       <input
         aria-label={label}
+        aria-invalid={invalid || undefined}
         inputMode={unit === "kg" ? "decimal" : "numeric"}
         value={value}
         placeholder={least === 0 ? "0" : undefined}
@@ -78,7 +78,7 @@ export function QuantityStepper({
         aria-label={t("increaseQuantity")}
         disabled={disabled || atMax}
         onClick={() =>
-          onChange(tidy(valid ? current + step : step))
+          onChange(String(roundQuantity(valid ? current + step : step)))
         }
         className={button}
       >

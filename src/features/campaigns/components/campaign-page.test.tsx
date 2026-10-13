@@ -105,6 +105,10 @@ describe("CampaignPage", () => {
     expect(within(terms).getByText(/^Còn \d+ ngày$/)).toBeInTheDocument();
     expect(within(terms).getByText("Ngày giao")).toBeInTheDocument();
     expect(within(terms).getByText("12/10/2099")).toBeInTheDocument();
+    // The group is a wrapper: the list inside keeps its terms and definitions.
+    expect(within(terms).getAllByRole("term")).toHaveLength(2);
+    expect(within(terms).getAllByRole("definition").length).toBeGreaterThan(1);
+    expect(terms.querySelector("dl")).not.toHaveAttribute("role");
     expect(
       screen.getByText("Chuyển khoản trước qua mã QR · Trả tiền khi nhận hàng"),
     ).toBeInTheDocument();

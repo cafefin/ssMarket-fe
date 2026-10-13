@@ -2,6 +2,5 @@
 // the feature uses.
 export { EditCampaign } from "./components/edit-campaign";
 export { EditListing } from "./components/edit-listing";
-export { MyCampaigns } from "./components/my-campaigns";
-export { MyListings } from "./components/my-listings";
+export { MySelling } from "./components/my-selling";
 export { NewListing } from "./components/new-listing";

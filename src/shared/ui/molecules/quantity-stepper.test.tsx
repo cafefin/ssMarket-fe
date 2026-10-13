@@ -88,4 +88,12 @@ describe("QuantityStepper", () => {
     expect(more).toBeDisabled();
     expect(field).toBeDisabled();
   });
+
+  it("marks its field as invalid when told the quantity is wrong", () => {
+    expect(renderStepper({ invalid: true }).field).toBeInvalid();
+  });
+
+  it("leaves its field valid otherwise", () => {
+    expect(renderStepper().field).toBeValid();
+  });
 });

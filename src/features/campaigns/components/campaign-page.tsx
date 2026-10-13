@@ -97,28 +97,32 @@ function Terms({ campaign }: { campaign: CampaignDetail }) {
         </p>
       </header>
 
-      <dl
+      {/* The role sits on a wrapper: on the list it would replace the
+          list's own role, and its terms and definitions with it. */}
+      <div
         role="group"
         aria-label={t("terms")}
-        className="grid grid-cols-1 gap-4 rounded-md bg-deadline-soft p-4 text-sm min-[480px]:grid-cols-2"
+        className="rounded-md bg-deadline-soft p-4 text-sm"
       >
-        <div>
-          <dt className="text-deadline-deep">{t("deadline")}</dt>
-          <dd className="text-lg leading-tight font-semibold text-deadline-deep">
-            {format.deadline(campaign.orderDeadline)}
-          </dd>
-          {left && (
-            <dd className="mt-0.5 font-medium text-deadline-deep">
-              {t(`timeLeft.${left.unit}`, { count: left.count })}
+        <dl className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2">
+          <div>
+            <dt className="text-deadline-deep">{t("deadline")}</dt>
+            <dd className="text-lg leading-tight font-semibold text-deadline-deep">
+              {format.deadline(campaign.orderDeadline)}
             </dd>
-          )}
-          {closed && <dd className="mt-0.5">{t("closedHint")}</dd>}
-        </div>
-        <div>
-          <dt className="text-deadline-deep">{t("deliveryDate")}</dt>
-          <dd className="font-semibold">{formatDate(campaign.deliveryDate)}</dd>
-        </div>
-      </dl>
+            {left && (
+              <dd className="mt-0.5 font-medium text-deadline-deep">
+                {t(`timeLeft.${left.unit}`, { count: left.count })}
+              </dd>
+            )}
+            {closed && <dd className="mt-0.5">{t("closedHint")}</dd>}
+          </div>
+          <div>
+            <dt className="text-deadline-deep">{t("deliveryDate")}</dt>
+            <dd className="font-semibold">{formatDate(campaign.deliveryDate)}</dd>
+          </div>
+        </dl>
+      </div>
 
       <section className="flex flex-col gap-1 text-sm">
         <h2 className="font-semibold">{t("payment")}</h2>

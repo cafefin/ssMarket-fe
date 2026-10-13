@@ -92,6 +92,7 @@ function Row({
           max={item.max}
           onChange={onChange}
           disabled={disabled}
+          invalid={problem !== null}
           label={t("quantityOf", { title: item.title })}
         />
       )}

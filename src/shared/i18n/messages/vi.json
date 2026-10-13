@@ -565,6 +565,7 @@
       "backToMine": "Về bài đăng của tôi"
     },
     "mine": {
+      "pageTitle": "Bán hàng",
       "title": "Bài đăng của tôi",
       "tabs": "Trạng thái bài đăng",
       "tab": {
@@ -710,7 +711,8 @@
     "campaignBar": {
       "label": "Các món đã chọn",
       "selected": "{count} món",
-      "none": "Chưa chọn món nào"
+      "none": "Chưa chọn món nào",
+      "cartFailed": "Không tải được giỏ hàng."
     }
   },
   "checkout": {

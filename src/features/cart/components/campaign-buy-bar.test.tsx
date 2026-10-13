@@ -262,4 +262,47 @@ describe("CampaignBuyBar", () => {
     expect(screen.queryByRole("region")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Mua ngay" })).not.toBeInTheDocument();
   });
+
+  describe("when the cart cannot be loaded", () => {
+    function serveBrokenCart() {
+      api.GET.mockImplementation((path: string) =>
+        Promise.resolve(
+          path === "/cart"
+            ? { error: { code: "X" }, response: new Response(null, { status: 500 }) }
+            : {
+                data: path === "/users/me" ? { id: "me" } : { count: 0 },
+                response: new Response(),
+              },
+        ),
+      );
+    }
+
+    it("says why nothing can be added and still lets people buy now", async () => {
+      serveBrokenCart();
+      renderBar();
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Không tải được giỏ hàng. Đã có lỗi xảy ra. Vui lòng thử lại.",
+      );
+      expect(await addButton()).toBeDisabled();
+
+      await userEvent.click(screen.getByRole("button", { name: "Mua ngay" }));
+      expect(router.push).toHaveBeenCalledWith(
+        expect.stringMatching(/^\/checkout\?items=/),
+      );
+    });
+
+    it("loads the cart again on request, after which adding works", async () => {
+      serveBrokenCart();
+      renderBar();
+      const retry = await screen.findByRole("button", { name: "Thử lại" });
+
+      serve();
+      await userEvent.click(retry);
+
+      await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+      const add = await addButton();
+      await waitFor(() => expect(add).toBeEnabled());
+    });
+  });
 });

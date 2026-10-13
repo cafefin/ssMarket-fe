@@ -565,6 +565,7 @@
       "backToMine": "Back to my listings"
     },
     "mine": {
+      "pageTitle": "Selling",
       "title": "My listings",
       "tabs": "Listing status",
       "tab": {
@@ -710,7 +711,8 @@
     "campaignBar": {
       "label": "Chosen products",
       "selected": "{count, plural, one {# item} other {# items}}",
-      "none": "Nothing chosen yet"
+      "none": "Nothing chosen yet",
+      "cartFailed": "Could not load your cart."
     }
   },
   "checkout": {
