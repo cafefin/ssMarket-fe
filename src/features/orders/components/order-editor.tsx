@@ -25,13 +25,19 @@ import { useFormat } from "@/shared/lib/format/use-format";
 type Line = Order["lines"][number];
 
 /**
- * The round's products a buyer may choose from: those on sale and those
- * already in the order. A product in the order keeps the price it was
- * ordered at; if it is no longer on sale its quantity can only go down.
+ * The rows of the editor: the round's products on sale, in the round's
+ * order, then the order's lines the round no longer shows. Anyone but the
+ * seller is sent only the products on sale, so a product the seller stopped
+ * selling is known from the order line alone; leaving it out would delete it,
+ * because the server takes the lines sent as the whole order.
+ *
+ * A product in the order keeps the price it was ordered at; one that is no
+ * longer on sale can only go down from the quantity ordered.
  */
 function pickerItems(products: CampaignItem[], lines: Line[]): PickerItem[] {
   const ordered = new Map(lines.map((line) => [line.listingId, line]));
-  return products
+  const shown = new Set(products.map((product) => product.id));
+  const fromRound = products
     .filter((product) => product.selling || ordered.has(product.id))
     .map((product) => {
       const item = toPickerItem(product);
@@ -45,6 +51,20 @@ function pickerItems(products: CampaignItem[], lines: Line[]): PickerItem[] {
           }
         : item;
     });
+  const stopped = lines
+    .filter((line) => !shown.has(line.listingId))
+    .map((line) => ({
+      id: line.listingId,
+      title: line.title,
+      description: "",
+      unit: line.unit,
+      unitPrice: line.unitPrice,
+      combos: line.combos,
+      thumbnailUrl: null,
+      selling: false,
+      max: line.quantity,
+    }));
+  return [...fromRound, ...stopped];
 }
 
 /**

@@ -78,7 +78,12 @@ const item = (id: string, title: string, unit: string, unitPrice: number, extra 
   ...extra,
 });
 
-/** The round as it is today: Cam costs more than when it was ordered. */
+/**
+ * The round as a buyer gets it today: Cam costs more than when it was
+ * ordered, and a product the seller stopped selling is not in it at all
+ * (the backend's CampaignDetailDto.from keeps only open products for anyone
+ * but the seller).
+ */
 const campaignDetail = (items: unknown[]) => ({
   ...ROUND,
   description: "",
@@ -90,8 +95,18 @@ const ITEMS = [
   item("l1", "Cam ngọt", "kg", 38000),
   item("l2", "Xoài cát", "hộp", 40000, { combos: [{ quantity: "3", price: 100000 }] }),
   item("l3", "Bưởi da xanh", "quả", 70000),
-  item("l4", "Ổi", "kg", 20000, { selling: false }),
 ];
+/** Ordered while it was on sale; the seller stopped selling it since. */
+const OI = {
+  listingId: "l4",
+  title: "Ổi",
+  unit: "kg",
+  unitPrice: 20000,
+  quantity: 2,
+  lineTotal: 35000,
+  listTotal: 40000,
+  combos: [{ quantity: "2", price: 35000 }],
+};
 
 function renderOrder(value: Order = order(), items: unknown[] = ITEMS) {
   api.GET.mockImplementation((path: string) =>
@@ -282,41 +297,87 @@ describe("editing an order", () => {
     expect(api.PATCH).not.toHaveBeenCalled();
   });
 
-  describe("a product that is no longer on sale", () => {
-    const stopped = () => [
-      item("l1", "Cam ngọt", "kg", 38000, { selling: false }),
-      ...ITEMS.slice(1),
-    ];
+  describe("a product the seller stopped selling", () => {
+    const WITH_STOPPED = () =>
+      order({ listingCount: 2, lines: [OI, CAM], totalAmount: 87500 });
 
-    it("cannot be raised above what was ordered", async () => {
-      renderOrder(order(), stopped());
+    it("is still listed, after the round's products, with its ordered price and quantity", async () => {
+      renderOrder(WITH_STOPPED());
       await openEditor();
-      const cam = await field("Cam ngọt");
 
-      await userEvent.clear(cam);
-      await userEvent.type(cam, "2");
-      await save();
-
-      expect(await screen.findByRole("alert")).toHaveTextContent("Tối đa 1,5 kg");
-      expect(api.PATCH).not.toHaveBeenCalled();
+      expect(await field("Ổi")).toHaveValue("2");
+      expect(row("Ổi")).toHaveTextContent("20.000 đ/kg");
+      expect(row("Ổi")).toHaveTextContent("Ngừng bán");
+      expect(row("Ổi")).toHaveTextContent("2 kg: 35.000 đ");
+      expect(total()).toHaveTextContent("87.500 đ");
+      const titles = within(screen.getByRole("form", { name: "Sửa đơn" }))
+        .getAllByRole("listitem")
+        .map((li) => li.querySelector("p")?.textContent);
+      expect(titles).toEqual(["Cam ngọt", "Xoài cát", "Bưởi da xanh", "Ổi"]);
     });
 
-    it("may be lowered or kept", async () => {
-      renderOrder(order(), stopped());
+    it("stays in the order when another product changes", async () => {
+      renderOrder(WITH_STOPPED());
       await openEditor();
-      const cam = await field("Cam ngọt");
-
-      await userEvent.clear(cam);
-      await userEvent.type(cam, "1");
+      await userEvent.type(await field("Bưởi da xanh"), "1");
       await save();
 
       await waitFor(() => expect(api.PATCH).toHaveBeenCalledTimes(1));
       expect(api.PATCH.mock.calls[0][1].body.lines).toEqual([
-        { listingId: "l1", quantity: "1" },
+        { listingId: "l1", quantity: "1.5" },
+        { listingId: "l3", quantity: "1" },
+        { listingId: "l4", quantity: "2" },
       ]);
     });
 
-    it("is not listed when it is not in the order", async () => {
+    it("cannot be raised above what was ordered", async () => {
+      renderOrder(WITH_STOPPED());
+      await openEditor();
+      const oi = await field("Ổi");
+
+      expect(
+        within(row("Ổi")).getByRole("button", { name: "Tăng số lượng" }),
+      ).toBeDisabled();
+      await userEvent.clear(oi);
+      await userEvent.type(oi, "3");
+      await save();
+
+      expect(await screen.findByRole("alert")).toHaveTextContent("Tối đa 2 kg");
+      expect(api.PATCH).not.toHaveBeenCalled();
+    });
+
+    it("may be lowered", async () => {
+      renderOrder(WITH_STOPPED());
+      await openEditor();
+      const oi = await field("Ổi");
+
+      await userEvent.clear(oi);
+      await userEvent.type(oi, "1");
+      await save();
+
+      await waitFor(() => expect(api.PATCH).toHaveBeenCalledTimes(1));
+      expect(api.PATCH.mock.calls[0][1].body.lines).toEqual([
+        { listingId: "l1", quantity: "1.5" },
+        { listingId: "l4", quantity: "1" },
+      ]);
+    });
+
+    it("lets an order that holds nothing else save a new note", async () => {
+      renderOrder(order({ lines: [OI], totalAmount: 35000 }));
+      await openEditor();
+      await field("Ổi");
+      await userEvent.type(screen.getByLabelText(/^Ghi chú/), "Sau 14h");
+      await save();
+
+      await waitFor(() => expect(api.PATCH).toHaveBeenCalledTimes(1));
+      expect(screen.queryByText("Chọn ít nhất một món")).not.toBeInTheDocument();
+      expect(api.PATCH.mock.calls[0][1].body).toMatchObject({
+        lines: [{ listingId: "l4", quantity: "2" }],
+        note: "Sau 14h",
+      });
+    });
+
+    it("is not offered to someone who did not order it", async () => {
       renderOrder();
       await openEditor();
       await field("Cam ngọt");

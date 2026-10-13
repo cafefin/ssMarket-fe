@@ -3,8 +3,10 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 import {
   addBankProfile,
+  buyRound,
   fillRoundTerms,
   openPlacedOrder,
+  postRound,
   signInAs,
   tinyPng,
   unique,
@@ -175,4 +177,64 @@ test("a pre-order round, from the Excel import to the seller's summary and a reo
   await expect(s.getByLabel("Tên món 1", { exact: true })).toHaveValue(CHAY);
   await expect(s.getByLabel("Tên món 2", { exact: true })).toHaveValue(THIT);
   await expect(s.getByLabel("Tên món 3", { exact: true })).toHaveValue(SUA);
+});
+
+test("a product the seller stops selling stays in the order a buyer edits afterwards", async ({
+  browser,
+}) => {
+  const seller = await signInAs(browser, "ban");
+  const buyer = await signInAs(browser, "minh");
+  const kept = `Banh chung ${unique("mon")}`;
+  const stopped = `Banh tet ${unique("mon")}`;
+  const roundPath = await postRound(seller, {
+    title: `Banh Tet ${unique("dot")}`,
+    items: [
+      { title: kept, price: "50000" },
+      { title: stopped, price: "60000" },
+    ],
+  });
+
+  // The buyer orders both products: 1 x 50.000 + 2 x 60.000.
+  await buyRound(buyer, roundPath, { [kept]: "1", [stopped]: "2" });
+  const orderUrl = await openPlacedOrder(buyer);
+  const b = buyer.page;
+  await expect(b.getByRole("row", { name: /Tổng tiền/ })).toContainText("170.000 đ");
+
+  // The seller stops selling the second product, which now has an order.
+  const s = seller.page;
+  await s.goto(`${roundPath}/edit`);
+  await s
+    .getByRole("listitem", { name: "Món 2" })
+    .getByRole("switch", { name: "Ngừng bán" })
+    .check();
+  await s.getByRole("button", { name: "Lưu thay đổi" }).click();
+  await expect(s).toHaveURL(new RegExp(`${roundPath}$`));
+
+  // Other people no longer see it on the round page.
+  await b.goto(roundPath);
+  await expect(b.getByText("Bạn đã đặt đợt này")).toBeVisible();
+  await expect(b.getByText(stopped)).toHaveCount(0);
+
+  // The editor still lists it, marked, at the quantity ordered and no higher.
+  await b.getByRole("link", { name: "Sửa đơn" }).click();
+  await expect(b).toHaveURL(/\/orders\/[0-9a-f-]{36}\?edit=1$/);
+  const editor = b.getByRole("form", { name: "Sửa đơn" });
+  const stoppedRow = editor.getByRole("listitem").filter({ hasText: stopped });
+  await expect(stoppedRow).toContainText("Ngừng bán");
+  await expect(
+    editor.getByRole("textbox", { name: `Số lượng ${stopped}` }),
+  ).toHaveValue("2");
+  await expect(stoppedRow.getByRole("button", { name: "Tăng số lượng" })).toBeDisabled();
+
+  // Changing another line and saving keeps the stopped product's line.
+  await editor.getByRole("textbox", { name: `Số lượng ${kept}` }).fill("3");
+  await expect(editor.getByRole("status", { name: "Tổng tiền mới" })).toHaveText("270.000 đ");
+  await editor.getByRole("button", { name: "Lưu thay đổi" }).click();
+  await expect(b.getByText("Đã cập nhật đơn")).toBeVisible();
+  await expect(b.getByRole("row", { name: /Tổng tiền/ })).toContainText("270.000 đ");
+  const stoppedLine = b.getByRole("row", { name: new RegExp(stopped) });
+  // Still 2 of it: 2 x 60.000.
+  await expect(stoppedLine).toContainText("× 60.000 đ");
+  await expect(stoppedLine).toContainText("120.000 đ");
+  expect(b.url().split("?")[0]).toBe(orderUrl);
 });
