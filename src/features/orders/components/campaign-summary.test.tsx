@@ -291,6 +291,9 @@ describe("CampaignSummary", () => {
     expect(
       await screen.findByRole("heading", { name: "Không tìm thấy đợt" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Về đợt đặt trước của tôi" }),
+    ).toHaveAttribute("href", "/sell");
   });
 
   it("offers a retry when loading fails", async () => {

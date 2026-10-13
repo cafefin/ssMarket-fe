@@ -363,7 +363,7 @@ describe("CartPage", () => {
     wrap(<CartPage />);
 
     expect(await screen.findByText("Chỉ còn 2 cái")).toBeInTheDocument();
-    expect(screen.getByText("Bài đăng đã đóng hoặc hết hạn chốt đơn")).toBeInTheDocument();
+    expect(screen.getByText("Đã ngừng bán hoặc hết hạn chốt đơn")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Mua hàng (0)" })).toBeDisabled();
   });
 

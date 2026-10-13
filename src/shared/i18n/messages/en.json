@@ -50,11 +50,11 @@
       "INVALID_IMAGE": "Images must be JPEG, PNG or WebP files.",
       "PAYLOAD_TOO_LARGE": "The image is larger than 5 MB.",
       "TOO_MANY_IMAGES": "A listing can have at most 5 images.",
-      "INVALID_LISTING_STATE": "The listing has changed status. Reload the page and try again.",
+      "INVALID_LISTING_STATE": "The status has changed, so this could not be done. Reload the page and try again.",
       "OUT_OF_STOCK": "Some items no longer have enough stock.",
-      "LISTING_NOT_OPEN": "This listing is no longer taking orders.",
-      "ALREADY_ORDERED": "You already have an order for this listing.",
-      "OWN_LISTING": "You cannot order from your own listing.",
+      "LISTING_NOT_OPEN": "This product or pre-order round is no longer taking orders.",
+      "ALREADY_ORDERED": "You already have an order in this pre-order round.",
+      "OWN_LISTING": "You cannot order your own products.",
       "PAYMENT_METHOD_NOT_ACCEPTED": "The seller no longer accepts this payment method.",
       "INVALID_QUANTITY": "The quantity is not valid. Please check it.",
       "INVALID_ORDER_STATE": "The order has changed status. The page has been updated; please review it.",
@@ -268,7 +268,7 @@
       "loading": "Loading the summary",
       "notFound": "Round not found",
       "loadFailed": "Could not load the summary",
-      "backToMine": "Back to my listings",
+      "backToMine": "Back to my pre-order rounds",
       "empty": "Nobody has ordered in this round yet.",
       "when": "Orders close {deadline} · Delivery on {date}"
     }
@@ -697,7 +697,7 @@
     "removed": "Removed from your cart",
     "unitPrice": "{price}/{unit}",
     "problem": {
-      "LISTING_NOT_OPEN": "The listing is closed or past its deadline",
+      "LISTING_NOT_OPEN": "No longer on sale or past its deadline",
       "OUT_OF_STOCK": "Only {available} {unit} left"
     },
     "selectedTotal": "Total for {count, plural, one {# item} other {# items}}",

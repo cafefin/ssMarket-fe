@@ -228,7 +228,7 @@ describe("CampaignBuyBar", () => {
     await userEvent.click(add);
 
     await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith("Bài đăng này không còn nhận đơn."),
+      expect(toast.error).toHaveBeenCalledWith("Sản phẩm hoặc đợt đặt trước này không còn nhận đơn."),
     );
     expect(onAdded).not.toHaveBeenCalled();
     expect(toast.success).not.toHaveBeenCalled();

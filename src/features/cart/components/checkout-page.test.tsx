@@ -280,7 +280,7 @@ describe("CheckoutPage", () => {
     });
     render();
     expect(
-      await screen.findByText("Bài đăng này không còn nhận đơn."),
+      await screen.findByText("Sản phẩm hoặc đợt đặt trước này không còn nhận đơn."),
     ).toBeInTheDocument();
   });
 });

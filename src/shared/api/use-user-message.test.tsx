@@ -35,6 +35,36 @@ describe("useUserMessage", () => {
     expect(messageFor(new ApiError(400, code, "x"))).toBe(text);
   });
 
+  // The backend uses these codes for a product in stock and for a pre-order
+  // round alike, so the words must be true of both.
+  it.each([
+    [
+      "INVALID_LISTING_STATE",
+      "Trạng thái đã thay đổi nên chưa thực hiện được. Hãy tải lại trang rồi thử lại.",
+      "The status has changed, so this could not be done. Reload the page and try again.",
+    ],
+    [
+      "LISTING_NOT_OPEN",
+      "Sản phẩm hoặc đợt đặt trước này không còn nhận đơn.",
+      "This product or pre-order round is no longer taking orders.",
+    ],
+    [
+      "OWN_LISTING",
+      "Bạn không thể đặt hàng của chính mình.",
+      "You cannot order your own products.",
+    ],
+    [
+      "ALREADY_ORDERED",
+      "Bạn đã có đơn trong đợt đặt trước này.",
+      "You already have an order in this pre-order round.",
+    ],
+  ])("words %s for a product and for a round", (code, vi, en) => {
+    expect(messageFor(new ApiError(409, code, "x"))).toBe(vi);
+    expect(messageFor(new ApiError(409, code, "x"), "en")).toBe(en);
+    expect(vi).not.toMatch(/bài đăng/i);
+    expect(en).not.toMatch(/listing/i);
+  });
+
   it("never shows a raw backend or runtime message", () => {
     expect(
       messageFor(new ApiError(500, "INTERNAL_SERVER_ERROR", "stack")),

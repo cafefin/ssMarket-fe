@@ -50,11 +50,11 @@
       "INVALID_IMAGE": "Ảnh phải là file JPEG, PNG hoặc WebP.",
       "PAYLOAD_TOO_LARGE": "Ảnh lớn hơn 5 MB.",
       "TOO_MANY_IMAGES": "Mỗi bài đăng có tối đa 5 ảnh.",
-      "INVALID_LISTING_STATE": "Bài đăng đã đổi trạng thái. Hãy tải lại trang rồi thử lại.",
+      "INVALID_LISTING_STATE": "Trạng thái đã thay đổi nên chưa thực hiện được. Hãy tải lại trang rồi thử lại.",
       "OUT_OF_STOCK": "Một số mặt hàng không còn đủ số lượng.",
-      "LISTING_NOT_OPEN": "Bài đăng này không còn nhận đơn.",
-      "ALREADY_ORDERED": "Bạn đã có đơn cho bài đăng này.",
-      "OWN_LISTING": "Bạn không thể đặt hàng bài đăng của chính mình.",
+      "LISTING_NOT_OPEN": "Sản phẩm hoặc đợt đặt trước này không còn nhận đơn.",
+      "ALREADY_ORDERED": "Bạn đã có đơn trong đợt đặt trước này.",
+      "OWN_LISTING": "Bạn không thể đặt hàng của chính mình.",
       "PAYMENT_METHOD_NOT_ACCEPTED": "Người bán không còn nhận hình thức thanh toán này.",
       "INVALID_QUANTITY": "Số lượng chưa hợp lệ. Vui lòng kiểm tra lại.",
       "INVALID_ORDER_STATE": "Đơn hàng đã thay đổi trạng thái. Trang đã được cập nhật, hãy xem lại.",
@@ -268,7 +268,7 @@
       "loading": "Đang tải bảng tổng hợp",
       "notFound": "Không tìm thấy đợt",
       "loadFailed": "Không tải được bảng tổng hợp",
-      "backToMine": "Về bài đăng của tôi",
+      "backToMine": "Về đợt đặt trước của tôi",
       "empty": "Chưa có ai đặt hàng ở đợt này.",
       "when": "Chốt đơn {deadline} · Giao ngày {date}"
     }
@@ -697,7 +697,7 @@
     "removed": "Đã xóa khỏi giỏ",
     "unitPrice": "{price}/{unit}",
     "problem": {
-      "LISTING_NOT_OPEN": "Bài đăng đã đóng hoặc hết hạn chốt đơn",
+      "LISTING_NOT_OPEN": "Đã ngừng bán hoặc hết hạn chốt đơn",
       "OUT_OF_STOCK": "Chỉ còn {available} {unit}"
     },
     "selectedTotal": "Tổng {count} món đã chọn",
