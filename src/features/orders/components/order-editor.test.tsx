@@ -407,7 +407,7 @@ describe("editing an order", () => {
     await openEditor();
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Không tải được bài đăng để sửa đơn",
+      "Không tải được đợt đặt trước để sửa đơn",
     );
   });
 

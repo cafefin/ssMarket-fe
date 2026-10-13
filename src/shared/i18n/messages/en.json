@@ -140,7 +140,7 @@
         "pastDeadline": "The order deadline has passed, so this order can no longer be edited."
       },
       "loading": "Loading",
-      "loadFailed": "Could not load the listing to edit this order. Please try again.",
+      "loadFailed": "Could not load the pre-order round to edit this order. Please try again.",
       "updated": "Order updated",
       "title": "Edit order",
       "newTotal": "New total",

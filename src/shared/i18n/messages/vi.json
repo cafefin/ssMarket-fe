@@ -140,7 +140,7 @@
         "pastDeadline": "Đã quá hạn chốt đơn nên không sửa được nữa."
       },
       "loading": "Đang tải",
-      "loadFailed": "Không tải được bài đăng để sửa đơn. Vui lòng thử lại.",
+      "loadFailed": "Không tải được đợt đặt trước để sửa đơn. Vui lòng thử lại.",
       "updated": "Đã cập nhật đơn",
       "title": "Sửa đơn",
       "newTotal": "Tổng tiền mới",
