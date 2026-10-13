@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { renderWithIntl } from "@/shared/i18n/test-utils";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -64,9 +64,46 @@ const order = (overrides: Partial<Order> = {}): Order => ({
 
 const ok = (data: unknown) => ({ data, response: new Response() });
 
-function renderOrder(value: Order = order()) {
+const item = (id: string, title: string, unit: string, unitPrice: number, extra = {}) => ({
+  id,
+  title,
+  description: "",
+  unit,
+  unitPrice,
+  combos: [],
+  images: [],
+  selling: true,
+  orderCount: 0,
+  removable: false,
+  ...extra,
+});
+
+/** The round as it is today: Cam costs more than when it was ordered. */
+const campaignDetail = (items: unknown[]) => ({
+  ...ROUND,
+  description: "",
+  status: "open",
+  isOpen: true,
+  items,
+});
+const ITEMS = [
+  item("l1", "Cam ngọt", "kg", 38000),
+  item("l2", "Xoài cát", "hộp", 40000, { combos: [{ quantity: "3", price: 100000 }] }),
+  item("l3", "Bưởi da xanh", "quả", 70000),
+  item("l4", "Ổi", "kg", 20000, { selling: false }),
+];
+
+function renderOrder(value: Order = order(), items: unknown[] = ITEMS) {
   api.GET.mockImplementation((path: string) =>
-    Promise.resolve(ok(path === "/orders/{id}" ? value : {})),
+    Promise.resolve(
+      ok(
+        path === "/orders/{id}"
+          ? value
+          : path === "/campaigns/{id}"
+            ? campaignDetail(items)
+            : {},
+      ),
+    ),
   );
   renderWithIntl(
     <QueryProvider>
@@ -106,10 +143,18 @@ describe("editBlockedReason", () => {
     ).toBe("pastDeadline");
   });
 
-  it("has no deadline to wait for without a round", () => {
-    expect(editBlockedReason(order({ campaign: null }), now)).toBeNull();
+  it("shows nothing about editing without a round, whose products it needs", () => {
+    expect(editBlockedReason(order({ campaign: null }), now)).toBe("hidden");
   });
 });
+
+const TWO = () => order({ listingCount: 2, lines: [CAM, XOAI], totalAmount: 132500 });
+const field = (title: string) =>
+  screen.findByRole("textbox", { name: `Số lượng ${title}` });
+const total = () => screen.getByRole("status", { name: "Tổng tiền mới" });
+const save = () => userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+const row = (title: string) =>
+  within(screen.getByRole("form", { name: "Sửa đơn" })).getByText(title).closest("li")!;
 
 describe("editing an order", () => {
   beforeEach(() => {
@@ -117,37 +162,56 @@ describe("editing an order", () => {
     api.PATCH.mockResolvedValue(ok(order({ totalAmount: 130000 })));
   });
 
-  it("starts from the current order, at the prices it was placed at", async () => {
-    renderOrder();
+  it("lists every product of the round with the ordered quantities and 0 for the rest", async () => {
+    renderOrder(TWO());
     await openEditor();
 
-    const cam = await screen.findByRole("textbox", { name: /^Cam ngọt/ });
-    expect(cam).toHaveValue("1,5");
-    // The ordered price, whatever the listing costs now.
-    expect(cam).toHaveAccessibleName(/35\.000 đ\/kg/);
-    expect(screen.getByRole("status", { name: "Tổng tiền mới" })).toHaveTextContent(
-      "52.500 đ",
-    );
+    expect(await field("Cam ngọt")).toHaveValue("1,5");
+    expect(await field("Xoài cát")).toHaveValue("2");
+    expect(await field("Bưởi da xanh")).toHaveValue("");
+    expect(total()).toHaveTextContent("132.500 đ");
     expect(screen.getByLabelText("Giao đến")).toHaveValue("Tầng 7");
   });
 
-  it("saves the changed quantity, then closes", async () => {
+  it("shows the ordered price of an ordered product and the current one of the others", async () => {
     renderOrder();
     await openEditor();
-    const cam = await screen.findByRole("textbox", { name: /^Cam ngọt/ });
+    await field("Cam ngọt");
 
-    await userEvent.clear(cam);
-    await userEvent.type(cam, "2");
-    expect(screen.getByRole("status", { name: "Tổng tiền mới" })).toHaveTextContent(
-      "70.000 đ",
-    );
-    await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+    // Ordered at 35.000; the round says 38.000 now.
+    expect(row("Cam ngọt")).toHaveTextContent("35.000 đ/kg");
+    expect(row("Cam ngọt")).not.toHaveTextContent("38.000");
+    expect(row("Bưởi da xanh")).toHaveTextContent("70.000 đ/quả");
+  });
+
+  it("follows the selection in the new total, combos included", async () => {
+    renderOrder(TWO());
+    await openEditor();
+    const xoai = await field("Xoài cát");
+
+    await userEvent.clear(xoai);
+    await userEvent.type(xoai, "4");
+    // 1,5 kg x 35.000 + one combo of 3 (100.000) + 1 x 40.000.
+    expect(total()).toHaveTextContent("192.500 đ");
+
+    await userEvent.type(await field("Bưởi da xanh"), "1");
+    expect(total()).toHaveTextContent("262.500 đ");
+  });
+
+  it("adds a product to the order and sends the chosen products only", async () => {
+    renderOrder();
+    await openEditor();
+    await userEvent.type(await field("Bưởi da xanh"), "2");
+    await save();
 
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Đã cập nhật đơn"));
     expect(api.PATCH).toHaveBeenCalledWith("/orders/{id}", {
       params: { path: { id: "o1" } },
       body: {
-        lines: [{ listingId: "l1", quantity: "2" }],
+        lines: [
+          { listingId: "l1", quantity: "1.5" },
+          { listingId: "l3", quantity: "2" },
+        ],
         paymentMethod: "pay_on_delivery",
         deliveryLocation: "Tầng 7",
         note: null,
@@ -158,131 +222,128 @@ describe("editing an order", () => {
     );
   });
 
-  it("does not allow emptying the order; that is what cancelling is for", async () => {
+  it("sends the place and the note as edited", async () => {
     renderOrder();
     await openEditor();
+    await field("Cam ngọt");
+    await userEvent.clear(screen.getByLabelText("Giao đến"));
+    await userEvent.type(screen.getByLabelText("Giao đến"), "Tầng 9");
+    await userEvent.type(screen.getByLabelText(/^Ghi chú/), "Sau 14h");
+    await save();
 
-    await userEvent.clear(await screen.findByRole("textbox", { name: /^Cam ngọt/ }));
-    await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+    await waitFor(() => expect(api.PATCH).toHaveBeenCalledTimes(1));
+    expect(api.PATCH.mock.calls[0][1].body).toMatchObject({
+      deliveryLocation: "Tầng 9",
+      note: "Sau 14h",
+    });
+  });
 
-    expect(
-      await screen.findByText("Nhập số lượng. Muốn bỏ hẳn, hãy hủy đơn."),
-    ).toBeInTheDocument();
+  it.each(["0", ""])("leaves out a product set to %j", async (text) => {
+    renderOrder(TWO());
+    await openEditor();
+    const cam = await field("Cam ngọt");
+
+    await userEvent.clear(cam);
+    if (text) {
+      await userEvent.type(cam, text);
+    }
+    expect(total()).toHaveTextContent("80.000 đ");
+    await save();
+
+    await waitFor(() => expect(api.PATCH).toHaveBeenCalledTimes(1));
+    expect(api.PATCH.mock.calls[0][1].body.lines).toEqual([
+      { listingId: "l2", quantity: "2" },
+    ]);
+  });
+
+  it("keeps at least one product", async () => {
+    renderOrder(TWO());
+    await openEditor();
+    await userEvent.clear(await field("Cam ngọt"));
+    await userEvent.clear(await field("Xoài cát"));
+    await userEvent.type(await field("Xoài cát"), "0");
+    await save();
+
+    expect(await screen.findByText("Chọn ít nhất một món")).toBeInTheDocument();
     expect(api.PATCH).not.toHaveBeenCalled();
   });
 
-  describe("with two products", () => {
-    const two = () => order({ listingCount: 2, lines: [CAM, XOAI], totalAmount: 132500 });
-    const fields = async () => ({
-      cam: await screen.findByRole("textbox", { name: /^Cam ngọt/ }),
-      xoai: screen.getByRole("textbox", { name: /^Xoài cát/ }),
-    });
-    const total = () => screen.getByRole("status", { name: "Tổng tiền mới" });
+  it("points at the product whose quantity is wrong and saves nothing", async () => {
+    renderOrder(TWO());
+    await openEditor();
+    const xoai = await field("Xoài cát");
 
-    it("has one quantity per product and adds the lines up, combos included", async () => {
-      renderOrder(two());
+    await userEvent.clear(xoai);
+    await userEvent.type(xoai, "1,5");
+    await save();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/số nguyên/i);
+    expect(total()).toHaveTextContent("0 đ");
+    expect(api.PATCH).not.toHaveBeenCalled();
+  });
+
+  describe("a product that is no longer on sale", () => {
+    const stopped = () => [
+      item("l1", "Cam ngọt", "kg", 38000, { selling: false }),
+      ...ITEMS.slice(1),
+    ];
+
+    it("cannot be raised above what was ordered", async () => {
+      renderOrder(order(), stopped());
       await openEditor();
-      const { cam, xoai } = await fields();
-
-      expect(cam).toHaveValue("1,5");
-      expect(xoai).toHaveValue("2");
-      expect(xoai).toHaveAccessibleName(/40\.000 đ\/hộp/);
-      expect(total()).toHaveTextContent("132.500 đ");
-
-      await userEvent.clear(xoai);
-      await userEvent.type(xoai, "4");
-      // 1,5 kg x 35.000 + one combo of 3 (100.000) + 1 x 40.000.
-      expect(total()).toHaveTextContent("192.500 đ");
-    });
-
-    it("sends every product as a line", async () => {
-      renderOrder(two());
-      await openEditor();
-      const { cam, xoai } = await fields();
+      const cam = await field("Cam ngọt");
 
       await userEvent.clear(cam);
-      await userEvent.type(cam, "2,5");
-      await userEvent.clear(xoai);
-      await userEvent.type(xoai, "3");
-      await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+      await userEvent.type(cam, "2");
+      await save();
 
-      await waitFor(() => expect(api.PATCH).toHaveBeenCalledTimes(1));
-      expect(api.PATCH).toHaveBeenCalledWith("/orders/{id}", {
-        params: { path: { id: "o1" } },
-        body: {
-          lines: [
-            { listingId: "l1", quantity: "2.5" },
-            { listingId: "l2", quantity: "3" },
-          ],
-          paymentMethod: "pay_on_delivery",
-          deliveryLocation: "Tầng 7",
-          note: null,
-        },
-      });
+      expect(await screen.findByRole("alert")).toHaveTextContent("Tối đa 1,5 kg");
+      expect(api.PATCH).not.toHaveBeenCalled();
     });
 
-    it.each(["0", ""])("leaves out a product set to %j", async (text) => {
-      renderOrder(two());
+    it("may be lowered or kept", async () => {
+      renderOrder(order(), stopped());
       await openEditor();
-      const { cam } = await fields();
+      const cam = await field("Cam ngọt");
 
       await userEvent.clear(cam);
-      if (text) {
-        await userEvent.type(cam, text);
-      }
-      expect(total()).toHaveTextContent("80.000 đ");
-      await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+      await userEvent.type(cam, "1");
+      await save();
 
       await waitFor(() => expect(api.PATCH).toHaveBeenCalledTimes(1));
       expect(api.PATCH.mock.calls[0][1].body.lines).toEqual([
-        { listingId: "l2", quantity: "2" },
+        { listingId: "l1", quantity: "1" },
       ]);
     });
 
-    it("keeps at least one product", async () => {
-      renderOrder(two());
+    it("is not listed when it is not in the order", async () => {
+      renderOrder();
       await openEditor();
-      const { cam, xoai } = await fields();
+      await field("Cam ngọt");
 
-      await userEvent.clear(cam);
-      await userEvent.clear(xoai);
-      await userEvent.type(xoai, "0");
-      await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
-
-      expect(
-        await screen.findByText("Nhập số lượng. Muốn bỏ hẳn, hãy hủy đơn."),
-      ).toBeInTheDocument();
-      expect(api.PATCH).not.toHaveBeenCalled();
-    });
-
-    it("points at the product whose quantity is wrong and saves nothing", async () => {
-      renderOrder(two());
-      await openEditor();
-      const { xoai } = await fields();
-
-      await userEvent.clear(xoai);
-      await userEvent.type(xoai, "1,5");
-      await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
-
-      expect(await screen.findByRole("alert")).toHaveTextContent(/số nguyên/i);
-      expect(xoai).toHaveAttribute("aria-invalid", "true");
-      expect(screen.getByRole("textbox", { name: /^Cam ngọt/ })).toHaveAttribute(
-        "aria-invalid",
-        "false",
-      );
-      expect(total()).toHaveTextContent("0 đ");
-      expect(api.PATCH).not.toHaveBeenCalled();
+      expect(screen.queryByText("Ổi")).not.toBeInTheDocument();
     });
   });
 
-  it.each<[string, Partial<Order>, unknown[]]>([
-    ["the round of a pre-order", {}, ["campaign", "c1"]],
-    ["the listing of an order without a round", { campaign: null }, ["listing", "l1"]],
-  ])("refreshes %s after saving", async (_label, overrides, queryKey) => {
+  it("blocks saving without a delivery place", async () => {
+    renderOrder();
+    await openEditor();
+    await field("Cam ngọt");
+
+    await userEvent.clear(screen.getByLabelText("Giao đến"));
+    await save();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Nhập nơi nhận hàng");
+    expect(api.PATCH).not.toHaveBeenCalled();
+  });
+
+  it("refreshes the round after saving", async () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const invalidate = vi.spyOn(client, "invalidateQueries");
-    const value = order(overrides);
-    api.GET.mockResolvedValue(ok(value));
+    const value = order();
+    api.GET.mockImplementation((path: string) =>
+      Promise.resolve(ok(path === "/orders/{id}" ? value : campaignDetail(ITEMS))),
+    );
     api.PATCH.mockResolvedValue(ok(value));
     renderWithIntl(
       <QueryClientProvider client={client}>
@@ -290,28 +351,15 @@ describe("editing an order", () => {
       </QueryClientProvider>,
     );
     await openEditor();
+    await field("Cam ngọt");
 
-    await userEvent.click(await screen.findByRole("button", { name: "Lưu thay đổi" }));
+    await save();
 
-    await waitFor(() => expect(invalidate).toHaveBeenCalledWith({ queryKey }));
+    await waitFor(() =>
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["campaign", "c1"] }),
+    );
     const keys = invalidate.mock.calls.map(([filters]) => filters?.queryKey);
     expect(keys).toContainEqual(["orders"]);
-    expect(keys.filter((key) => key?.[0] === "campaign" || key?.[0] === "listing")).toEqual([
-      queryKey,
-    ]);
-  });
-
-  it("validates quantities like the order form", async () => {
-    renderOrder();
-    await openEditor();
-
-    const cam = await screen.findByRole("textbox", { name: /^Cam ngọt/ });
-    await userEvent.clear(cam);
-    await userEvent.type(cam, "1,25");
-    await userEvent.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(/0,1/);
-    expect(api.PATCH).not.toHaveBeenCalled();
   });
 
   it("can be abandoned without saving", async () => {
@@ -332,13 +380,34 @@ describe("editing an order", () => {
     });
     renderOrder();
     await openEditor();
+    await field("Cam ngọt");
 
-    await userEvent.click(await screen.findByRole("button", { name: "Lưu thay đổi" }));
+    await save();
 
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         "Đơn này không còn sửa được. Trang đã được cập nhật, hãy xem lại.",
       ),
+    );
+  });
+
+  it("says so when the round cannot be loaded", async () => {
+    api.GET.mockImplementation((path: string) =>
+      Promise.resolve(
+        path === "/orders/{id}"
+          ? ok(order())
+          : { error: { code: "X" }, response: new Response(null, { status: 500 }) },
+      ),
+    );
+    renderWithIntl(
+      <QueryProvider>
+        <OrderView id="o1" />
+      </QueryProvider>,
+    );
+    await openEditor();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Không tải được bài đăng để sửa đơn",
     );
   });
 

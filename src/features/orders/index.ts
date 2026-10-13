@@ -3,6 +3,7 @@
 export { MyOrders } from "./components/my-orders";
 export { OrderView } from "./components/order-view";
 export { SalesList } from "./components/sales-list";
+export { CampaignSummary } from "./components/campaign-summary";
 export { SalesSummary } from "./components/sales-summary";
 export { OrderQr } from "./components/order-qr";
 export { ORDERS_QUERY_KEY } from "./api/use-orders";

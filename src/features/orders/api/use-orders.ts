@@ -19,6 +19,8 @@ export type FulfillmentStatus = components["schemas"]["FulfillmentStatus"];
 export type EditOrderBody = components["schemas"]["EditOrderDto"];
 export type SalesSummary = components["schemas"]["SalesSummaryDto"];
 export type SummaryRow = components["schemas"]["SummaryRowDto"];
+export type CampaignSummaryTable = components["schemas"]["CampaignSummaryTableDto"];
+export type CampaignSummaryRow = components["schemas"]["CampaignSummaryRowDto"];
 export type BulkAction = components["schemas"]["BulkOrdersDto"]["action"];
 export type BulkResult = components["schemas"]["BulkResultDto"];
 
@@ -220,6 +222,53 @@ export function useBulkOrders(listingId: string) {
     onSettled: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: summaryQueryKey(listingId) }),
+        queryClient.invalidateQueries({ queryKey: SALES_QUERY_KEY }),
+      ]),
+  });
+}
+
+export const campaignSummaryQueryKey = (campaignId: string) =>
+  ["campaign-summary", campaignId] as const;
+
+/** Who ordered what in one of the seller's pre-order rounds. */
+export function useCampaignSummary(campaignId: string) {
+  return useQuery({
+    queryKey: campaignSummaryQueryKey(campaignId),
+    queryFn: async (): Promise<CampaignSummaryTable> => {
+      const { data, error, response } = await api.GET(
+        "/campaigns/{campaignId}/summary",
+        { params: { path: { campaignId } } },
+      );
+      if (!data) {
+        throw toApiError(error, response);
+      }
+      return data;
+    },
+  });
+}
+
+export function useCampaignBulkOrders(campaignId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: {
+      action: BulkAction;
+      orderIds: string[];
+    }): Promise<BulkResult[]> => {
+      const { data, error, response } = await api.POST(
+        "/campaigns/{campaignId}/orders/bulk",
+        { params: { path: { campaignId } }, body: input },
+      );
+      if (!data) {
+        throw toApiError(error, response);
+      }
+      return data.results;
+    },
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: campaignSummaryQueryKey(campaignId),
+        }),
         queryClient.invalidateQueries({ queryKey: SALES_QUERY_KEY }),
       ]),
   });

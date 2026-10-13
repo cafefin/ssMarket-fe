@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
@@ -47,7 +48,9 @@ function nextStep(order: Order, t: Translator<"orders.view.next">): string | nul
 
 export function OrderView({ id }: { id: string }) {
   const { data: order, error, isPending, refetch } = useOrder(id);
-  const [editing, setEditing] = useState(false);
+  // The round page links to /orders/<id>?edit=1 to change an order.
+  const searchParams = useSearchParams();
+  const [editing, setEditing] = useState(searchParams?.get("edit") === "1");
   const t = useTranslations("orders.view");
   const tn = useTranslations("orders.view.next");
   const te = useTranslations("orders.editor.blocked");
@@ -114,8 +117,12 @@ export function OrderView({ id }: { id: string }) {
 
       {order.qr && buyer && <OrderQr qr={order.qr} code={order.code} />}
 
-      {editing && editBlocked === null ? (
-        <OrderEditor order={order} onDone={() => setEditing(false)} />
+      {editing && editBlocked === null && order.campaign ? (
+        <OrderEditor
+          order={order}
+          campaignId={order.campaign.id}
+          onDone={() => setEditing(false)}
+        />
       ) : (
         <div className="flex flex-col gap-3">
           <OrderActions order={order} />

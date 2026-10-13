@@ -13,6 +13,10 @@ const { api, toast } = vi.hoisted(() => ({
 }));
 vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("sonner", () => ({ toast }));
+const nav = vi.hoisted(() => ({ search: "" }));
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(nav.search),
+}));
 
 const order = (overrides: Partial<Order> = {}): Order => ({
   id: "o1",
@@ -109,6 +113,7 @@ describe("availableActions", () => {
 describe("OrderView", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    nav.search = "";
     Object.assign(navigator, {
       clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
     });
@@ -404,5 +409,60 @@ describe("OrderView", () => {
       await screen.findByRole("heading", { name: "Không tải được đơn hàng" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
+  });
+
+  describe("?edit=1", () => {
+    const editable = () =>
+      order({
+        paymentMethod: "pay_on_delivery",
+        campaign: {
+          id: "c1",
+          title: "Hoa quả tuần này",
+          orderDeadline: "2099-01-01T10:00:00.000Z",
+          deliveryDate: "2099-01-03",
+        },
+      });
+    const mockApi = () =>
+      api.GET.mockImplementation((path: string) =>
+        Promise.resolve(
+          ok(
+            path === "/orders/{id}"
+              ? editable()
+              : { id: "c1", items: [], status: "open", isOpen: true },
+          ),
+        ),
+      );
+
+    it("opens the editor for the buyer of an editable order", async () => {
+      nav.search = "edit=1";
+      mockApi();
+      renderWithIntl(
+        <QueryProvider>
+          <OrderView id="o1" />
+        </QueryProvider>,
+      );
+
+      expect(await screen.findByRole("form", { name: "Sửa đơn" })).toBeInTheDocument();
+    });
+
+    it("starts with the editor closed otherwise", async () => {
+      mockApi();
+      renderWithIntl(
+        <QueryProvider>
+          <OrderView id="o1" />
+        </QueryProvider>,
+      );
+
+      expect(await screen.findByRole("button", { name: "Sửa đơn" })).toBeInTheDocument();
+      expect(screen.queryByRole("form", { name: "Sửa đơn" })).not.toBeInTheDocument();
+    });
+
+    it("does not open for an order that cannot be edited", async () => {
+      nav.search = "edit=1";
+      renderView(order({ paymentStatus: "reported" }));
+
+      await screen.findByRole("heading", { name: "Đơn SSM7K2Q9X" });
+      expect(screen.queryByRole("form", { name: "Sửa đơn" })).not.toBeInTheDocument();
+    });
   });
 });

@@ -144,7 +144,7 @@
       "updated": "Đã cập nhật đơn",
       "title": "Sửa đơn",
       "newTotal": "Tổng tiền mới",
-      "noItems": "Nhập số lượng. Muốn bỏ hẳn, hãy hủy đơn.",
+      "noItems": "Chọn ít nhất một món",
       "saveChanges": "Lưu thay đổi",
       "dismiss": "Thôi"
     },
@@ -217,7 +217,8 @@
       "failures": {
         "INVALID_ORDER_STATE": "đã ở trạng thái này hoặc đã hủy",
         "NOT_IN_LISTING": "không thuộc bài đăng này",
-        "other": "không cập nhật được"
+        "other": "không cập nhật được",
+        "NOT_IN_CAMPAIGN": "không thuộc đợt này"
       },
       "failure": "{code}: {reason}",
       "loading": "Đang tải bảng tổng hợp",
@@ -252,7 +253,8 @@
         "location": "Nơi giao",
         "quantity": "Số lượng ({unit})",
         "total": "Tổng tiền",
-        "status": "Trạng thái"
+        "status": "Trạng thái",
+        "product": "{title} ({unit})"
       },
       "noMatch": "Không có đơn nào khớp bộ lọc này.",
       "groupCount": "· {count} đơn ·",
@@ -260,6 +262,15 @@
       "markGroupDeliveredNamed": "Đánh dấu đã giao cả nhóm {location}",
       "selectOrder": "Chọn đơn {code}",
       "totalRow": "Tổng {count} đơn"
+    },
+    "campaignSummary": {
+      "eyebrow": "Bảng tổng hợp đợt đặt trước",
+      "loading": "Đang tải bảng tổng hợp",
+      "notFound": "Không tìm thấy đợt",
+      "loadFailed": "Không tải được bảng tổng hợp",
+      "backToMine": "Về bài đăng của tôi",
+      "empty": "Chưa có ai đặt hàng ở đợt này.",
+      "when": "Chốt đơn {deadline} · Giao ngày {date}"
     }
   },
   "shell": {

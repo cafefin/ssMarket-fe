@@ -144,7 +144,7 @@
       "updated": "Order updated",
       "title": "Edit order",
       "newTotal": "New total",
-      "noItems": "Enter a quantity. To drop it entirely, cancel the order.",
+      "noItems": "Choose at least one item",
       "saveChanges": "Save changes",
       "dismiss": "Never mind"
     },
@@ -217,7 +217,8 @@
       "failures": {
         "INVALID_ORDER_STATE": "already in this state or cancelled",
         "NOT_IN_LISTING": "not part of this listing",
-        "other": "could not be updated"
+        "other": "could not be updated",
+        "NOT_IN_CAMPAIGN": "not part of this round"
       },
       "failure": "{code}: {reason}",
       "loading": "Loading the summary",
@@ -252,7 +253,8 @@
         "location": "Delivery location",
         "quantity": "Quantity ({unit})",
         "total": "Total",
-        "status": "Status"
+        "status": "Status",
+        "product": "{title} ({unit})"
       },
       "noMatch": "No orders match this filter.",
       "groupCount": "· {count, plural, one {# order} other {# orders}} ·",
@@ -260,6 +262,15 @@
       "markGroupDeliveredNamed": "Mark the whole {location} group as delivered",
       "selectOrder": "Select order {code}",
       "totalRow": "{count, plural, one {Total of # order} other {Total of # orders}}"
+    },
+    "campaignSummary": {
+      "eyebrow": "Pre-order round summary",
+      "loading": "Loading the summary",
+      "notFound": "Round not found",
+      "loadFailed": "Could not load the summary",
+      "backToMine": "Back to my listings",
+      "empty": "Nobody has ordered in this round yet.",
+      "when": "Orders close {deadline} · Delivery on {date}"
     }
   },
   "shell": {
