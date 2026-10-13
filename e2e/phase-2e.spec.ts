@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
-import { buyNow, openPlacedOrder, postListing, signInAs, unique } from "./support/people";
+import { buyRound, openPlacedOrder, postRound, signInAs, unique } from "./support/people";
 
 test("a seller switches to English, keeps it on reload and on another device, and gets an English CSV", async ({
   browser,
@@ -9,15 +9,14 @@ test("a seller switches to English, keeps it on reload and on another device, an
   const buyer = await signInAs(browser, "mua");
   const title = `Hoa qua ${unique("en")}`;
 
-  const listingPath = await postListing(seller, {
+  const itemTitle = `Cam ${unique("en")}`;
+  const roundPath = await postRound(seller, {
     title,
-    mode: "preorder",
-    unit: "kg",
-    price: "35.000",
+    items: [{ title: itemTitle, price: "35.000" }],
   });
-  const listingId = listingPath.split("/").pop() as string;
+  const roundId = roundPath.split("/").pop() as string;
 
-  await buyNow(buyer, listingPath, "2");
+  await buyRound(buyer, roundPath, { [itemTitle]: "2" });
   await openPlacedOrder(buyer);
 
   // Switch from the header.
@@ -38,12 +37,12 @@ test("a seller switches to English, keeps it on reload and on another device, an
   ).toHaveAttribute("aria-pressed", "true");
   await page.getByText("Category", { exact: true }).click();
   await expect(page.getByRole("link", { name: "Fresh food" })).toBeVisible();
-  // A pre-order shows in the closing-soon carousel as well as in the list.
+  // A round shows on the shelf of those closing soon.
   const card = page
-    .getByRole("region", { name: "Closing soon" })
+    .getByRole("region", { name: "Pre-order rounds closing soon" })
     .getByRole("link", { name: new RegExp(title) });
+  await expect(card).toContainText("1 item");
   await expect(card).toContainText("35,000 VND");
-  await expect(card).toContainText("1 person ordered");
 
   // The choice survives a reload: the server renders from the cookie.
   await page.reload();
@@ -53,15 +52,15 @@ test("a seller switches to English, keeps it on reload and on another device, an
   ).toBeVisible();
 
   // The summary and its CSV follow the language.
-  await page.goto(`/sell/listings/${listingId}`);
-  await expect(page.getByText("Order summary")).toBeVisible();
+  await page.goto(`/sell/campaigns/${roundId}`);
+  await expect(page.getByText("Pre-order round summary")).toBeVisible();
   const [download] = await Promise.all([
     page.waitForEvent("download"),
     page.getByRole("link", { name: "Export CSV" }).click(),
   ]);
   const csv = await readFile(await download.path(), "utf8");
   expect(csv).toContain(
-    "Order code,Buyer,Email,Deliver to,Quantity (kg),Total",
+    "Order code,Buyer,Email,Deliver to",
   );
 
   // Another device for the same person starts without the cookie and adopts

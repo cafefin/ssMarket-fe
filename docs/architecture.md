@@ -35,16 +35,16 @@ src/
 │   │                         use-user-message
 │   ├── i18n/                 locales, request config, messages/{vi,en}.json,
 │   │                         locale cookie, Translator type, test-utils
-│   └── lib/                  utils.ts, format/, theme/
+│   └── lib/                  utils.ts, quantity-step.ts, format/, theme/
 └── features/
     ├── listings/             browse, search and read listings
-    ├── campaigns/            pre-order rounds: card, shelf, grid, round page
+    ├── campaigns/            pre-order rounds: card, shelf, grid, round page, item picker
     ├── profile/              profile form, bank account
     ├── shell/                header, search, user menu, tab bar, nav items
     ├── sellers/              a seller's public page
     ├── admin/                category management
-    ├── orders/               ordering, tracking, the seller's summary
-    └── sell/                 posting and managing my listings
+    ├── orders/               ordering, editing, tracking, the seller's summaries
+    └── sell/                 posting and managing my listings and rounds
 ```
 
 Every feature has the same shape; a folder with no files is not created:

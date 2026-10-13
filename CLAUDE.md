@@ -28,11 +28,13 @@ src/
 │   └── (app)/            everything that requires a session
 │       ├── page.tsx              browse and search
 │       ├── listings/[id]/        detail and edit
-│       ├── campaigns/[id]/       a pre-order round and its edit page
-│       ├── sell/                 my listings, new listing, received orders, summary
+│       ├── campaigns/[id]/       a pre-order round and its edit page (edit/)
+│       ├── sell/                 my rounds and listings, new listing or round,
+│       │                         received orders, summaries (listings/[id],
+│       │                         campaigns/[id])
 │       ├── orders/               my orders, order page
 │       ├── cart/                 the cart, grouped by seller
-│       ├── checkout/             one checkout, one order per seller
+│       ├── checkout/             one checkout, one order per seller or per round
 │       ├── sellers/[id]/         a seller's public page
 │       ├── admin/categories/     category management (admins only)
 │       └── profile/
@@ -61,7 +63,8 @@ src/
     ├── sellers/          components/ (seller page)
     ├── admin/            components/ (category admin), api/
     ├── orders/           components/ (order page, editor, QR block, actions, lists,
-    │                     summary), api/ (use-orders), lib/ (order-math)
+    │                     SalesSummary, CampaignSummary, summary-shared), api/ (use-orders),
+    │                     lib/ (order-math)
     ├── sell/             components/ (mode step, listing form, round form and its
     │                     product rows, my listings, my rounds), api/ (my rounds),
     │                     lib/ (form schemas, units, draft store, save sequences)
@@ -72,10 +75,11 @@ src/
 
 Each feature has `components/`, `api/`, `lib/` (only the ones it needs) and an
 `index.ts`, its public entry point. `shared` never imports features;
-features import each other only through `index.ts`, and only
-`orders`, `sell`, `sellers`, `admin` and `cart` may import `listings` (`cart`
-also imports `orders`); `app/` is the
-one place that joins two features. ESLint enforces this (`FEATURE_DEPS` in
+features import each other only through `index.ts`, following `FEATURE_DEPS`:
+only `campaigns`, `orders`, `sell`, `sellers`, `admin` and `cart` may import
+`listings`; `sellers` and `orders` also import `campaigns`, and `cart` also
+imports `orders`. `campaigns` and `cart` do not know each other, and `sell`
+may not import `campaigns`. `app/` is the one place that joins two features. ESLint enforces this (`FEATURE_DEPS` in
 `eslint.config.mjs`). See `docs/architecture.md` for the rules, the atom and
 molecule definitions, and how to add a feature.
 
@@ -121,7 +125,7 @@ locale routing: URLs never carry a language.
 - Every piece of UI text, `aria-label`, placeholder, toast and validation
   message lives in `src/shared/i18n/messages/{vi,en}.json`, grouped by
   namespace (`common`, `errors`, `format`, `shell`, `listings`, `sell`,
-  `orders`, `profile`, `sellers`, `admin`, `login`, `metadata`). Keys are
+  `campaigns`, `orders`, `profile`, `sellers`, `admin`, `login`, `metadata`). Keys are
   English camelCase; numbers and names are ICU arguments, counts use `plural`.
   Add every key to both files; `messages.test.ts` checks keys and arguments.
 - `no-hardcoded-vietnamese.test.ts` fails on Vietnamese letters in any source
@@ -149,9 +153,10 @@ locale routing: URLs never carry a language.
 
 - **Server data**: TanStack Query hooks in each feature's `api/` folder. After a write,
   invalidate `["listings"]`, `["my-listings"]` and `["listing", id]`.
-- **Closing soon and seller page**: the carousel uses `useClosingSoon`
-  (`GET /listings?sort=deadline`) and the seller page uses `useSellerListings`,
-  both under the `["listings"]` key.
+- **Closing soon and seller page**: the home shelf of rounds closing soon uses
+  `useClosingCampaigns` (`features/campaigns/api/use-campaigns.ts`, under the
+  campaigns key) and the seller page uses `useSellerListings` (`["listings"]`).
+  After a write to a round, invalidate `campaignKeysToInvalidate(id)` (sell).
 - **Browse filters**: the URL query string, through
   `parseListingFilters` / `listingsHref`. Every filter is a `FilterLink`: a
   real `<a href>` (shareable, opens in a new tab) whose plain click only
@@ -159,8 +164,10 @@ locale routing: URLs never carry a language.
   list refetches at once; do not use `next/link` or `router.push` for a
   filter, they wait for a round trip to the server first. `useListings` keeps
   the previous results (`keepPreviousData`) while new ones load, dimmed, with
-  a progress bar under the filter bar, so the page never flashes. The mode defaults to `in_stock` (left out of the URL);
-  `mode=all` asks the API without a mode.
+  a progress bar under the filter bar, so the page never flashes. The mode is `in_stock` (default, left out of the URL) or
+  `campaign` (`mode=campaign`); there is no "all". Under `mode=campaign` the
+  `view` param is `campaigns` (default, one card per round) or `items`
+  (`view=items`, the products of open rounds as cards).
 - **Unfinished new listing or round**: the Zustand store in
   `features/sell/lib/sell-draft-store.ts` (sessionStorage) keeps the chosen
   way of selling, a listing's values and a round's values (`campaignValues`),
@@ -187,11 +194,13 @@ already serves a 400px thumbnail and a 1600px full size.
 ## Products, condition and combos
 
 - A listing is **one product**: one price, unit, stock (in-stock) and combos.
-  There are no options; another kind or size is another listing. A pre-order
-  is a product with a deadline and a delivery date and no stock.
+  There are no options; another kind or size is another listing. The listing
+  form posts in-stock products only. A pre-order product belongs to a round
+  (see "Pre-order rounds") and has no stock and no deadline of its own: the
+  round owns the deadline, the delivery date and the payment methods.
 - Condition (`CONDITIONS` in `features/listings/lib/condition.ts`) is chosen
-  for in-stock goods outside perishable categories (`category.isPerishable`)
-  and never for pre-orders; `needsCondition` in the form schema decides.
+  for in-stock goods outside perishable categories (`category.isPerishable`);
+  `needsCondition` in the form schema decides. Round products have none.
 - Combos ("N for a set price", at most 3 per product) are priced by
   `lineTotalWithCombos` in `features/listings/lib/pricing.ts`, a mirror of the
   backend's function tested with the same table. Combos never add up across
@@ -201,6 +210,10 @@ already serves a 400px thumbnail and a 1600px full size.
 
 ## Pre-order rounds (seller side)
 
+- A round owns the deadline, the delivery date and the payment methods
+  (pay on delivery, QR); its products (at most `MAX_ITEMS` = 50) each have a
+  title, price, unit, description, combos and photos. A buyer has one order
+  per round, with one line per product.
 - `/sell/new` first asks how to sell (`ModeStep`): a product in stock
   (`ListingForm`) or a pre-order round (`CampaignForm`). The UI says "đợt đặt
   trước" / "pre-order round" and "món" / "products"; code says campaign and
@@ -219,6 +232,17 @@ already serves a 400px thumbnail and a 1600px full size.
   After a write invalidate `campaignKeysToInvalidate(id)`.
 - `EditCampaign` remounts the form after every save, so a second save never
   adds the new products or uploads the new photos again.
+- Excel import (`ImportItemsButton`): `.xlsx` of at most 1 MB, first sheet,
+  first row is a header and is skipped. Columns are read by position, not by
+  name: A title, B price, C unit, D description. `parseItemRows` skips empty
+  rows, takes the unit by its stored or translated name (an unknown one uses
+  the default unit and is counted in the summary), keeps a price that is not a
+  number as written so the form shows the error at that cell, and drops rows
+  beyond the room left under `MAX_ITEMS`. Imported products replace a form that
+  still holds only its one empty row, otherwise they are appended. The
+  template `public/templates/campaign-items.xlsx` is generated by
+  `node scripts/make-campaign-template.mjs` (commit the result).
+- Enter in a single-line input of the form saves a draft; it never publishes.
 - `MyCampaigns` (above `MyListings` on `/sell`) fetches all rounds once and
   splits them into tabs in the browser; an open round past its deadline
   (`isOpen` false) is listed under closed.
@@ -244,6 +268,9 @@ already serves a 400px thumbnail and a 1600px full size.
   instead of the bar.
 - The bar sits in a `sticky bottom-20 md:bottom-4 z-10` container, clear of
   the phone tab bar.
+- `QuantityStepper` lives in `shared/ui/molecules`; its step comes from
+  `shared/lib/quantity-step.ts`, the quantity rules from
+  `features/listings/lib/quantity.ts`.
 - In the cart a seller's pre-order lines are grouped under their round
   (title, deadline, delivery date); at checkout a round's block is headed by
   the round's title.
@@ -251,7 +278,9 @@ already serves a 400px thumbnail and a 1600px full size.
 ## Cart and checkout
 
 - The cart lives on the server (`/cart`); the header shows `CartButton` with
-  `useCartCount`. The cart never reserves stock.
+  `useCartCount`. The cart never reserves stock. `PUT /cart/lines` sets
+  several lines in one request (the API replaces each quantity); `CampaignBuyBar`
+  uses it to add every chosen product of a round at once.
 - `listings` may not import `cart`, so cards and the product page receive
   `BuyControls` from `app/` (`renderCardActions`, `renderBuy`): quantity on
   one row, then "Thêm vào giỏ" and "Mua ngay".
@@ -259,12 +288,12 @@ already serves a 400px thumbnail and a 1600px full size.
   the cart already holds (`addableQuantity`); the backend refuses more with
   `OUT_OF_STOCK` too. "Mua ngay" skips the cart and opens the checkout.
 - `/checkout?items=<listingId>:<qty>,...` (built by `checkoutHref`) asks
-  `POST /checkout/preview` how the lines split into orders: one per seller,
-  one per listing for pre-orders. Each block picks its own payment method and
+  `POST /checkout/preview` how the lines split into orders: one per seller
+  for goods in stock, one per round for pre-orders. Each block picks its own payment method and
   delivery place; the page holds one idempotency key for its lifetime, and
   `CHECKOUT_CHANGED` refetches the preview.
 - Every order is created by the checkout page; it holds one idempotency key
-  for its lifetime. `ALREADY_ORDERED` (a pre-order round) links to the
+  for its lifetime. `ALREADY_ORDERED` (one order per person per round) links to the
   existing order.
 - After a checkout invalidate the cart, `["orders"]` and `["listings"]`.
 
@@ -280,13 +309,18 @@ already serves a 400px thumbnail and a 1600px full size.
   the page shows its real state.
 - Status is always shown as text badges (`OrderStatusBadges`), never by
   colour alone.
-- `SalesSummary` (`/sell/listings/[id]`) shows the seller's table. Figures and
+- `SalesSummary` (`/sell/listings/[id]`, in-stock products) and
+  `CampaignSummary` (`/sell/campaigns/[id]`, a column per product of the round)
+  show the seller's table and share `summary-shared.tsx`. Figures and
   the totals row come from the server; only the per-group subtotals are added
   up in the browser. Bulk actions report how many orders changed and list the
   ones that did not.
 - `editBlockedReason(order, now)` decides whether a buyer sees "Sửa đơn", an
-  explanation, or nothing. The editor changes the quantity at the ordered
-  price, as the server will charge it.
+  explanation, or nothing; an order with no round is never editable. The editor
+  works product by product with `CampaignItemPicker`: a product already in the
+  order keeps the price it was ordered at (as the server charges it), a product
+  added now is priced as listed, and one set to 0 leaves the order (one must
+  remain). `/orders/<id>?edit=1` opens it for an editable order.
 
 ## Admin screens
 

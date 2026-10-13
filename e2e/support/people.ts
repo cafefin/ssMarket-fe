@@ -48,44 +48,25 @@ export const tinyPng = Buffer.from(
 
 export interface NewListing {
   title: string;
-  mode: "in_stock" | "preorder";
   unit: string;
   price: string;
-  /** In-stock only. */
   stock?: string;
   combos?: { quantity: string; price: string }[];
   acceptQr?: boolean;
   photo?: boolean;
-  /** In-stock only; defaults to like_new. */
+  /** Defaults to like_new. */
   condition?: string;
 }
 
-/** Posts a listing through the selling form and returns its URL path. */
+/** Posts an in-stock product through the selling form and returns its URL path. */
 export async function postListing(seller: Person, listing: NewListing): Promise<string> {
   const { page } = seller;
   await page.goto("/sell/new");
-  await page
-    .getByRole("button", {
-      name: listing.mode === "in_stock" ? /Hàng có sẵn/ : /Đặt trước/,
-    })
-    .click();
+  await page.getByRole("button", { name: /Hàng có sẵn/ }).click();
 
   await page.getByLabel("Tiêu đề").fill(listing.title);
-  await page
-    .getByLabel("Loại hàng")
-    .selectOption({ label: listing.mode === "in_stock" ? "Điện tử" : "Thực phẩm tươi" });
-
-  if (listing.mode === "in_stock") {
-    await page.getByLabel("Độ mới").selectOption(listing.condition ?? "like_new");
-  }
-
-  if (listing.mode === "preorder") {
-    const deadline = new Date(Date.now() + 3 * 86_400_000);
-    const delivery = new Date(Date.now() + 5 * 86_400_000);
-    const day = (date: Date) => date.toISOString().slice(0, 10);
-    await page.getByLabel("Hạn chốt đơn").fill(`${day(deadline)}T17:00`);
-    await page.getByLabel("Ngày giao").fill(day(delivery));
-  }
+  await page.getByLabel("Loại hàng").selectOption({ label: "Điện tử" });
+  await page.getByLabel("Độ mới").selectOption(listing.condition ?? "like_new");
 
   await page.getByLabel("Đơn vị").selectOption(listing.unit);
   await page.getByLabel("Đơn giá (đ)").fill(listing.price);
@@ -110,6 +91,49 @@ export async function postListing(seller: Person, listing: NewListing): Promise<
   await page.getByRole("button", { name: "Đăng bán" }).click();
   await expect(page).toHaveURL(/\/listings\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("heading", { name: listing.title })).toBeVisible();
+  return new URL(page.url()).pathname;
+}
+
+export interface NewRound {
+  title: string;
+  items: { title: string; price: string }[];
+  acceptQr?: boolean;
+}
+
+/** The shared part of the round form: title, category, deadline and delivery date. */
+export async function fillRoundTerms(page: Page, title: string): Promise<void> {
+  const day = (offset: number) =>
+    new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
+  await page.getByLabel("Tên đợt").fill(title);
+  await page.getByLabel("Loại hàng").selectOption({ label: "Thực phẩm tươi" });
+  await page.getByLabel("Hạn chốt đơn").fill(`${day(3)}T17:00`);
+  await page.getByLabel("Ngày giao").fill(day(5));
+}
+
+/**
+ * Opens a pre-order round through the form, typing each product, and returns
+ * its URL path (/campaigns/<id>).
+ */
+export async function postRound(seller: Person, round: NewRound): Promise<string> {
+  const { page } = seller;
+  await page.goto("/sell/new");
+  await page.getByRole("button", { name: /Mở đợt đặt trước/ }).click();
+  await fillRoundTerms(page, round.title);
+
+  for (const [index, item] of round.items.entries()) {
+    if (index > 0) {
+      await page.getByRole("button", { name: "Thêm món" }).click();
+    }
+    await page.getByLabel(`Tên món ${index + 1}`, { exact: true }).fill(item.title);
+    await page.getByLabel(`Giá món ${index + 1} (đ)`).fill(item.price);
+  }
+  if (round.acceptQr) {
+    await page.getByLabel(/Chuyển khoản trước qua mã QR/).check();
+  }
+
+  await page.getByRole("button", { name: "Đăng đợt" }).click();
+  await expect(page).toHaveURL(/\/campaigns\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("heading", { name: round.title })).toBeVisible();
   return new URL(page.url()).pathname;
 }
 
@@ -138,6 +162,33 @@ export async function buyNow(
   const { page } = person;
   await page.goto(listingPath);
   await page.getByRole("textbox", { name: "Số lượng" }).fill(quantity);
+  await page.getByRole("button", { name: "Mua ngay" }).click();
+  await expect(page).toHaveURL(/\/checkout\?items=/);
+  await page
+    .getByRole("radio", {
+      name: options.qr ? "Chuyển khoản trước qua mã QR" : "Trả tiền khi nhận hàng",
+    })
+    .check();
+  await page.getByLabel("Giao đến").fill(options.location ?? "Tầng 7");
+  await page.getByRole("button", { name: "Đặt 1 đơn" }).click();
+}
+
+/**
+ * Orders from a round's page: sets each product's quantity ("title" to
+ * quantity), then "Mua ngay" and one order on the checkout page. Leaves the
+ * page on the checkout result.
+ */
+export async function buyRound(
+  person: Person,
+  roundPath: string,
+  quantities: Record<string, string>,
+  options: { qr?: boolean; location?: string } = {},
+): Promise<void> {
+  const { page } = person;
+  await page.goto(roundPath);
+  for (const [title, quantity] of Object.entries(quantities)) {
+    await page.getByRole("textbox", { name: `Số lượng ${title}` }).fill(quantity);
+  }
   await page.getByRole("button", { name: "Mua ngay" }).click();
   await expect(page).toHaveURL(/\/checkout\?items=/);
   await page

@@ -9,7 +9,6 @@ test("the last unit goes to whoever orders first", async ({ browser }) => {
 
   const listingPath = await postListing(seller, {
     title,
-    mode: "in_stock",
     unit: "cái",
     price: "800.000",
     stock: "1",
@@ -39,11 +38,9 @@ test("the last unit goes to whoever orders first", async ({ browser }) => {
   const alert = second.page.getByRole("alert").filter({ hasText: "Không còn đủ hàng" });
   await expect(alert).toContainText(`${title}: còn 0`);
 
-  // The product now shows as sold out, also in the list "Có sẵn" leaves it out.
+  // The product now shows as sold out, also in the list, which leaves it out.
   await second.page.goto(listingPath);
   await expect(second.page.getByRole("button", { name: "Hết hàng" })).toBeDisabled();
   await second.page.goto(`/?q=${encodeURIComponent(title)}`);
   await expect(second.page.getByRole("link", { name: new RegExp(title) })).toHaveCount(0);
-  await second.page.getByRole("button", { name: "Tất cả" }).click();
-  await expect(second.page.getByRole("link", { name: new RegExp(title) })).toBeVisible();
 });

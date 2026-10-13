@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
-import { buyNow, openPlacedOrder, postListing, signInAs, unique } from "./support/people";
+import { buyRound, openPlacedOrder, postRound, signInAs, unique } from "./support/people";
 
 test("a seller runs a whole pre-order round from the summary table and reopens it", async ({
   browser,
@@ -9,24 +9,24 @@ test("a seller runs a whole pre-order round from the summary table and reopens i
   const minh = await signInAs(browser, "minh");
   const lan = await signInAs(browser, "lan");
   const title = `Hoa qua tuan ${unique("dot")}`;
+  const fruit = `Cam ${unique("sanh")}`;
 
-  const listingPath = await postListing(seller, {
+  const roundPath = await postRound(seller, {
     title,
-    mode: "preorder",
-    unit: "kg",
-    price: "35.000",
+    items: [{ title: fruit, price: "35.000" }],
   });
-  const listingId = listingPath.split("/").pop() as string;
+  const roundId = roundPath.split("/").pop() as string;
 
   // Two colleagues order, to different floors.
-  await buyNow(minh, listingPath, "2", { location: "Tầng 7" });
+  await buyRound(minh, roundPath, { [fruit]: "2" }, { location: "Tầng 7" });
   await openPlacedOrder(minh);
-  await buyNow(lan, listingPath, "1", { location: "Tầng 3" });
+  await buyRound(lan, roundPath, { [fruit]: "1" }, { location: "Tầng 3" });
   await openPlacedOrder(lan);
 
   // The person changes their mind before the deadline: more oranges.
-  await minh.page.getByRole("button", { name: "Sửa đơn" }).click();
-  await minh.page.getByRole("textbox", { name: new RegExp(title) }).fill("3");
+  await minh.page.goto(roundPath);
+  await minh.page.getByRole("link", { name: "Sửa đơn" }).click();
+  await minh.page.getByRole("textbox", { name: `Số lượng ${fruit}` }).fill("3");
   await expect(minh.page.getByRole("status", { name: "Tổng tiền mới" })).toHaveText(
     "105.000 đ",
   );
@@ -35,16 +35,12 @@ test("a seller runs a whole pre-order round from the summary table and reopens i
     "105.000 đ",
   );
 
-  // Everyone can see how busy the round is, but not who ordered.
-  await lan.page.goto(listingPath);
-  await expect(lan.page.getByText("2 người đã đặt")).toBeVisible();
-  await lan.page.goto(`/sell/listings/${listingId}`);
-  await expect(
-    lan.page.getByRole("heading", { name: "Không tìm thấy bài đăng" }),
-  ).toBeVisible();
+  // Only the seller sees the summary.
+  await lan.page.goto(`/sell/campaigns/${roundId}`);
+  await expect(lan.page.getByRole("heading", { name: "Không tìm thấy đợt" })).toBeVisible();
 
   // The seller's summary: one row each, totals that add up.
-  await seller.page.goto(`/sell/listings/${listingId}`);
+  await seller.page.goto(`/sell/campaigns/${roundId}`);
   await expect(seller.page.getByRole("heading", { name: title })).toBeVisible();
   const figures = seller.page.locator("dl").first();
   await expect(figures).toContainText("140.000 đ");
@@ -81,7 +77,7 @@ test("a seller runs a whole pre-order round from the summary table and reopens i
   expect(download.suggestedFilename()).toMatch(/^ssmarket-hoa-qua-tuan-.*\.csv$/);
   const csv = await readFile(await download.path(), "utf8");
   expect(csv.charCodeAt(0)).toBe(0xfeff);
-  expect(csv).toContain("Số lượng (kg),Tổng tiền");
+  expect(csv).toContain(`${fruit} (cái)`);
   expect(csv).toContain(`${minh.name},`);
   expect(csv).toContain("Tầng 7,3,105000");
   expect(csv).toContain("Tổng,2 đơn,,,4,140000");
@@ -89,30 +85,31 @@ test("a seller runs a whole pre-order round from the summary table and reopens i
   // Close the round, then start next week's from it.
   await seller.page.goto("/sell");
   const openRow = seller.page.getByRole("listitem", { name: title });
-  await openRow.getByRole("button", { name: "Đóng bài" }).click();
+  await openRow.getByRole("button", { name: "Đóng đợt" }).click();
   await seller.page
     .getByRole("alertdialog")
-    .getByRole("button", { name: "Đóng bài" })
+    .getByRole("button", { name: "Đóng đợt" })
     .click();
   await expect(openRow).toHaveCount(0);
 
   await seller.page.goto("/sell?tab=closed");
   await seller.page
     .getByRole("listitem", { name: title })
-    .getByRole("button", { name: "Mở lại" })
+    .getByRole("button", { name: "Mở lại đợt" })
     .click();
-  await expect(seller.page).toHaveURL(/\/listings\/[0-9a-f-]{36}\/edit\?reopened=1$/);
-  expect(seller.page.url()).not.toContain(listingId);
+  await expect(seller.page).toHaveURL(/\/campaigns\/[0-9a-f-]{36}\/edit\?reopened=1$/);
+  expect(seller.page.url()).not.toContain(roundId);
   await expect(seller.page.getByText(/Kiểm tra hạn chốt, ngày giao và giá/)).toBeVisible();
-  await expect(seller.page.getByLabel("Tiêu đề")).toHaveValue(title);
-  await expect(seller.page.getByLabel("Đơn giá (đ)")).toHaveValue("35.000");
+  await expect(seller.page.getByLabel("Tên đợt")).toHaveValue(title);
+  await expect(seller.page.getByLabel("Giá món 1 (đ)")).toHaveValue("35.000");
 
-  await seller.page.getByRole("button", { name: "Đăng bán" }).click();
-  await expect(seller.page).toHaveURL(/\/listings\/[0-9a-f-]{36}$/);
-  expect(seller.page.url()).not.toContain(listingId);
+  // The copy is a draft: publish it as next week's round.
+  await seller.page.getByRole("button", { name: "Đăng đợt" }).click();
+  await expect(seller.page).toHaveURL(/\/campaigns\/[0-9a-f-]{36}$/);
+  expect(seller.page.url()).not.toContain(roundId);
   await expect(seller.page.getByRole("heading", { name: title })).toBeVisible();
 
   // The finished round still has its two orders.
-  await seller.page.goto(`/sell/listings/${listingId}`);
+  await seller.page.goto(`/sell/campaigns/${roundId}`);
   await expect(seller.page.getByRole("row", { name: /Tổng 2 đơn/ })).toBeVisible();
 });
