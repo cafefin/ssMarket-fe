@@ -6,6 +6,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { toApiError } from "@/shared/api/api-error";
+import { CAMPAIGNS_QUERY_KEY, campaignQueryKey } from "@/shared/api/campaign-keys";
 import { api } from "@/shared/api/client";
 import type { components } from "@/shared/api/schema";
 
@@ -13,8 +14,7 @@ export type CampaignSummary = components["schemas"]["CampaignSummaryDto"];
 export type CampaignDetail = components["schemas"]["CampaignDetailDto"];
 export type CampaignItem = components["schemas"]["CampaignItemDto"];
 
-export const CAMPAIGNS_QUERY_KEY = ["campaigns"] as const;
-export const campaignQueryKey = (id: string) => ["campaign", id] as const;
+export { CAMPAIGNS_QUERY_KEY, campaignQueryKey };
 
 export interface CampaignFilters {
   q: string;

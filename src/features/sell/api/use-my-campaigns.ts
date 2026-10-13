@@ -3,6 +3,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LISTINGS_QUERY_KEY } from "@/features/listings";
 import { toApiError } from "@/shared/api/api-error";
+import {
+  CAMPAIGNS_QUERY_KEY,
+  campaignQueryKey,
+  campaignSummaryQueryKey,
+  MY_CAMPAIGNS_QUERY_KEY,
+} from "@/shared/api/campaign-keys";
 import { api } from "@/shared/api/client";
 import type { components } from "@/shared/api/schema";
 
@@ -10,19 +16,19 @@ export type CampaignDetail = components["schemas"]["CampaignDetailDto"];
 export type CampaignItem = components["schemas"]["CampaignItemDto"];
 export type CampaignMine = components["schemas"]["CampaignMineDto"];
 
-export const MY_CAMPAIGNS_QUERY_KEY = ["my-campaigns"] as const;
-// `sell` may not import `campaigns`, so the keys that feature reads its rounds
-// under are repeated here; they must stay the same as in
-// features/campaigns/api/use-campaigns.ts.
-const CAMPAIGNS_QUERY_KEY = ["campaigns"] as const;
-const campaignQueryKey = (id: string) => ["campaign", id] as const;
+export { MY_CAMPAIGNS_QUERY_KEY };
 
-/** Everything that shows a round or its products, after `id` changed. */
+/**
+ * Everything that shows a round or its products, after `id` changed: the
+ * lists, the round's page, the seller's summary (a column per product) and
+ * the product cards.
+ */
 export function campaignKeysToInvalidate(id: string) {
   return [
     MY_CAMPAIGNS_QUERY_KEY,
     CAMPAIGNS_QUERY_KEY,
     campaignQueryKey(id),
+    campaignSummaryQueryKey(id),
     LISTINGS_QUERY_KEY,
   ] as const;
 }

@@ -7,9 +7,14 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { toApiError } from "@/shared/api/api-error";
+import {
+  campaignQueryKey,
+  campaignSummaryQueryKey,
+  MY_CAMPAIGNS_QUERY_KEY,
+} from "@/shared/api/campaign-keys";
 import { api } from "@/shared/api/client";
 import type { components } from "@/shared/api/schema";
-import { LISTINGS_QUERY_KEY, listingQueryKey } from "@/features/listings";
+import { LISTINGS_QUERY_KEY } from "@/features/listings";
 
 export type Order = components["schemas"]["OrderDetailDto"];
 export type OrderQr = components["schemas"]["OrderQrDto"];
@@ -27,6 +32,16 @@ export type BulkResult = components["schemas"]["BulkResultDto"];
 export const ORDERS_QUERY_KEY = ["orders"] as const;
 export const SALES_QUERY_KEY = ["sales"] as const;
 export const orderQueryKey = (id: string) => ["order", id] as const;
+
+/**
+ * What a write to an order of a round makes stale for the seller: the
+ * round's summary table and the order count in the list of their rounds.
+ */
+function roundKeysOf(order: Order | undefined) {
+  return order?.campaign
+    ? [campaignSummaryQueryKey(order.campaign.id), MY_CAMPAIGNS_QUERY_KEY]
+    : [];
+}
 
 export function useOrder(id: string) {
   return useQuery({
@@ -115,13 +130,18 @@ const ACTION_PATHS = {
 
 export function useOrderAction() {
   const queryClient = useQueryClient();
+  // The round is read from the order as it was last seen: a refused action
+  // has no answer to read it from.
   const refresh = (id: string) =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: orderQueryKey(id) }),
-      queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY }),
-      queryClient.invalidateQueries({ queryKey: SALES_QUERY_KEY }),
-      queryClient.invalidateQueries({ queryKey: LISTINGS_QUERY_KEY }),
-    ]);
+    Promise.all(
+      [
+        orderQueryKey(id),
+        ORDERS_QUERY_KEY,
+        SALES_QUERY_KEY,
+        LISTINGS_QUERY_KEY,
+        ...roundKeysOf(queryClient.getQueryData<Order>(orderQueryKey(id))),
+      ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+    );
 
   return useMutation({
     mutationFn: async (input: {
@@ -168,16 +188,16 @@ export function useEditOrder() {
     },
     onSuccess: (order) => {
       queryClient.setQueryData(orderQueryKey(order.id), order);
-      return Promise.all([
-        queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY }),
-        queryClient.invalidateQueries({ queryKey: LISTINGS_QUERY_KEY }),
-        // A pre-order belongs to a round, whose page counts its orders.
-        queryClient.invalidateQueries({
-          queryKey: order.campaign
-            ? ["campaign", order.campaign.id]
-            : listingQueryKey(order.listing.id),
-        }),
-      ]);
+      // Only an order of a round can be edited; the round's page shows the
+      // buyer's order and the seller's screens count it.
+      return Promise.all(
+        [
+          ORDERS_QUERY_KEY,
+          LISTINGS_QUERY_KEY,
+          ...(order.campaign ? [campaignQueryKey(order.campaign.id)] : []),
+          ...roundKeysOf(order),
+        ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+      );
     },
   });
 }
@@ -226,9 +246,6 @@ export function useBulkOrders(listingId: string) {
       ]),
   });
 }
-
-export const campaignSummaryQueryKey = (campaignId: string) =>
-  ["campaign-summary", campaignId] as const;
 
 /** Who ordered what in one of the seller's pre-order rounds. */
 export function useCampaignSummary(campaignId: string) {
