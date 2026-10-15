@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { formatDate, formatDateTime, toDateTimeLocal } from "./datetime";
-import { formatMoney } from "./money";
+import { formatCompactMoney, formatMoney } from "./money";
 
 describe("formatMoney", () => {
   it.each([
@@ -17,6 +17,27 @@ describe("formatMoney", () => {
     [1250000, "1,250,000 VND"],
   ])("%d -> %s in English", (amount, expected) => {
     expect(formatMoney(amount, "en")).toBe(expected);
+  });
+});
+
+describe("formatCompactMoney", () => {
+  it.each([
+    [50_000, "50k"],
+    [200_000, "200k"],
+    [1_000_000, "1tr"],
+    [1_500_000, "1,5tr"],
+    [999, "999 đ"],
+  ])("%d -> %s", (amount, expected) => {
+    expect(formatCompactMoney(amount, "vi")).toBe(expected);
+  });
+
+  it.each([
+    [50_000, "50K"],
+    [1_000_000, "1M"],
+    [1_500_000, "1.5M"],
+    [999, "999 VND"],
+  ])("%d -> %s in English", (amount, expected) => {
+    expect(formatCompactMoney(amount, "en")).toBe(expected);
   });
 });
 

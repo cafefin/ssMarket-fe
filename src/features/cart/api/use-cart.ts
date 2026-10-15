@@ -78,6 +78,26 @@ export function useSetCartLine() {
   });
 }
 
+/**
+ * Sets the quantity of several products in one request, all or none. Each
+ * quantity replaces what the cart holds for that product.
+ */
+export function useSetCartLines() {
+  const store = useStoreCart();
+  return useMutation({
+    mutationFn: async (lines: CheckoutLine[]): Promise<Cart> => {
+      const { data, error, response } = await api.PUT("/cart/lines", {
+        body: { lines },
+      });
+      if (!data) {
+        throw toApiError(error, response);
+      }
+      return data;
+    },
+    onSuccess: store,
+  });
+}
+
 export function useRemoveCartLine() {
   const store = useStoreCart();
   return useMutation({

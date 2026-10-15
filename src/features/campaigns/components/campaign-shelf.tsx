@@ -3,19 +3,20 @@
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react/ssr";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useClosingSoon } from "../api/use-listings";
-import { ListingCard } from "./listing-card";
+import { FilterLink } from "@/features/listings";
+import { useClosingCampaigns } from "../api/use-campaigns";
+import { CampaignCard } from "./campaign-card";
 
 const MAX_ITEMS = 10;
-const MIN_SLIDE = 266; // one card (250px) plus the gap
+const MIN_SLIDE = 296; // one card (up to 280px wide) plus the 16px gap
 
 const ARROW =
   "flex size-10 items-center justify-center rounded-full border border-border bg-background text-primary outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-disabled:cursor-default aria-disabled:text-border";
 
-/** Pre-orders that close soonest, in a row that scrolls sideways. The server orders them (GET /listings?sort=deadline). */
-export function ClosingSoonShelf() {
-  const t = useTranslations("listings.shelf");
-  const { data } = useClosingSoon(MAX_ITEMS);
+/** The rounds that close soonest, in a row that scrolls sideways. The server orders them. */
+export function CampaignShelf() {
+  const t = useTranslations("campaigns.shelf");
+  const { data } = useClosingCampaigns(MAX_ITEMS);
   const row = useRef<HTMLUListElement>(null);
   const [edge, setEdge] = useState({ start: true, end: false });
 
@@ -60,16 +61,19 @@ export function ClosingSoonShelf() {
   }
 
   return (
-    <section aria-labelledby="closing-soon-title" className="bg-deadline-soft">
+    <section aria-labelledby="closing-rounds-title" className="bg-deadline-soft">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-8">
         <div className="flex items-center gap-4">
           <div className="mr-auto flex min-w-0 flex-col gap-x-4 sm:flex-row sm:items-baseline">
-            <h2 id="closing-soon-title" className="text-[22px] font-bold">
+            <h2 id="closing-rounds-title" className="text-[22px] font-bold">
               {t("title")}
             </h2>
-            <p className="text-[13px] text-deadline-deep">
-              {t("subtitle")}
-            </p>
+            <FilterLink
+              href="/?mode=campaign"
+              className="w-fit rounded-sm text-[13px] font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {t("all")}
+            </FilterLink>
           </div>
           {/* Phones swipe; the buttons are for pointers and keyboards. */}
           <div className="hidden shrink-0 gap-2 min-[560px]:flex">
@@ -99,12 +103,12 @@ export function ClosingSoonShelf() {
           onScroll={sync}
           className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth [scrollbar-width:none] motion-reduce:scroll-auto"
         >
-          {items.map((listing) => (
+          {items.map((campaign) => (
             <li
-              key={listing.id}
-              className="flex w-[62vw] max-w-[250px] min-w-[200px] shrink-0 snap-start"
+              key={campaign.id}
+              className="flex w-[72vw] max-w-[280px] min-w-[220px] shrink-0 snap-start"
             >
-              <ListingCard listing={listing} />
+              <CampaignCard campaign={campaign} />
             </li>
           ))}
         </ul>

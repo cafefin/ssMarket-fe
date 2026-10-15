@@ -4,6 +4,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ListingSummary } from "../api/use-listings";
 import { ListingCard } from "./listing-card";
 
+const DEADLINE = "2026-10-10T10:00:00.000Z";
+
+const round = (orderDeadline: string): ListingSummary["campaign"] => ({
+  id: "c1",
+  title: "Hoa quả tuần 41",
+  orderDeadline,
+  deliveryDate: "2026-10-12",
+});
+
 const listing = (overrides: Partial<ListingSummary> = {}): ListingSummary => ({
   id: "abc",
   title: "Loa bluetooth cũ",
@@ -13,8 +22,7 @@ const listing = (overrides: Partial<ListingSummary> = {}): ListingSummary => ({
   thumbnailUrl: "/api/media/listings/abc/x_thumb.webp",
   unitPrice: 500000,
   unit: "cái",
-  orderDeadline: null,
-  deliveryDate: null,
+  campaign: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
   orderCount: 0,
   stockQuantity: 3,
@@ -40,6 +48,15 @@ describe("ListingCard", () => {
     // No "from", no "/unit": one product, one price.
     expect(screen.getByText("500.000 đ")).toHaveClass("font-semibold", "text-[15px]");
     expect(link).not.toHaveTextContent(/từ|\/cái/);
+  });
+
+  it("names the unit in the language of the page", () => {
+    const { unmount } = renderWithIntl(<ListingCard listing={listing()} />);
+    expect(screen.getByText("Còn 3 cái")).toBeInTheDocument();
+    unmount();
+
+    renderWithIntl(<ListingCard listing={listing()} />, { locale: "en" });
+    expect(screen.getByText("3 pieces left")).toBeInTheDocument();
   });
 
   it("has no avatar and a square, lazily loaded photo", () => {
@@ -71,15 +88,30 @@ describe("ListingCard", () => {
     expect(soldOut).not.toHaveClass("text-positive-deep");
   });
 
-  it("says Đặt trước for a pre-order without a closing time", () => {
+  it("links a product of a pre-order round to its round, outside the product link", () => {
     renderWithIntl(
       <ListingCard
-        listing={listing({ mode: "preorder", orderDeadline: null, stockQuantity: null })}
+        listing={listing({
+          mode: "preorder",
+          stockQuantity: null,
+          campaign: round(DEADLINE),
+        })}
       />,
     );
 
-    expect(screen.getByText("Đặt trước")).toBeInTheDocument();
+    const roundLink = screen.getByRole("link", { name: "Đợt: Hoa quả tuần 41" });
+    expect(roundLink).toHaveAttribute("href", "/campaigns/c1");
+    const product = screen.getByRole("link", { name: /Loa bluetooth cũ/ });
+    expect(product).toHaveAttribute("href", "/listings/abc");
+    expect(product).not.toContainElement(roundLink);
     expect(screen.queryByText(/^Còn/)).not.toBeInTheDocument();
+  });
+
+  it("has no round link and no closing time for goods in stock", () => {
+    renderWithIntl(<ListingCard listing={listing()} />);
+
+    expect(screen.getAllByRole("link")).toHaveLength(1);
+    expect(screen.queryByText(/^Chốt/)).not.toBeInTheDocument();
   });
 
   it("shows a pre-order's closing time on soft orange", () => {
@@ -93,14 +125,16 @@ describe("ListingCard", () => {
           unitPrice: 35000,
           unit: "kg",
           stockQuantity: null,
-          orderDeadline: "2026-10-10T10:00:00.000Z",
+          campaign: round(DEADLINE),
         })}
       />,
     );
 
     const closing = screen.getByText(/^Chốt \d{2}:\d{2} .+, \d{1,2}\/10$/);
     expect(closing.closest("p")).toHaveClass("bg-deadline-soft", "text-deadline-deep");
-    expect(screen.getByRole("link")).toHaveTextContent("35.000 đ");
+    expect(screen.getByRole("link", { name: /Loa bluetooth cũ/ })).toHaveTextContent(
+      "35.000 đ",
+    );
   });
 
   it("uses solid orange when a pre-order closes today", () => {
@@ -113,7 +147,7 @@ describe("ListingCard", () => {
           mode: "preorder",
           stockQuantity: null,
           // One minute later: the same calendar day in every time zone.
-          orderDeadline: "2026-10-06T12:01:00.000Z",
+          campaign: round("2026-10-06T12:01:00.000Z"),
         })}
       />,
     );
@@ -126,11 +160,17 @@ describe("ListingCard", () => {
 
   it("shows how many people ordered a pre-order, but not zero", () => {
     const { rerender } = renderWithIntl(
-      <ListingCard listing={listing({ mode: "preorder", orderCount: 7 })} />,
+      <ListingCard
+        listing={listing({ mode: "preorder", campaign: round(DEADLINE), orderCount: 7 })}
+      />,
     );
     expect(screen.getByText("7 người đã đặt")).toBeInTheDocument();
 
-    rerender(<ListingCard listing={listing({ mode: "preorder", orderCount: 0 })} />);
+    rerender(
+      <ListingCard
+        listing={listing({ mode: "preorder", campaign: round(DEADLINE), orderCount: 0 })}
+      />,
+    );
     expect(screen.queryByText(/người đã đặt/)).not.toBeInTheDocument();
   });
 
@@ -176,12 +216,15 @@ describe("ListingCard", () => {
       <ListingCard
         listing={listing({
           mode: "preorder",
-          orderDeadline: "2026-10-06T12:01:00.000Z",
+          campaign: round("2026-10-06T12:01:00.000Z"),
           orderCount: 1,
         })}
       />,
     );
     expect(screen.getByText(/^Closes \d{2}:\d{2} today$/)).toBeInTheDocument();
     expect(screen.getByText("1 person ordered")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Round: Hoa quả tuần 41" }),
+    ).toBeInTheDocument();
   });
 });

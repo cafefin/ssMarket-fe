@@ -8,9 +8,10 @@ const FEATURE_DEPS = {
   listings: [],
   profile: [],
   shell: [],
-  sellers: ["listings"],
+  campaigns: ["listings"],
+  sellers: ["listings", "campaigns"],
   admin: ["listings"],
-  orders: ["listings"],
+  orders: ["listings", "campaigns"],
   sell: ["listings"],
   cart: ["listings", "orders"],
 };

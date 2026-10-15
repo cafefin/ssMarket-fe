@@ -17,8 +17,10 @@ export type ListingMode = components["schemas"]["ListingMode"];
 
 export const LISTINGS_QUERY_KEY = ["listings"] as const;
 
-export function useListings(filters: ListingFilters) {
+/** `enabled` is false where another list (the rounds) takes the place of this one. */
+export function useListings(filters: ListingFilters, enabled = true) {
   return useInfiniteQuery({
+    enabled,
     queryKey: [...LISTINGS_QUERY_KEY, filters],
     initialPageParam: null as string | null,
     queryFn: async ({ pageParam }) => {
@@ -30,7 +32,11 @@ export function useListings(filters: ListingFilters) {
             mode: apiMode(filters),
             minPrice: filters.minPrice ?? undefined,
             maxPrice: filters.maxPrice ?? undefined,
-            minCondition: filters.minCondition ?? undefined,
+            // Pre-order products have no condition; the API would list none.
+            minCondition:
+              filters.mode === "in_stock"
+                ? (filters.minCondition ?? undefined)
+                : undefined,
             cursor: pageParam ?? undefined,
           },
         },
@@ -44,22 +50,6 @@ export function useListings(filters: ListingFilters) {
     // Changing a filter keeps the current cards on screen until the new ones
     // arrive, so the page never flashes back to skeletons.
     placeholderData: keepPreviousData,
-  });
-}
-
-/** Open pre-orders, closing soonest first, ordered by the server. */
-export function useClosingSoon(limit: number) {
-  return useQuery({
-    queryKey: [...LISTINGS_QUERY_KEY, "closing-soon", limit],
-    queryFn: async (): Promise<ListingSummary[]> => {
-      const { data, error, response } = await api.GET("/listings", {
-        params: { query: { sort: "deadline", limit } },
-      });
-      if (!data) {
-        throw toApiError(error, response);
-      }
-      return data.items;
-    },
   });
 }
 
@@ -80,7 +70,7 @@ export function useListing(id: string) {
   });
 }
 
-/** One seller's open listings, newest first. */
+/** One seller's goods in stock (the API's default mode), newest first. */
 export function useSellerListings(sellerId: string) {
   return useInfiniteQuery({
     queryKey: [...LISTINGS_QUERY_KEY, "seller", sellerId],

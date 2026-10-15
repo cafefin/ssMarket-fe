@@ -59,17 +59,14 @@ function paymentMethods(
   ];
 }
 
-/** Price per unit, what is left and the combo deals of the product. */
+/** Price, what is left and the combo deals of the product. */
 function ProductFacts({ listing }: { listing: ListingDetail }) {
   const t = useTranslations("listings");
   const format = useFormat();
   return (
     <section className="flex flex-col gap-2">
-      <p className="flex items-baseline gap-1.5">
+      <p>
         <Price amount={listing.unitPrice} size="lg" />
-        <span className="text-sm text-muted-foreground">
-          {t("detail.perUnit", { unit: listing.unit })}
-        </span>
       </p>
       {listing.mode === "in_stock" &&
         listing.stockQuantity !== null &&
@@ -81,7 +78,7 @@ function ProductFacts({ listing }: { listing: ListingDetail }) {
           <p className="text-sm font-medium text-positive-deep">
             {t("card.remaining", {
               quantity: format.quantity(listing.stockQuantity),
-              unit: listing.unit,
+              unit: format.unit(listing.unit, listing.stockQuantity),
             })}
           </p>
         ))}
@@ -93,7 +90,7 @@ function ProductFacts({ listing }: { listing: ListingDetail }) {
               <li key={combo.quantity}>
                 {t("detail.combo", {
                   quantity: format.quantity(Number(combo.quantity)),
-                  unit: listing.unit,
+                  unit: format.unit(listing.unit, Number(combo.quantity)),
                   price: format.money(combo.price),
                 })}
               </li>
@@ -157,6 +154,7 @@ export function ListingDetailView({
 
   const isOwner = me?.id === listing.seller.id;
   const note = isOwner ? ownerNote(listing) : null;
+  const campaign = listing.campaign;
 
   return (
     <article className="mx-auto grid max-w-5xl gap-8 px-4 py-8 sm:px-8 md:grid-cols-2">
@@ -209,20 +207,26 @@ export function ListingDetailView({
           </div>
         </header>
 
-        {listing.mode === "preorder" &&
-          listing.orderDeadline &&
-          listing.deliveryDate && (
+        {/* The round a pre-order product belongs to, and the round's dates. */}
+        {campaign && (
+          <div className="flex flex-col gap-2">
+            <Link
+              href={`/campaigns/${campaign.id}`}
+              className="w-fit text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              {t("inRound", { title: campaign.title })}
+            </Link>
             <dl className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2 rounded-md bg-deadline-soft p-4 text-sm">
               <div>
                 <dt className="text-deadline-deep">{t("deadline")}</dt>
                 <dd className="text-lg leading-tight font-semibold text-deadline-deep">
-                  {formatDeadline(listing.orderDeadline, locale)}
+                  {formatDeadline(campaign.orderDeadline, locale)}
                 </dd>
               </div>
               <div>
                 <dt className="text-deadline-deep">{t("deliveryDate")}</dt>
                 <dd className="font-semibold">
-                  {formatDate(listing.deliveryDate)}
+                  {formatDate(campaign.deliveryDate)}
                 </dd>
               </div>
               {listing.orderCount > 0 && (
@@ -234,7 +238,8 @@ export function ListingDetailView({
                 </div>
               )}
             </dl>
-          )}
+          </div>
+        )}
 
         <ProductFacts listing={listing} />
 
@@ -257,7 +262,8 @@ export function ListingDetailView({
           </section>
         )}
 
-        {isOwner && (
+        {/* A round's product is edited and summarised through its round. */}
+        {isOwner && !campaign && (
           <div className="flex flex-wrap gap-3">
             {listing.status !== "closed" && (
               <Link

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import type { Locale } from "@/shared/i18n/config";
 import { ListingForm } from "./listing-form";
@@ -9,7 +8,6 @@ import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { useCurrentUser } from "@/shared/api/use-current-user";
 import { type ListingDetail, useListing } from "@/features/listings";
-import { toDateTimeLocal } from "@/shared/lib/format/datetime";
 import type { ListingFormValues } from "../lib/listing-schema";
 
 const PRICE_FORMATTERS: Record<Locale, Intl.NumberFormat> = {
@@ -28,10 +26,6 @@ export function toFormValues(
     description: listing.description,
     acceptsPrepaidQr: listing.acceptsPrepaidQr,
     acceptsPayOnDelivery: listing.acceptsPayOnDelivery,
-    orderDeadline: listing.orderDeadline
-      ? toDateTimeLocal(listing.orderDeadline)
-      : "",
-    deliveryDate: listing.deliveryDate ?? "",
     condition: listing.condition ?? "",
     unit: listing.unit,
     unitPrice: PRICE_FORMATTERS[locale].format(listing.unitPrice),
@@ -59,7 +53,6 @@ function Unavailable({ message }: { message: string }) {
 export function EditListing({ id }: { id: string }) {
   const { data: listing, isPending, isError } = useListing(id);
   const { data: me } = useCurrentUser();
-  const reopened = useSearchParams().get("reopened") === "1";
   const t = useTranslations("sell.edit");
   const locale = useLocale();
 
@@ -76,7 +69,8 @@ export function EditListing({ id }: { id: string }) {
       </div>
     );
   }
-  if (isError || !listing || listing.seller.id !== me.id) {
+  // A product of a pre-order round is edited through its round.
+  if (isError || !listing || listing.seller.id !== me.id || listing.campaign) {
     return <Unavailable message={t("notFound")} />;
   }
   if (listing.status === "closed") {
@@ -86,13 +80,7 @@ export function EditListing({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-[28px] leading-tight font-semibold">{t("title")}</h1>
-      {reopened && listing.status === "draft" && (
-        <p className="rounded-md border border-warn/40 bg-warn-soft px-4 py-3 text-sm text-warn-deep">
-          {t("reopened")}
-        </p>
-      )}
       <ListingForm
-        mode={listing.mode}
         initialValues={toFormValues(listing, locale)}
         listing={listing}
       />

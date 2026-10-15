@@ -13,11 +13,21 @@ const { api, toast } = vi.hoisted(() => ({
 }));
 vi.mock("@/shared/api/client", () => ({ api }));
 vi.mock("sonner", () => ({ toast }));
+const nav = vi.hoisted(() => ({ search: "" }));
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(nav.search),
+}));
 
 const order = (overrides: Partial<Order> = {}): Order => ({
   id: "o1",
   code: "SSM7K2Q9X",
-  listing: { id: "l1", title: "Hoa quả tuần này", orderDeadline: null, deliveryDate: "2026-10-12" },
+  listing: { id: "l1", title: "Cam sành" },
+  campaign: {
+    id: "c1",
+    title: "Hoa quả tuần này",
+    orderDeadline: "2026-10-09T10:00:00.000Z",
+    deliveryDate: "2026-10-12",
+  },
   listingCount: 1,
   buyer: { id: "b", name: "Anh Minh" },
   seller: { id: "s", name: "Chị Lan" },
@@ -103,6 +113,7 @@ describe("availableActions", () => {
 describe("OrderView", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    nav.search = "";
     Object.assign(navigator, {
       clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
     });
@@ -129,6 +140,29 @@ describe("OrderView", () => {
     expect(screen.getByText("Tầng 7")).toBeInTheDocument();
     expect(screen.getByText("12/10/2026")).toBeInTheDocument();
     expect(screen.getByText("Giao sau 14h")).toBeInTheDocument();
+  });
+
+  it("names the pre-order round, with its deadline and delivery date", async () => {
+    renderView(order());
+
+    const round = await screen.findByRole("link", { name: "Hoa quả tuần này" });
+    expect(round).toHaveAttribute("href", "/campaigns/c1");
+    expect(screen.getByText("Đợt đặt trước")).toBeInTheDocument();
+    expect(screen.getByText("Chốt đơn").nextElementSibling).toHaveTextContent(
+      /^\d{2}:\d{2} .+$/,
+    );
+    expect(screen.getByText("Ngày giao dự kiến").nextElementSibling).toHaveTextContent(
+      "12/10/2026",
+    );
+  });
+
+  it("shows nothing about a round on an in-stock order", async () => {
+    renderView(order({ campaign: null, isPreorder: false }));
+
+    await screen.findByRole("heading", { name: "Đơn SSM7K2Q9X" });
+    expect(screen.queryByText("Đợt đặt trước")).not.toBeInTheDocument();
+    expect(screen.queryByText("Chốt đơn")).not.toBeInTheDocument();
+    expect(screen.queryByText("Ngày giao dự kiến")).not.toBeInTheDocument();
   });
 
   it("shows the order in English", async () => {
@@ -375,5 +409,60 @@ describe("OrderView", () => {
       await screen.findByRole("heading", { name: "Không tải được đơn hàng" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
+  });
+
+  describe("?edit=1", () => {
+    const editable = () =>
+      order({
+        paymentMethod: "pay_on_delivery",
+        campaign: {
+          id: "c1",
+          title: "Hoa quả tuần này",
+          orderDeadline: "2099-01-01T10:00:00.000Z",
+          deliveryDate: "2099-01-03",
+        },
+      });
+    const mockApi = () =>
+      api.GET.mockImplementation((path: string) =>
+        Promise.resolve(
+          ok(
+            path === "/orders/{id}"
+              ? editable()
+              : { id: "c1", items: [], status: "open", isOpen: true },
+          ),
+        ),
+      );
+
+    it("opens the editor for the buyer of an editable order", async () => {
+      nav.search = "edit=1";
+      mockApi();
+      renderWithIntl(
+        <QueryProvider>
+          <OrderView id="o1" />
+        </QueryProvider>,
+      );
+
+      expect(await screen.findByRole("form", { name: "Sửa đơn" })).toBeInTheDocument();
+    });
+
+    it("starts with the editor closed otherwise", async () => {
+      mockApi();
+      renderWithIntl(
+        <QueryProvider>
+          <OrderView id="o1" />
+        </QueryProvider>,
+      );
+
+      expect(await screen.findByRole("button", { name: "Sửa đơn" })).toBeInTheDocument();
+      expect(screen.queryByRole("form", { name: "Sửa đơn" })).not.toBeInTheDocument();
+    });
+
+    it("does not open for an order that cannot be edited", async () => {
+      nav.search = "edit=1";
+      renderView(order({ paymentStatus: "reported" }));
+
+      await screen.findByRole("heading", { name: "Đơn SSM7K2Q9X" });
+      expect(screen.queryByRole("form", { name: "Sửa đơn" })).not.toBeInTheDocument();
+    });
   });
 });

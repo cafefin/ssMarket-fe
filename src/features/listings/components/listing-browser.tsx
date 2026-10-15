@@ -2,16 +2,21 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Button, buttonVariants } from "@/shared/ui/atoms/shadcn/button";
 import { Skeleton } from "@/shared/ui/atoms/shadcn/skeleton";
 import { useCategories } from "../api/use-categories";
 import { type ListingSummary, useListings } from "../api/use-listings";
-import { isDefault, parseListingFilters } from "../lib/filters";
+import {
+  isDefault,
+  type ListingFilters as Filters,
+  parseListingFilters,
+} from "../lib/filters";
 import { ListingCard } from "./listing-card";
-import { ClosingSoonShelf } from "./closing-soon-shelf";
+import { FilterLink } from "./filter-link";
 import { ListingFilters } from "./listing-filters";
+import { useLoadMoreOnView } from "@/shared/lib/use-load-more-on-view";
 import { cn } from "@/shared/lib/utils";
 import { LISTING_GRID } from "./listing-grid";
 
@@ -26,18 +31,29 @@ function CardSkeleton() {
   );
 }
 
-/** The home page: filters from the URL, then the matching listings. */
+/**
+ * The home page: filters from the URL, then the matching listings. On the
+ * tab of pre-order rounds it lists the products of the rounds.
+ */
 export function ListingBrowser({
   renderCardActions,
+  shelf,
+  renderCampaigns,
 }: {
   /** Controls under each card; the page passes the cart's, see app/. */
   renderCardActions?: (listing: ListingSummary) => ReactNode;
+  /** Shown above the list of goods in stock while no filter is set. */
+  shelf?: ReactNode;
+  /** The grid of rounds, shown on the round tab; see app/. */
+  renderCampaigns?: (filters: Filters) => ReactNode;
 } = {}) {
   const t = useTranslations("listings.browser");
   const tc = useTranslations("common");
   const filters = parseListingFilters(useSearchParams());
   const { data: categories = [] } = useCategories();
-  const listings = useListings(filters);
+  // On the round tab the rounds are listed, not their products.
+  const roundsView = filters.mode === "campaign" && filters.view === "campaigns";
+  const listings = useListings(filters, !roundsView);
 
   const items = listings.data?.pages.flatMap((page) => page.items) ?? [];
   const filtered = !isDefault(filters);
@@ -46,39 +62,35 @@ export function ListingBrowser({
   // Loads the next page when the end of the list comes into view. The
   // "load more" button stays as a fallback (and for browsers without the
   // observer).
-  const end = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const element = end.current;
-    if (!element || !hasNextPage || typeof IntersectionObserver === "undefined") {
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting) && !isFetchingNextPage) {
-          void fetchNextPage();
-        }
-      },
-      { rootMargin: "600px 0px" },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const end = useLoadMoreOnView<HTMLDivElement>({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
 
   return (
     <>
-      {!filtered && <ClosingSoonShelf />}
+      {filters.mode === "in_stock" && !filtered && shelf}
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:px-8">
         {filters.q ? (
           <h1 className="text-[22px] font-bold">
             {t("resultsFor", { query: filters.q })}
           </h1>
         ) : (
-          <h2 className="text-[22px] font-bold">{t("all")}</h2>
+          <h2 className="text-[22px] font-bold">
+            {filters.mode === "campaign" ? t("campaigns") : t("all")}
+          </h2>
         )}
 
-        <ListingFilters filters={filters} categories={categories} />
+        <ListingFilters
+          filters={filters}
+          categories={categories}
+          busy={!roundsView && listings.isPlaceholderData}
+        />
 
-        {listings.isPending && (
+        {roundsView && renderCampaigns?.(filters)}
+
+        {!roundsView && listings.isPending && (
           <div className={LISTING_GRID} aria-busy="true" aria-label={t("loading")}>
             {Array.from({ length: 8 }, (_, index) => (
               <CardSkeleton key={index} />
@@ -86,7 +98,7 @@ export function ListingBrowser({
           </div>
         )}
 
-        {listings.isError && (
+        {!roundsView && listings.isError && (
           <div role="alert" className="flex flex-col items-center gap-3 py-16">
             <p className="text-error-deep">
               {t("loadFailed")}
@@ -97,7 +109,7 @@ export function ListingBrowser({
           </div>
         )}
 
-        {listings.isSuccess && items.length === 0 && (
+        {!roundsView && listings.isSuccess && items.length === 0 && (
           <div className="flex flex-col items-center gap-3 py-16 text-center">
             <h2 className="text-[22px] font-semibold">
               {filters.q
@@ -112,9 +124,9 @@ export function ListingBrowser({
                 : t("emptyHint")}
             </p>
             {filtered ? (
-              <Link href="/" className={buttonVariants({ variant: "outline" })}>
+              <FilterLink href="/" className={buttonVariants({ variant: "outline" })}>
                 {t("clearFilters")}
-              </Link>
+              </FilterLink>
             ) : (
               <Link href="/sell/new" className={buttonVariants()}>
                 {t("sellFirst")}
@@ -123,7 +135,7 @@ export function ListingBrowser({
           </div>
         )}
 
-        {items.length > 0 && (
+        {!roundsView && items.length > 0 && (
           <ul
             className={cn(
               LISTING_GRID,
@@ -143,7 +155,7 @@ export function ListingBrowser({
           </ul>
         )}
 
-        {isFetchingNextPage && (
+        {!roundsView && isFetchingNextPage && (
           <div className={LISTING_GRID} aria-hidden="true">
             {Array.from({ length: 4 }, (_, index) => (
               <CardSkeleton key={index} />
@@ -151,7 +163,7 @@ export function ListingBrowser({
           </div>
         )}
 
-        {hasNextPage && (
+        {!roundsView && hasNextPage && (
           <div ref={end} className="flex justify-center">
             <Button
               variant="outline"

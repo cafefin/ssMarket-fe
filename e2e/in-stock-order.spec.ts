@@ -20,7 +20,6 @@ test("a buyer finds a product, pays by QR and the seller completes the order", a
 
   const listingPath = await postListing(seller, {
     title,
-    mode: "in_stock",
     acceptQr: true,
     photo: true,
     unit: "cái",

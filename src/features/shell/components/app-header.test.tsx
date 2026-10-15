@@ -123,13 +123,13 @@ describe("AppHeader", () => {
     });
 
     it("clears the query when the box is emptied", async () => {
-      location.search = "q=loa&mode=preorder";
+      location.search = "q=loa&mode=campaign";
       renderHeader();
 
       await userEvent.clear(searchBox());
       await userEvent.type(searchBox(), "{Enter}");
 
-      expect(router.push).toHaveBeenCalledWith("/?mode=preorder");
+      expect(router.push).toHaveBeenCalledWith("/?mode=campaign");
     });
   });
 

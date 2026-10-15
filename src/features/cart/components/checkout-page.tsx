@@ -212,23 +212,49 @@ export function CheckoutPage() {
         return (
           <section
             key={order.key}
-            aria-label={t("orderOf", { name: order.seller.name })}
+            aria-label={
+              order.campaign
+                ? t("orderOfRound", {
+                    name: order.seller.name,
+                    title: order.campaign.title,
+                  })
+                : t("orderOf", { name: order.seller.name })
+            }
             className="flex flex-col gap-4 rounded-lg border border-border p-4"
           >
             <header className="flex flex-col gap-1">
-              <p className="flex items-center gap-2 font-semibold">
+              {/* A round's order is headed by the round; others by the seller. */}
+              {order.campaign && (
+                <h2 className="text-base leading-snug font-semibold">
+                  <Link
+                    href={`/campaigns/${order.campaign.id}`}
+                    className="hover:text-primary"
+                  >
+                    {order.campaign.title}
+                  </Link>
+                </h2>
+              )}
+              <div className="flex items-center gap-2">
                 <UserAvatar
                   name={order.seller.name}
                   avatarUrl={order.seller.avatarUrl}
                   size="xs"
                 />
-                {t("orderOf", { name: order.seller.name })}
-              </p>
-              {order.isPreorder && order.orderDeadline && order.deliveryDate && (
+                {order.campaign ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t("orderOf", { name: order.seller.name })}
+                  </p>
+                ) : (
+                  <h2 className="text-base leading-snug font-semibold">
+                    {t("orderOf", { name: order.seller.name })}
+                  </h2>
+                )}
+              </div>
+              {order.campaign && (
                 <p className="text-[13px] text-deadline-deep">
                   {t("preorder", {
-                    deadline: format.deadline(order.orderDeadline),
-                    delivery: formatDate(order.deliveryDate),
+                    deadline: format.deadline(order.campaign.orderDeadline),
+                    delivery: formatDate(order.campaign.deliveryDate),
                   })}
                 </p>
               )}
@@ -240,7 +266,8 @@ export function CheckoutPage() {
                   <span className="min-w-0">
                     <span className="block truncate">{line.title}</span>
                     <span className="text-[13px] text-muted-foreground">
-                      {format.quantity(line.quantity)} {line.unit} ×{" "}
+                      {format.quantity(line.quantity)}{" "}
+                      {format.unit(line.unit, line.quantity)} ×{" "}
                       {format.money(line.unitPrice)}
                     </span>
                   </span>

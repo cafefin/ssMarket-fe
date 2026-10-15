@@ -10,39 +10,31 @@ const { listingState, meState } = vi.hoisted(() => ({
 }));
 vi.mock("@/features/listings/api/use-listings", () => ({ useListing: () => listingState }));
 vi.mock("@/shared/api/use-current-user", () => ({ useCurrentUser: () => meState }));
-const { location } = vi.hoisted(() => ({ location: { search: "" } }));
-vi.mock("next/navigation", () => ({
-  useSearchParams: () => new URLSearchParams(location.search),
-}));
 vi.mock("./listing-form", () => ({
-  ListingForm: ({ mode, initialValues }: { mode: string; initialValues: { title: string } }) => (
-    <p>
-      form:{mode}:{initialValues.title}
-    </p>
+  ListingForm: ({ initialValues }: { initialValues: { title: string } }) => (
+    <p>form:{initialValues.title}</p>
   ),
 }));
 
 const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   id: "l1",
-  title: "Hoa quả tuần 41",
+  title: "Cam sành",
   description: "Giao tận tầng",
-  mode: "preorder",
+  mode: "in_stock",
   status: "draft",
   isOpen: false,
   category: { id: 2, slug: "thuc-pham-tuoi", name: "Thực phẩm tươi", nameEn: "Fresh food", isPerishable: true },
   seller: { id: "me", name: "Tôi", handle: "toi", avatarUrl: null },
   acceptsPrepaidQr: true,
   acceptsPayOnDelivery: false,
-  orderDeadline: "2026-10-09T10:00:00.000Z",
-  deliveryDate: "2026-10-12",
+  campaign: null,
   publishedAt: null,
   orderCount: 0,
-  reopenedFromId: null,
   condition: null,
   conditionPercent: null,
   unit: "kg",
   unitPrice: 35000,
-  stockQuantity: null,
+  stockQuantity: 20,
   combos: [{ quantity: "5", price: 160000 }],
   images: [],
   ...overrides,
@@ -69,18 +61,7 @@ describe("EditListing", () => {
     renderWithIntl(<EditListing id="l1" />);
 
     expect(screen.getByRole("heading", { name: "Sửa bài đăng" })).toBeInTheDocument();
-    expect(screen.getByText("form:preorder:Hoa quả tuần 41")).toBeInTheDocument();
-  });
-
-  it("reminds the seller to check a reopened round before publishing", () => {
-    location.search = "reopened=1";
-
-    renderWithIntl(<EditListing id="l1" />);
-
-    expect(
-      screen.getByText(/Kiểm tra hạn chốt, ngày giao và giá/),
-    ).toBeInTheDocument();
-    location.search = "";
+    expect(screen.getByText("form:Cam sành")).toBeInTheDocument();
   });
 
   it.each([
@@ -88,6 +69,18 @@ describe("EditListing", () => {
     ["a listing that cannot be loaded", () => {
       listingState.isError = true;
       listingState.data = undefined;
+    }],
+    ["a product of a pre-order round, which is edited through its round", () => {
+      listingState.data = listing({
+        mode: "preorder",
+        stockQuantity: null,
+        campaign: {
+          id: "c1",
+          title: "Hoa quả tuần 41",
+          orderDeadline: "2026-10-09T10:00:00.000Z",
+          deliveryDate: "2026-10-12",
+        },
+      });
     }],
   ])("hides the form for %s", (_label, arrange) => {
     arrange();
@@ -116,44 +109,37 @@ describe("EditListing", () => {
 });
 
 describe("toFormValues", () => {
-  it("turns a pre-order listing into form values", () => {
+  it("turns a listing into form values, without pre-order fields", () => {
     const values = toFormValues(listing(), "vi");
 
-    expect(values).toMatchObject({
-      title: "Hoa quả tuần 41",
+    expect(values).toEqual({
+      title: "Cam sành",
       categoryId: "2",
+      description: "Giao tận tầng",
       acceptsPrepaidQr: true,
       acceptsPayOnDelivery: false,
-      deliveryDate: "2026-10-12",
+      condition: "",
       unit: "kg",
       unitPrice: "35.000",
-      stockQuantity: "",
+      stockQuantity: "20",
       combos: [{ quantity: "5", price: "160.000" }],
     });
-    expect(values.orderDeadline).toMatch(/^2026-10-(09|10)T\d{2}:00$/);
   });
 
   it("groups price digits the English way in English", () => {
     expect(toFormValues(listing(), "en").unitPrice).toBe("35,000");
   });
 
-  it("turns an in-stock listing into form values", () => {
+  it("keeps a fractional stock and the condition", () => {
     expect(
       toFormValues(
-        listing({
-          mode: "in_stock",
-          orderDeadline: null,
-          deliveryDate: null,
-          unitPrice: 1250000,
-          stockQuantity: 2.5,
-        }),
+        listing({ unitPrice: 1250000, stockQuantity: 2.5, condition: "good" }),
         "vi",
       ),
     ).toMatchObject({
-      orderDeadline: "",
-      deliveryDate: "",
       unitPrice: "1.250.000",
       stockQuantity: "2.5",
+      condition: "good",
     });
   });
 });

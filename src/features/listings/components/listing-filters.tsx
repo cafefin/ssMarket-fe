@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import {
   type MouseEvent,
@@ -20,6 +19,9 @@ import { useFormat } from "@/shared/lib/format/use-format";
 import { CONDITION_PERCENT, CONDITIONS } from "../lib/condition";
 import { categoryName } from "../lib/category-name";
 import { cn } from "@/shared/lib/utils";
+import { FilterLink } from "./filter-link";
+
+const VIEWS = ["campaigns", "items"] as const;
 
 const FOCUS = "outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 const CHIP = "inline-flex h-9 shrink-0 items-center gap-1 rounded-full border px-3.5 text-sm font-medium whitespace-nowrap";
@@ -94,9 +96,8 @@ function Menu({
         </div>
       </details>
       {active && (
-        <Link
+        <FilterLink
           href={clearHref}
-          scroll={false}
           aria-label={clearLabel}
           className={cn(
             "flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-surface hover:text-foreground",
@@ -104,7 +105,7 @@ function Menu({
           )}
         >
           <XIcon aria-hidden="true" className="size-4" />
-        </Link>
+        </FilterLink>
       )}
     </div>
   );
@@ -121,42 +122,44 @@ function MenuChip({
   children: string;
 }) {
   return (
-    <Link
+    <FilterLink
       href={href}
-      scroll={false}
       aria-current={active ? "true" : undefined}
       onClick={closeMenu}
       className={cn(CHIP, FOCUS, active ? CHIP_ON : CHIP_OFF)}
     >
       {children}
-    </Link>
+    </FilterLink>
   );
 }
 
 /**
- * The filter bar under the header: how the goods are sold (in stock first,
- * the default), then category, price and condition as menus. Every choice
- * is a client-side link, so the page keeps its place and the URL can be
- * shared.
+ * The filter bar under the header: goods in stock (the default) or pre-order
+ * rounds, then category, price and, for goods in stock, condition as menus.
+ * Every choice
+ * is a FilterLink, so the page keeps its place and the URL can be shared.
  */
 export function ListingFilters({
   filters,
   categories,
+  busy = false,
 }: {
   filters: Filters;
   categories: Category[];
+  /** New results are on their way; the old ones are still on screen. */
+  busy?: boolean;
 }) {
   const t = useTranslations("listings");
   const locale = useLocale();
   const format = useFormat();
   const priceLabel = (range: { minPrice: number | null; maxPrice: number | null }) =>
     range.minPrice === null
-      ? t("filters.under", { max: format.money(range.maxPrice ?? 0) })
+      ? t("filters.under", { max: format.compactMoney(range.maxPrice ?? 0) })
       : range.maxPrice === null
-        ? t("filters.over", { min: format.money(range.minPrice) })
+        ? t("filters.over", { min: format.compactMoney(range.minPrice) })
         : t("filters.between", {
-            min: format.money(range.minPrice),
-            max: format.money(range.maxPrice),
+            min: format.compactMoney(range.minPrice),
+            max: format.compactMoney(range.maxPrice),
           });
   const anyPrice = filters.minPrice === null && filters.maxPrice === null;
   const currentRange = PRICE_RANGES.find(
@@ -173,6 +176,8 @@ export function ListingFilters({
     ? categoryName(category, locale)
     : t("filters.category");
   const priceText = currentRange ? priceLabel(currentRange) : t("filters.price");
+  // Pre-order products have no condition.
+  const showCondition = filters.mode === "in_stock";
   const conditionText = filters.minCondition
     ? conditionLabel(filters.minCondition)
     : t("filters.condition");
@@ -188,10 +193,9 @@ export function ListingFilters({
         {MODE_FILTERS.map((mode) => {
           const active = filters.mode === mode;
           return (
-            <Link
+            <FilterLink
               key={mode}
               href={listingsHref({ ...filters, mode })}
-              scroll={false}
               // A link that behaves as a segment: the state is announced.
               role="button"
               aria-pressed={active}
@@ -202,10 +206,36 @@ export function ListingFilters({
               )}
             >
               {t(`filters.modes.${mode}`)}
-            </Link>
+            </FilterLink>
           );
         })}
       </div>
+
+      {filters.mode === "campaign" && (
+        <div
+          role="group"
+          aria-labelledby="listing-view-label"
+          className="flex items-center gap-1.5"
+        >
+          <span id="listing-view-label" className="text-xs text-muted-foreground">
+            {t("filters.viewGroup")}
+            <span aria-hidden="true">:</span>
+          </span>
+          {VIEWS.map((view) => {
+            const active = filters.view === view;
+            return (
+              <FilterLink
+                key={view}
+                href={listingsHref({ ...filters, view })}
+                aria-current={active ? "true" : undefined}
+                className={cn(CHIP, FOCUS, active ? CHIP_ON : CHIP_OFF)}
+              >
+                {t(`filters.views.${view}`)}
+              </FilterLink>
+            );
+          })}
+        </div>
+      )}
 
       <div className="relative flex flex-wrap items-center gap-x-1.5 gap-y-2">
         <Menu
@@ -252,29 +282,55 @@ export function ListingFilters({
             </MenuChip>
           ))}
         </Menu>
-        <Menu
-          label={conditionText}
-          active={filters.minCondition !== null}
-          clearHref={listingsHref({ ...filters, minCondition: null })}
-          clearLabel={t("filters.clear", { name: conditionText })}
-        >
-          <MenuChip
-            href={listingsHref({ ...filters, minCondition: null })}
-            active={filters.minCondition === null}
+        {showCondition && (
+          <Menu
+            label={conditionText}
+            active={filters.minCondition !== null}
+            clearHref={listingsHref({ ...filters, minCondition: null })}
+            clearLabel={t("filters.clear", { name: conditionText })}
           >
-            {t("filters.anyCondition")}
-          </MenuChip>
-          {CONDITIONS.map((condition) => (
             <MenuChip
-              key={condition}
-              href={listingsHref({ ...filters, minCondition: condition })}
-              active={filters.minCondition === condition}
+              href={listingsHref({ ...filters, minCondition: null })}
+              active={filters.minCondition === null}
             >
-              {conditionLabel(condition)}
+              {t("filters.anyCondition")}
             </MenuChip>
-          ))}
-        </Menu>
+            {CONDITIONS.map((condition) => (
+              <MenuChip
+                key={condition}
+                href={listingsHref({ ...filters, minCondition: condition })}
+                active={filters.minCondition === condition}
+              >
+                {conditionLabel(condition)}
+              </MenuChip>
+            ))}
+          </Menu>
+        )}
+        {(category !== undefined || !anyPrice || filters.minCondition !== null) && (
+          <FilterLink
+            href={listingsHref({
+              ...filters,
+              category: null,
+              minPrice: null,
+              maxPrice: null,
+              minCondition: null,
+            })}
+            className={cn(
+              "rounded-full px-2 py-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline",
+              FOCUS,
+            )}
+          >
+            {t("filters.clearAll")}
+          </FilterLink>
+        )}
       </div>
+      {busy && (
+        <div
+          role="progressbar"
+          aria-label={t("filters.updating")}
+          className="absolute inset-x-0 bottom-0 h-0.5 animate-pulse bg-primary motion-reduce:animate-none"
+        />
+      )}
     </div>
   );
 }

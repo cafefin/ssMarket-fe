@@ -42,7 +42,7 @@ async function renderForm(
 ) {
   renderWithIntl(
     <QueryProvider>
-      <ListingForm mode="in_stock" initialValues={emptyListing()} {...props} />
+      <ListingForm initialValues={emptyListing()} {...props} />
     </QueryProvider>,
   );
   await screen.findByRole("option", { name: "Điện tử" });
@@ -73,23 +73,14 @@ describe("ListingForm", () => {
     submitListing.mockResolvedValue(saved());
   });
 
-  describe("fields per mode", () => {
-    it("asks for stock, not dates, when selling in-stock goods", async () => {
-      await renderForm({ mode: "in_stock" });
+  describe("fields", () => {
+    it("asks for stock and never for pre-order dates", async () => {
+      await renderForm();
 
       expect(screen.getByText("Hàng có sẵn")).toBeInTheDocument();
       expect(field("Số lượng có")).toBeInTheDocument();
       expect(screen.queryByLabelText("Hạn chốt đơn")).not.toBeInTheDocument();
       expect(screen.queryByLabelText("Ngày giao")).not.toBeInTheDocument();
-    });
-
-    it("asks for dates, not stock, when taking pre-orders", async () => {
-      await renderForm({ mode: "preorder" });
-
-      expect(screen.getByText("Đặt trước")).toBeInTheDocument();
-      expect(field("Hạn chốt đơn")).toBeInTheDocument();
-      expect(field("Ngày giao")).toBeInTheDocument();
-      expect(screen.queryByLabelText("Số lượng có")).not.toBeInTheDocument();
     });
   });
 
@@ -140,11 +131,14 @@ describe("ListingForm", () => {
     it("labels the form and explains errors in English", async () => {
       renderWithIntl(
         <QueryProvider>
-          <ListingForm mode="in_stock" initialValues={emptyListing()} />
+          <ListingForm initialValues={emptyListing()} />
         </QueryProvider>,
         { locale: "en" },
       );
       await screen.findByRole("option", { name: "Electronics" });
+      // Units read in English, but the stored value does not change.
+      expect(screen.getByRole("option", { name: "piece" })).toHaveValue("cái");
+      expect(screen.getByRole("option", { name: "box" })).toHaveValue("hộp");
 
       await click("Publish");
 
@@ -181,7 +175,6 @@ describe("ListingForm", () => {
             mode: "in_stock",
             title: "Loa bluetooth cũ",
             categoryId: 4,
-            orderDeadline: null,
             unit: "cái",
             unitPrice: 500000,
             stockQuantity: "1",

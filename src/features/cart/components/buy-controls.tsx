@@ -18,7 +18,7 @@ import {
   initialQuantity,
   normalizeQuantity,
 } from "../lib/purchase";
-import { QuantityStepper } from "./quantity-stepper";
+import { QuantityStepper } from "@/shared/ui/molecules/quantity-stepper";
 
 /** What the controls need to know about a product. */
 export interface BuyableProduct {
@@ -93,9 +93,15 @@ export function BuyControls({
 
   const hint =
     left === 0
-      ? t("allInCart", { quantity: format.quantity(inCart), unit: product.unit })
+      ? t("allInCart", {
+          quantity: format.quantity(inCart),
+          unit: format.unit(product.unit, inCart),
+        })
       : tooMany && left !== null
-        ? t("onlyLeft", { quantity: format.quantity(left), unit: product.unit })
+        ? t("onlyLeft", {
+            quantity: format.quantity(left),
+            unit: format.unit(product.unit, left),
+          })
         : null;
 
   return (
@@ -106,7 +112,7 @@ export function BuyControls({
         max={left === 0 ? product.stockQuantity : left}
         onChange={setQuantity}
         label={t("quantity")}
-        className="w-full justify-between"
+        className={page ? "self-start" : "w-full justify-between"}
       />
       {hint && (
         <p className="text-xs text-muted-foreground" role="status">

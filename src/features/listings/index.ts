@@ -2,6 +2,8 @@
 // the feature uses.
 export { ListingBrowser } from "./components/listing-browser";
 export { LISTING_GRID } from "./components/listing-grid";
+export { FilterLink } from "./components/filter-link";
+export { ImagePlaceholder } from "./components/image-placeholder";
 export { ListingCard } from "./components/listing-card";
 export { ListingDetailView } from "./components/listing-detail-view";
 export { ModeBadge } from "./components/mode-badge";
@@ -18,7 +20,6 @@ export {
   useCloseListing,
   useMyListings,
   usePublishListing,
-  useReopenListing,
 } from "./api/use-my-listings";
 export type { ListingStatus } from "./api/use-my-listings";
 export { categoryName } from "./lib/category-name";
@@ -29,6 +30,12 @@ export {
   toThousandths,
 } from "./lib/pricing";
 export type { Combo } from "./lib/pricing";
+export {
+  MAX_ORDER_QUANTITY,
+  normalizeQuantity,
+  quantityProblem,
+} from "./lib/quantity";
+export type { QuantityProblem } from "./lib/quantity";
 export {
   CONDITIONS,
   CONDITION_PERCENT,

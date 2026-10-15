@@ -1,9 +1,4 @@
-import { stepFor } from "./step";
-
-/** Rounds away floating-point noise from decimal steps. */
-function tidy(value: number): number {
-  return Math.round(value * 1000) / 1000;
-}
+import { roundQuantity, stepFor } from "@/shared/lib/quantity-step";
 
 /**
  * How much more of a product can go into the cart: the stock left minus what
@@ -13,7 +8,7 @@ export function addableQuantity(
   stock: number | null,
   inCart: number,
 ): number | null {
-  return stock === null ? null : Math.max(0, tidy(stock - inCart));
+  return stock === null ? null : Math.max(0, roundQuantity(stock - inCart));
 }
 
 /** The quantity a buy box starts at: one step, or what is left if less. */

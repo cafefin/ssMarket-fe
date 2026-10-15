@@ -33,8 +33,6 @@ const summary = (rows: SummaryRow[]): Summary => ({
     id: "l1",
     title: "Hoa quả tuần 41",
     unit: "kg",
-    orderDeadline: "2026-10-09T10:00:00.000Z",
-    deliveryDate: "2026-10-12",
   },
   rows,
   totals: {
@@ -103,13 +101,14 @@ describe("SalesSummary", () => {
     api.POST.mockResolvedValue(ok({ results: [] }));
   });
 
-  it("shows the round, the four figures and a row per order", async () => {
+  it("shows the listing, the four figures and a row per order", async () => {
     renderSummary();
 
     expect(
       await screen.findByRole("heading", { name: "Hoa quả tuần 41" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Chốt đơn .* · Giao ngày 12\/10\/2026/)).toBeInTheDocument();
+    // Listings with a summary are in stock: no deadline, no delivery date.
+    expect(screen.queryByText(/Chốt đơn/)).not.toBeInTheDocument();
     const figures = screen.getAllByRole("definition").map((d) => d.textContent);
     expect(figures).toEqual(["3", "242.500 đ", "70.000 đ", "172.500 đ"]);
 

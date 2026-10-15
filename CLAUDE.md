@@ -28,10 +28,13 @@ src/
 │   └── (app)/            everything that requires a session
 │       ├── page.tsx              browse and search
 │       ├── listings/[id]/        detail and edit
-│       ├── sell/                 my listings, new listing, received orders, summary
+│       ├── campaigns/[id]/       a pre-order round and its edit page (edit/)
+│       ├── sell/                 my rounds and listings, new listing or round,
+│       │                         received orders, summaries (listings/[id],
+│       │                         campaigns/[id])
 │       ├── orders/               my orders, order page
 │       ├── cart/                 the cart, grouped by seller
-│       ├── checkout/             one checkout, one order per seller
+│       ├── checkout/             one checkout, one order per seller or per round
 │       ├── sellers/[id]/         a seller's public page
 │       ├── admin/categories/     category management (admins only)
 │       └── profile/
@@ -39,16 +42,21 @@ src/
 │   ├── ui/
 │   │   ├── atoms/        logo-mark, wordmark, price
 │   │   │   └── shadcn/   shadcn/ui primitives (Base UI); change only to apply design tokens
-│   │   └── molecules/    field (and shared control styles), user-avatar
+│   │   └── molecules/    field (and shared control styles), user-avatar,
+│   │                     quantity-stepper
 │   ├── api/              typed client, session refresh, ApiError, schema.d.ts,
-│   │                     query provider, use-current-user, use-public-user, use-user-message
+│   │                     query provider, use-current-user, use-public-user,
+│   │                     use-user-message, campaign-keys (query keys of rounds)
 │   ├── i18n/             locales, request config (cookie), messages/vi.json and en.json,
 │   │                     locale cookie, Translator type, test-utils (renderWithIntl)
-│   └── lib/              utils.ts, format/ (money, dates, quantities, initials, useFormat), theme/
+│   └── lib/              utils.ts, quantity-step.ts, format/ (money, dates, quantities,
+│                         initials, useFormat), theme/
 └── features/
     ├── listings/         components/ (card, grid, filters, carousel, detail view, gallery),
     │                     api/ (listing and category hooks), lib/ (URL filters,
-    │                     pricing and combos, condition)
+    │                     pricing and combos, quantity rules, condition)
+    ├── campaigns/        components/ (card, shelf, grid, round page, item picker),
+    │                     api/ (use-campaigns), lib/ (selection, time left)
     ├── profile/          components/, api/ (banks, update profile), lib/ (schema)
     ├── shell/            components/ (header, search box, user menu, phone tab bar,
     │                     language switch and sync), api/ (update locale),
@@ -56,21 +64,27 @@ src/
     ├── sellers/          components/ (seller page)
     ├── admin/            components/ (category admin), api/
     ├── orders/           components/ (order page, editor, QR block, actions, lists,
-    │                     summary), api/ (use-orders), lib/ (order-math)
-    ├── sell/             components/ (mode step, listing form, my listings),
-    │                     lib/ (form schema, units, draft store, save sequence)
-    └── cart/             components/ (buy controls, stepper, cart button, cart page,
-                          checkout page), api/ (use-cart), lib/ (checkout link, purchase)
+    │                     SalesSummary, CampaignSummary, summary-shared), api/ (use-orders),
+    │                     lib/ (order-math)
+    ├── sell/             components/ (mode step, listing form, round form and its
+    │                     product rows, my selling page with my rounds and my
+    │                     listings), api/ (my rounds),
+    │                     lib/ (form schemas, units, draft store, save sequences)
+    └── cart/             components/ (buy controls, round buy bar, cart button,
+                          cart page, checkout page), api/ (use-cart),
+                          lib/ (checkout link, purchase)
 ```
 
 Each feature has `components/`, `api/`, `lib/` (only the ones it needs) and an
 `index.ts`, its public entry point. `shared` never imports features;
-features import each other only through `index.ts`, and only
-`orders`, `sell`, `sellers`, `admin` and `cart` may import `listings` (`cart`
-also imports `orders`); `app/` is the
-one place that joins two features. ESLint enforces this (`FEATURE_DEPS` in
-`eslint.config.mjs`). See `docs/architecture.md` for the rules, the atom and
-molecule definitions, and how to add a feature.
+features import each other only through `index.ts`, following `FEATURE_DEPS`:
+only `campaigns`, `orders`, `sell`, `sellers`, `admin` and `cart` may import
+`listings`; `sellers` and `orders` also import `campaigns`, and `cart` also
+imports `orders`. `campaigns` and `cart` do not know each other, and `sell`
+may not import `campaigns`. `app/` is the one place that joins two features.
+ESLint enforces this (`FEATURE_DEPS` in `eslint.config.mjs`). See
+`docs/architecture.md` for the rules, the atom and molecule definitions, and
+how to add a feature.
 
 Pages under `app/` stay thin: they render one component from a feature,
 which holds the behaviour and has the tests.
@@ -97,6 +111,9 @@ which holds the behaviour and has the tests.
 - Show `useUserMessage()(error)` to people. Backend messages are English text
   for developers and must never be rendered. Add new codes to `errors.codes` in
   **both** `vi.json` and `en.json`.
+- The backend reuses the listing codes (`INVALID_LISTING_STATE`,
+  `LISTING_NOT_OPEN`, `OWN_LISTING`) for pre-order rounds, so their messages
+  must be true of a product and of a round: never "bài đăng" / "listing".
 
 ## Languages
 
@@ -113,40 +130,64 @@ locale routing: URLs never carry a language.
   page has no switch: it only follows the cookie.
 - Every piece of UI text, `aria-label`, placeholder, toast and validation
   message lives in `src/shared/i18n/messages/{vi,en}.json`, grouped by
-  namespace (`common`, `errors`, `format`, `shell`, `listings`, `sell`,
-  `orders`, `profile`, `sellers`, `admin`, `login`, `metadata`). Keys are
-  English camelCase; numbers and names are ICU arguments, counts use `plural`.
+  namespace (`metadata`, `format`, `common`, `login`, `errors`, `orders`,
+  `shell`, `listings`, `sellers`, `profile`, `admin`, `sell`, `cart`,
+  `checkout`, `units`, `campaigns`). Keys are English camelCase; numbers and
+  names are ICU arguments, counts use `plural`.
   Add every key to both files; `messages.test.ts` checks keys and arguments.
 - `no-hardcoded-vietnamese.test.ts` fails on Vietnamese letters in any source
   file except tests, the message files, `schema.d.ts` and
-  `features/sell/lib/units.ts` (units are stored data, shown as written).
+  `features/sell/lib/units.ts` (units are stored data).
 - Components use `useTranslations("<namespace>")`; server components use
   `getTranslations`. Pure functions never hold text: schemas take a
   `Translator<"namespace">` (`listingSchema(mode, t)`), other helpers return
   codes or keys (`quantityProblem`, `imageProblem`, `editBlockedReason`,
   `NAV_ITEMS[].labelKey`).
-- Format with `useFormat()` (money, quantities, deadlines in the page's
-  language). Dates stay day/month and 24-hour in both languages.
+- Format with `useFormat()` (money, quantities, units, deadlines in the
+  page's language). Dates stay day/month and 24-hour in both languages.
+- A unit is stored as the seller chose it (`cái`, `hộp`, ...) and that value
+  is what the API and the `unit === "kg"` rules use. Show it with
+  `format.unit(unit, count)`: the `units` messages are keyed by the stored
+  value, with `one` and `other` forms ("1 piece", "2 pieces"). Add a new unit
+  to `units.ts` and to `units` in both message files.
+- `format.compactMoney` ("200k", "1tr" / "200K", "1M") is only for tight
+  labels such as the price filter. Prices always use `Price` / `format.money`.
 - Show a category with `categoryName(category, locale)` (`nameEn` in English).
-- User-entered content (titles, descriptions, item names, notes) and units are
-  never translated.
+- User-entered content (titles, descriptions, item names, notes) is never
+  translated.
 
 ## State
 
 - **Server data**: TanStack Query hooks in each feature's `api/` folder. After a write,
   invalidate `["listings"]`, `["my-listings"]` and `["listing", id]`.
-- **Closing soon and seller page**: the carousel uses `useClosingSoon`
-  (`GET /listings?sort=deadline`) and the seller page uses `useSellerListings`,
-  both under the `["listings"]` key.
+- **Closing soon and seller page**: the home shelf of rounds closing soon uses
+  `useClosingCampaigns` (`features/campaigns/api/use-campaigns.ts`, under the
+  campaigns key) and the seller page uses `useSellerListings` (`["listings"]`).
+- **Rounds**: their query keys live in `shared/api/campaign-keys.ts`
+  (`CAMPAIGNS_QUERY_KEY`, `campaignQueryKey`, `campaignSummaryQueryKey`,
+  `MY_CAMPAIGNS_QUERY_KEY`), because `campaigns`, `orders` and `sell` all use
+  them and may not all import each other. After a write to a round,
+  invalidate `campaignKeysToInvalidate(id)` (sell), which includes the
+  seller's summary. After a write to an order of a round (`useOrderAction`,
+  `useEditOrder`), also invalidate the round's summary and
+  `MY_CAMPAIGNS_QUERY_KEY` (it shows the order count); an edit invalidates
+  `campaignQueryKey(id)` too.
 - **Browse filters**: the URL query string, through
-  `parseListingFilters` / `listingsHref`. Filters are client-side links, so a
-  search can be shared and the back button works; `useListings` keeps the
-  previous results (`keepPreviousData`) while new ones load, so the page
-  never flashes. The mode defaults to `in_stock` (left out of the URL);
-  `mode=all` asks the API without a mode.
-- **Unfinished new listing**: the Zustand store in `features/sell/lib/sell-draft-store.ts`
-  (sessionStorage). It exists so typed values survive the detour to the
-  profile page. Do not put server data in Zustand.
+  `parseListingFilters` / `listingsHref`. Every filter is a `FilterLink`: a
+  real `<a href>` (shareable, opens in a new tab) whose plain click only
+  calls `history.pushState`. Next keeps `useSearchParams` in step, so the
+  list refetches at once; do not use `next/link` or `router.push` for a
+  filter, they wait for a round trip to the server first. `useListings` keeps
+  the previous results (`keepPreviousData`) while new ones load, dimmed, with
+  a progress bar under the filter bar, so the page never flashes. The mode is `in_stock` (default, left out of the URL) or
+  `campaign` (`mode=campaign`); there is no "all". Under `mode=campaign` the
+  `view` param is `campaigns` (default, one card per round) or `items`
+  (`view=items`, the products of open rounds as cards).
+- **Unfinished new listing or round**: the Zustand store in
+  `features/sell/lib/sell-draft-store.ts` (sessionStorage) keeps the chosen
+  way of selling, a listing's values and a round's values (`campaignValues`),
+  each apart. It exists so typed values survive the detour to the profile
+  page. Photos are never kept. Do not put server data in Zustand.
 
 ## Forms
 
@@ -168,11 +209,13 @@ already serves a 400px thumbnail and a 1600px full size.
 ## Products, condition and combos
 
 - A listing is **one product**: one price, unit, stock (in-stock) and combos.
-  There are no options; another kind or size is another listing. A pre-order
-  is a product with a deadline and a delivery date and no stock.
+  There are no options; another kind or size is another listing. The listing
+  form posts in-stock products only. A pre-order product belongs to a round
+  (see "Pre-order rounds") and has no stock and no deadline of its own: the
+  round owns the deadline, the delivery date and the payment methods.
 - Condition (`CONDITIONS` in `features/listings/lib/condition.ts`) is chosen
-  for in-stock goods outside perishable categories (`category.isPerishable`)
-  and never for pre-orders; `needsCondition` in the form schema decides.
+  for in-stock goods outside perishable categories (`category.isPerishable`);
+  `needsCondition` in the form schema decides. Round products have none.
 - Combos ("N for a set price", at most 3 per product) are priced by
   `lineTotalWithCombos` in `features/listings/lib/pricing.ts`, a mirror of the
   backend's function tested with the same table. Combos never add up across
@@ -180,10 +223,84 @@ already serves a 400px thumbnail and a 1600px full size.
 - Price and condition filters are URL params (`minPrice`, `maxPrice`,
   `minCondition`) handled by `parseListingFilters` / `listingsHref`.
 
+## Pre-order rounds (seller side)
+
+- A round owns the deadline, the delivery date and the payment methods
+  (pay on delivery, QR); its products (at most `MAX_ITEMS` = 50) each have a
+  title, price, unit, description, combos and photos. A buyer has one order
+  per round, with one line per product.
+- `/sell/new` first asks how to sell (`ModeStep`): a product in stock
+  (`ListingForm`) or a pre-order round (`CampaignForm`). The UI says "đợt đặt
+  trước" / "pre-order round" and "món" / "products"; code says campaign and
+  items.
+- `CampaignForm` holds the shared terms once and a field array of product
+  rows (`CampaignItemsField`, `ItemRow`; at most `MAX_ITEMS`). The field
+  array uses `keyName: "key"`, because `id` is the product's server id. Photo
+  changes live outside the form state, in a ref keyed by the row's key.
+- `submitCampaign` saves the round, then each product's photos through
+  `/listings/{listingId}/images` with the id the server answered at the same
+  index, then publishes.
+- A product an order refers to (`removable: false`) has no remove button,
+  only the "Ngừng bán" switch (`selling: false`).
+- `sell` may not import `campaigns`: the seller's hooks, including the fetch
+  of one round for editing, are in `features/sell/api/use-my-campaigns.ts`.
+  After a write invalidate `campaignKeysToInvalidate(id)`.
+- `EditCampaign` remounts the form after every save, so a second save never
+  adds the new products or uploads the new photos again.
+- Excel import (`ImportItemsButton`): `.xlsx` of at most 1 MB, first sheet,
+  first row is a header and is skipped. Columns are read by position, not by
+  name: A title, B price, C unit, D description. `parseItemRows` skips empty
+  rows, takes the unit by its stored or translated name (an unknown one uses
+  the default unit and is counted in the summary), keeps a price that is not a
+  number as written so the form shows the error at that cell, and drops rows
+  beyond the room left under `MAX_ITEMS`. Imported products replace a form that
+  still holds only its one empty row, otherwise they are appended. The
+  template `public/templates/campaign-items.xlsx` is generated by
+  `node scripts/make-campaign-template.mjs` (commit the result).
+- Enter in a single-line input of the form saves a draft; it never publishes.
+- `/sell` is `MySelling`: the page's `h1` and "Đăng bán", then `MyCampaigns`
+  and `MyListings`, each a section under an `h2`. `MyCampaigns` fetches all
+  rounds once and splits them into tabs in the browser; an open round past
+  its deadline (`isOpen` false) is listed under closed.
+
+## Pre-order rounds (buyer side)
+
+- `/campaigns/[id]` is `CampaignPage`: the round's terms, then
+  `CampaignItemPicker`, one row per product with a quantity that starts at
+  nothing. The page holds the selection (`Selection`: listing id to the text
+  typed) and reads lines, total and problems from it with
+  `features/campaigns/lib/selection.ts`, which prices with
+  `lineTotalWithCombos` and checks with `quantityProblem` (both in
+  `listings`).
+- `campaigns` and `cart` may not import each other. `app/` passes
+  `CampaignBuyBar` through `renderBuy`; the bar takes plain lines. "Thêm vào
+  giỏ" sends every line in one `PUT /cart/lines`, each quantity added to what
+  the cart holds (the API replaces); "Mua ngay" opens the checkout, where the
+  round becomes one order. When the cart cannot be loaded the bar says so
+  with a retry and only "Mua ngay" works, since it does not need the cart.
+- Who sees what: the seller gets "Sửa đợt" and "Tổng hợp" and no quantities;
+  a round that is not open says "Đã chốt" and has no quantities; a buyer
+  with an order in the round (`useMyCampaignOrder`, asked afresh on every
+  visit) gets "Bạn đã đặt đợt này" and a link to `/orders/<id>?edit=1`
+  instead of the bar.
+- The bar sits in a `sticky bottom-20 md:bottom-4 z-10` container, clear of
+  the phone tab bar.
+- `QuantityStepper` lives in `shared/ui/molecules`; its step comes from
+  `shared/lib/quantity-step.ts` (`stepFor`, and `roundQuantity`, the one
+  place that rounds a quantity to thousandths), the quantity rules from
+  `features/listings/lib/quantity.ts`. The parent validates: it passes
+  `invalid` for `aria-invalid`, as `CampaignItemPicker` does for a row with
+  a problem.
+- In the cart a seller's pre-order lines are grouped under their round
+  (title, deadline, delivery date); at checkout a round's block is headed by
+  the round's title.
+
 ## Cart and checkout
 
 - The cart lives on the server (`/cart`); the header shows `CartButton` with
-  `useCartCount`. The cart never reserves stock.
+  `useCartCount`. The cart never reserves stock. `PUT /cart/lines` sets
+  several lines in one request (the API replaces each quantity); `CampaignBuyBar`
+  uses it to add every chosen product of a round at once.
 - `listings` may not import `cart`, so cards and the product page receive
   `BuyControls` from `app/` (`renderCardActions`, `renderBuy`): quantity on
   one row, then "Thêm vào giỏ" and "Mua ngay".
@@ -191,12 +308,12 @@ already serves a 400px thumbnail and a 1600px full size.
   the cart already holds (`addableQuantity`); the backend refuses more with
   `OUT_OF_STOCK` too. "Mua ngay" skips the cart and opens the checkout.
 - `/checkout?items=<listingId>:<qty>,...` (built by `checkoutHref`) asks
-  `POST /checkout/preview` how the lines split into orders: one per seller,
-  one per listing for pre-orders. Each block picks its own payment method and
+  `POST /checkout/preview` how the lines split into orders: one per seller
+  for goods in stock, one per round for pre-orders. Each block picks its own payment method and
   delivery place; the page holds one idempotency key for its lifetime, and
   `CHECKOUT_CHANGED` refetches the preview.
 - Every order is created by the checkout page; it holds one idempotency key
-  for its lifetime. `ALREADY_ORDERED` (a pre-order round) links to the
+  for its lifetime. `ALREADY_ORDERED` (one order per person per round) links to the
   existing order.
 - After a checkout invalidate the cart, `["orders"]` and `["listings"]`.
 
@@ -212,13 +329,23 @@ already serves a 400px thumbnail and a 1600px full size.
   the page shows its real state.
 - Status is always shown as text badges (`OrderStatusBadges`), never by
   colour alone.
-- `SalesSummary` (`/sell/listings/[id]`) shows the seller's table. Figures and
+- `SalesSummary` (`/sell/listings/[id]`, in-stock products) and
+  `CampaignSummary` (`/sell/campaigns/[id]`, a column per product of the round)
+  show the seller's table and share `summary-shared.tsx`. Figures and
   the totals row come from the server; only the per-group subtotals are added
   up in the browser. Bulk actions report how many orders changed and list the
   ones that did not.
 - `editBlockedReason(order, now)` decides whether a buyer sees "Sửa đơn", an
-  explanation, or nothing. The editor changes the quantity at the ordered
-  price, as the server will charge it.
+  explanation, or nothing; an order with no round is never editable. The editor
+  works product by product with `CampaignItemPicker`: a product already in the
+  order keeps the price it was ordered at (as the server charges it), a product
+  added now is priced as listed, and one set to 0 leaves the order (one must
+  remain). `/orders/<id>?edit=1` opens it for an editable order.
+- The editor's rows are the round's products, then every order line the round
+  does not show. A buyer's `GET /campaigns/{id}` holds only products on sale,
+  so a product the seller stopped selling is known from the order line alone;
+  its row is built from the line ("Ngừng bán", no photo) and its quantity can
+  only go down. The PATCH body is the whole order: a line left out is deleted.
 
 ## Admin screens
 

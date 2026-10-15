@@ -12,6 +12,13 @@ vi.mock("@/shared/api/client", () => ({ api }));
 
 const SELLER = { id: "seller-1", name: "Chị Lan", handle: "lan.tran", avatarUrl: null };
 
+const ROUND = {
+  id: "c1",
+  title: "Hoa quả tuần 41",
+  orderDeadline: "2026-10-09T10:00:00.000Z",
+  deliveryDate: "2026-10-12",
+};
+
 const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   id: "l1",
   title: "Loa bluetooth cũ",
@@ -23,11 +30,9 @@ const listing = (overrides: Partial<ListingDetail> = {}): ListingDetail => ({
   seller: SELLER,
   acceptsPrepaidQr: true,
   acceptsPayOnDelivery: true,
-  orderDeadline: null,
-  deliveryDate: null,
+  campaign: null,
   publishedAt: "2026-10-05T03:00:00.000Z",
   orderCount: 0,
-  reopenedFromId: null,
   condition: null,
   conditionPercent: null,
   unit: "cái",
@@ -104,7 +109,7 @@ describe("ListingDetailView", () => {
     expect(screen.getByText("Chị Lan")).toBeInTheDocument();
 
     expect(screen.getByText("500.000 đ")).toHaveClass("font-semibold");
-    expect(screen.getByText("/ cái")).toBeInTheDocument();
+    expect(screen.queryByText("/ cái")).not.toBeInTheDocument();
     expect(screen.getByText("Còn 2 cái")).toBeInTheDocument();
 
     expect(
@@ -113,6 +118,7 @@ describe("ListingDetailView", () => {
     expect(screen.getByText(/Còn mới 90%/)).toHaveClass("whitespace-pre-line");
     expect(screen.getByTestId("image-placeholder")).toBeInTheDocument();
     expect(screen.queryByText("Chốt đơn")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^Thuộc đợt/ })).not.toBeInTheDocument();
   });
 
   it("shows the condition and the combos", async () => {
@@ -152,7 +158,7 @@ describe("ListingDetailView", () => {
     expect(screen.getByText("In stock")).toBeInTheDocument();
     expect(screen.getByText("Electronics")).toBeInTheDocument();
     expect(screen.getByText("500,000 VND")).toBeInTheDocument();
-    expect(screen.getByText("2 cái left")).toBeInTheDocument();
+    expect(screen.getByText("2 pieces left")).toBeInTheDocument();
     expect(
       screen.getByText("Bank transfer in advance by QR code · Pay on delivery"),
     ).toBeInTheDocument();
@@ -164,8 +170,7 @@ describe("ListingDetailView", () => {
       listing({
         mode: "preorder",
         acceptsPrepaidQr: false,
-        orderDeadline: "2026-10-09T10:00:00.000Z",
-        deliveryDate: "2026-10-12",
+        campaign: ROUND,
         unit: "kg",
         unitPrice: 35000,
         stockQuantity: null,
@@ -178,17 +183,51 @@ describe("ListingDetailView", () => {
     expect(screen.getByText("Chốt đơn")).toBeInTheDocument();
     expect(screen.getByText("12/10/2026")).toBeInTheDocument();
     expect(screen.getByText("35.000 đ")).toBeInTheDocument();
-    expect(screen.getByText("/ kg")).toBeInTheDocument();
+    expect(screen.queryByText("/ kg")).not.toBeInTheDocument();
     expect(screen.queryByText(/^Còn \d/)).not.toBeInTheDocument();
     expect(screen.getByText("Trả tiền khi nhận hàng")).toBeInTheDocument();
+  });
+
+  it("links a product of a pre-order round to its round", async () => {
+    serve(listing({ mode: "preorder", campaign: ROUND, stockQuantity: null }));
+
+    renderView();
+
+    expect(
+      await screen.findByRole("link", { name: "Thuộc đợt Hoa quả tuần 41" }),
+    ).toHaveAttribute("href", "/campaigns/c1");
+  });
+
+  it("names the round in English", async () => {
+    serve(listing({ mode: "preorder", campaign: ROUND, stockQuantity: null }));
+
+    renderView({}, "en");
+
+    expect(
+      await screen.findByRole("link", { name: "Part of the round Hoa quả tuần 41" }),
+    ).toHaveAttribute("href", "/campaigns/c1");
+  });
+
+  it("sends the seller of a round's product to the round, not to the listing tools", async () => {
+    serve(
+      listing({ mode: "preorder", campaign: ROUND, stockQuantity: null }),
+      SELLER.id,
+    );
+
+    renderView();
+
+    await screen.findByRole("link", { name: "Thuộc đợt Hoa quả tuần 41" });
+    expect(screen.queryByRole("link", { name: "Sửa bài đăng" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Bảng tổng hợp đơn hàng" }),
+    ).not.toBeInTheDocument();
   });
 
   it("puts the closing time of a pre-order on an orange band", async () => {
     serve(
       listing({
         mode: "preorder",
-        orderDeadline: "2026-10-09T10:00:00.000Z",
-        deliveryDate: "2026-10-12",
+        campaign: ROUND,
       }),
     );
 
@@ -208,8 +247,7 @@ describe("ListingDetailView", () => {
     serve(
       listing({
         mode: "preorder",
-        orderDeadline: "2026-10-09T10:00:00.000Z",
-        deliveryDate: "2026-10-12",
+        campaign: ROUND,
         orderCount: 12,
       }),
     );

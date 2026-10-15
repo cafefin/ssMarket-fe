@@ -8,6 +8,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { nextCombo } from "@/features/listings";
 import { useUserMessage } from "@/shared/api/use-user-message";
+import { formatDate } from "@/shared/lib/format/datetime";
 import { useFormat } from "@/shared/lib/format/use-format";
 import { cn } from "@/shared/lib/utils";
 import { Price } from "@/shared/ui/atoms/price";
@@ -21,7 +22,7 @@ import {
   useSetCartLine,
 } from "../api/use-cart";
 import { checkoutHref } from "../lib/checkout-link";
-import { QuantityStepper } from "./quantity-stepper";
+import { QuantityStepper } from "@/shared/ui/molecules/quantity-stepper";
 
 const DECIMAL = /^\d{1,7}(\.\d{1,3})?$/;
 
@@ -104,21 +105,17 @@ function Line({
           </button>
         </div>
         <p className="text-[13px] text-muted-foreground">
-          {t("unitPrice", { price: format.money(line.unitPrice), unit: line.unit })}
-          {line.mode === "preorder" && line.orderDeadline && (
-            <span className="ml-2 rounded-full bg-deadline-soft px-2 py-0.5 text-deadline-deep">
-              {t("preorderCloses", {
-                deadline: format.deadline(line.orderDeadline),
-              })}
-            </span>
-          )}
+          {t("unitPrice", {
+            price: format.money(line.unitPrice),
+            unit: format.unit(line.unit),
+          })}
         </p>
         {line.problem && (
           <p role="alert" className="text-[13px] text-error-deep">
             {line.problem === "OUT_OF_STOCK"
               ? t("problem.OUT_OF_STOCK", {
                   available: format.quantity(line.stockQuantity ?? 0),
-                  unit: line.unit,
+                  unit: format.unit(line.unit, line.stockQuantity ?? 0),
                 })
               : t(`problem.${line.problem}`)}
           </p>
@@ -146,7 +143,7 @@ function Line({
             {tp("comboHint", {
               missing: format.quantity(hint.missing),
               quantity: format.quantity(Number(hint.combo.quantity)),
-              unit: line.unit,
+              unit: format.unit(line.unit, hint.missing),
               price: format.money(hint.combo.price),
             })}
           </p>
@@ -156,10 +153,41 @@ function Line({
   );
 }
 
-/** The cart, grouped by seller, with a total of what is selected. */
+type Round = NonNullable<CartLine["campaign"]>;
+
+/**
+ * A seller's lines split into the in-stock ones and one group per pre-order
+ * round, rounds in the order their first line comes.
+ */
+function byRound(lines: CartLine[]): {
+  loose: CartLine[];
+  rounds: { campaign: Round; lines: CartLine[] }[];
+} {
+  const loose: CartLine[] = [];
+  const rounds = new Map<string, { campaign: Round; lines: CartLine[] }>();
+  for (const line of lines) {
+    if (!line.campaign) {
+      loose.push(line);
+      continue;
+    }
+    const round = rounds.get(line.campaign.id);
+    if (round) {
+      round.lines.push(line);
+    } else {
+      rounds.set(line.campaign.id, { campaign: line.campaign, lines: [line] });
+    }
+  }
+  return { loose, rounds: [...rounds.values()] };
+}
+
+/**
+ * The cart, grouped by seller and, within a seller, by pre-order round, with
+ * a total of what is selected.
+ */
 export function CartPage() {
   const t = useTranslations("cart");
   const tc = useTranslations("common");
+  const format = useFormat();
   const router = useRouter();
   const { data: cart, isPending, isError, refetch } = useCart();
   // Lines the person unticked; everything buyable starts ticked.
@@ -204,6 +232,15 @@ export function CartPage() {
     });
   }
 
+  const renderLine = (line: CartLine) => (
+    <Line
+      key={line.listingId}
+      line={line}
+      selected={isSelected(line)}
+      onToggle={() => toggle([line.listingId], !isSelected(line))}
+    />
+  );
+
   return (
     <div className="flex flex-col gap-6 pb-28 md:pb-24">
       <h1 className="text-[28px] leading-tight font-semibold">{t("title")}</h1>
@@ -219,6 +256,7 @@ export function CartPage() {
         cart.groups.map((group) => {
           const buyable = group.lines.filter((line) => line.problem === null);
           const all = buyable.length > 0 && buyable.every(isSelected);
+          const { loose, rounds } = byRound(group.lines);
           return (
             <section
               key={group.seller.id}
@@ -251,16 +289,31 @@ export function CartPage() {
                   {group.seller.name}
                 </Link>
               </header>
-              <ul>
-                {group.lines.map((line) => (
-                  <Line
-                    key={line.listingId}
-                    line={line}
-                    selected={isSelected(line)}
-                    onToggle={() => toggle([line.listingId], !isSelected(line))}
-                  />
-                ))}
-              </ul>
+              {loose.length > 0 && <ul>{loose.map(renderLine)}</ul>}
+              {rounds.map(({ campaign, lines: roundLines }) => (
+                <div
+                  key={campaign.id}
+                  role="group"
+                  aria-label={campaign.title}
+                  className="border-t border-border"
+                >
+                  <div className="flex flex-col gap-0.5 pt-3 pb-2">
+                    <Link
+                      href={`/campaigns/${campaign.id}`}
+                      className="w-fit text-sm font-semibold hover:text-primary"
+                    >
+                      {campaign.title}
+                    </Link>
+                    <p className="text-[13px] text-deadline-deep">
+                      {t("round", {
+                        deadline: format.deadline(campaign.orderDeadline),
+                        delivery: formatDate(campaign.deliveryDate),
+                      })}
+                    </p>
+                  </div>
+                  <ul>{roundLines.map(renderLine)}</ul>
+                </div>
+              ))}
             </section>
           );
         })

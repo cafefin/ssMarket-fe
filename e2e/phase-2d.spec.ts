@@ -52,7 +52,6 @@ test("a buyer reaches the seller page from a listing", async ({ browser }) => {
   // "hũ" is not one of the backend's listing units, so "hộp" stands in.
   const listingPath = await postListing(seller, {
     title,
-    mode: "in_stock",
     unit: "hộp",
     price: "90.000",
     stock: "24",

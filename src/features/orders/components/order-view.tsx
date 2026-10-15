@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { buttonVariants } from "@/shared/ui/atoms/shadcn/button";
@@ -47,7 +48,9 @@ function nextStep(order: Order, t: Translator<"orders.view.next">): string | nul
 
 export function OrderView({ id }: { id: string }) {
   const { data: order, error, isPending, refetch } = useOrder(id);
-  const [editing, setEditing] = useState(false);
+  // The round page links to /orders/<id>?edit=1 to change an order.
+  const searchParams = useSearchParams();
+  const [editing, setEditing] = useState(searchParams?.get("edit") === "1");
   const t = useTranslations("orders.view");
   const tn = useTranslations("orders.view.next");
   const te = useTranslations("orders.editor.blocked");
@@ -114,8 +117,12 @@ export function OrderView({ id }: { id: string }) {
 
       {order.qr && buyer && <OrderQr qr={order.qr} code={order.code} />}
 
-      {editing && editBlocked === null ? (
-        <OrderEditor order={order} onDone={() => setEditing(false)} />
+      {editing && editBlocked === null && order.campaign ? (
+        <OrderEditor
+          order={order}
+          campaignId={order.campaign.id}
+          onDone={() => setEditing(false)}
+        />
       ) : (
         <div className="flex flex-col gap-3">
           <OrderActions order={order} />
@@ -153,7 +160,8 @@ export function OrderView({ id }: { id: string }) {
                     {line.title}
                   </Link>
                   <span className="block text-[13px] text-muted-foreground">
-                    {format.quantity(line.quantity)} {line.unit} ×{" "}
+                    {format.quantity(line.quantity)}{" "}
+                    {format.unit(line.unit, line.quantity)} ×{" "}
                     {format.money(line.unitPrice)}
                   </span>
                 </th>
@@ -207,11 +215,32 @@ export function OrderView({ id }: { id: string }) {
             {tc(`paymentMethods.${order.paymentMethod}`)}
           </dd>
         </div>
-        {order.listing.deliveryDate && (
-          <div>
-            <dt className="text-muted-foreground">{t("deliveryDate")}</dt>
-            <dd className="font-medium">{formatDate(order.listing.deliveryDate)}</dd>
-          </div>
+        {order.campaign && (
+          <>
+            <div>
+              <dt className="text-muted-foreground">{t("round")}</dt>
+              <dd className="font-medium">
+                <Link
+                  href={`/campaigns/${order.campaign.id}`}
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  {order.campaign.title}
+                </Link>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">{t("deadline")}</dt>
+              <dd className="font-medium">
+                {format.deadline(order.campaign.orderDeadline)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">{t("deliveryDate")}</dt>
+              <dd className="font-medium">
+                {formatDate(order.campaign.deliveryDate)}
+              </dd>
+            </div>
+          </>
         )}
         {order.note && (
           <div className="sm:col-span-2">

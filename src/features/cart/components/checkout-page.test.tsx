@@ -26,8 +26,7 @@ const preview: CheckoutPreview = {
       key: "seller:s1",
       seller: { id: "s1", name: "Chị Lan", handle: "lan", avatarUrl: null },
       isPreorder: false,
-      orderDeadline: null,
-      deliveryDate: null,
+      campaign: null,
       lines: [
         {
           listingId: A,
@@ -48,8 +47,12 @@ const preview: CheckoutPreview = {
       key: "listing:l2",
       seller: { id: "s2", name: "Anh Minh", handle: "minh", avatarUrl: null },
       isPreorder: true,
-      orderDeadline: "2026-10-09T10:00:00.000Z",
-      deliveryDate: "2026-10-12",
+      campaign: {
+        id: "c1",
+        title: "Hoa quả tuần 41",
+        orderDeadline: "2026-10-09T10:00:00.000Z",
+        deliveryDate: "2026-10-12",
+      },
       lines: [
         {
           listingId: B,
@@ -120,8 +123,26 @@ describe("CheckoutPage", () => {
     const lan = await screen.findByRole("region", { name: "Đơn của Chị Lan" });
     expect(within(lan).getAllByText("900.000 đ").length).toBeGreaterThan(0);
     expect(within(lan).getByText("1.000.000 đ")).toHaveClass("line-through");
-    const minh = screen.getByRole("region", { name: "Đơn của Anh Minh" });
-    expect(within(minh).getByText(/Đặt trước · chốt/)).toBeInTheDocument();
+    // The block of a pre-order round is headed by the round, then its dates.
+    const minh = screen.getByRole("region", {
+      name: "Đơn của Anh Minh · Hoa quả tuần 41",
+    });
+    const heading = within(minh).getByRole("heading", { name: "Hoa quả tuần 41" });
+    expect(within(heading).getByRole("link")).toHaveAttribute(
+      "href",
+      "/campaigns/c1",
+    );
+    const seller = within(minh).getByText("Đơn của Anh Minh");
+    expect(
+      heading.compareDocumentPosition(seller) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      within(lan).getByRole("heading", { name: "Đơn của Chị Lan" }),
+    ).toBeInTheDocument();
+    expect(
+      within(minh).getByText(/Đặt trước · chốt .+ · giao 12\/10\/2026/),
+    ).toBeInTheDocument();
+    expect(within(lan).queryByText(/Đặt trước · chốt/)).not.toBeInTheDocument();
     expect(within(minh).getByRole("radio")).toBeChecked();
     expect(within(lan).getByLabelText("Giao đến")).toHaveValue("Tầng 7");
     expect(screen.getByRole("status", { name: "Tổng cộng 2 đơn" })).toHaveTextContent(
@@ -259,7 +280,7 @@ describe("CheckoutPage", () => {
     });
     render();
     expect(
-      await screen.findByText("Bài đăng này không còn nhận đơn."),
+      await screen.findByText("Sản phẩm hoặc đợt đặt trước này không còn nhận đơn."),
     ).toBeInTheDocument();
   });
 });

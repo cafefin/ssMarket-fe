@@ -19,6 +19,8 @@ vi.mock("sonner", () => ({ toast }));
 
 const ITEM = "11111111-1111-4111-8111-111111111111";
 const OTHER = "22222222-2222-4222-8222-222222222222";
+const THIRD = "33333333-3333-4333-8333-333333333333";
+const FOURTH = "44444444-4444-4444-8444-444444444444";
 
 const line = (overrides: Partial<CartLine> = {}): CartLine => ({
   listingId: ITEM,
@@ -30,7 +32,7 @@ const line = (overrides: Partial<CartLine> = {}): CartLine => ({
   quantity: 90,
   stockQuantity: 500,
   thumbnailUrl: null,
-  orderDeadline: null,
+  campaign: null,
   lineTotal: 900000,
   listTotal: 900000,
   problem: null,
@@ -92,6 +94,8 @@ describe("BuyControls", () => {
       screen.getByRole("button", { name: "Thêm vào giỏ" }),
     );
     expect(buy.parentElement).not.toContainElement(quantity);
+    // On a card the stepper spans the narrow column.
+    expect(quantity.parentElement).toHaveClass("w-full");
   });
 
   it("adds the chosen quantity to what is already in the cart", async () => {
@@ -128,6 +132,23 @@ describe("BuyControls", () => {
     expect(screen.getByRole("button", { name: "Mua ngay" })).toBeEnabled();
   });
 
+  it("names the unit in English on an English page", async () => {
+    serve({ cart: cartOf([line({ quantity: 1 })]) });
+    renderWithIntl(
+      <QueryProvider>
+        <BuyControls product={product({ stockQuantity: 3 })} />
+      </QueryProvider>,
+      { locale: "en" },
+    );
+
+    const quantity = await screen.findByRole("textbox", { name: "Quantity" });
+    await waitFor(() => expect(quantity).toBeEnabled());
+    await userEvent.clear(quantity);
+    await userEvent.type(quantity, "3");
+
+    expect(screen.getByRole("status")).toHaveTextContent("Only 2 pieces left");
+  });
+
   it("cannot add the last piece twice", async () => {
     serve({ cart: cartOf([line({ quantity: 1 })]) });
     wrap(<BuyControls product={product({ stockQuantity: 1 })} />);
@@ -154,6 +175,10 @@ describe("BuyControls", () => {
 
     const add = await screen.findByRole("button", { name: "Thêm vào giỏ" });
     expect(add).toHaveTextContent("Thêm vào giỏ");
+    // The stepper keeps its own width instead of stretching across the page.
+    const stepper = screen.getByRole("textbox", { name: "Số lượng" }).parentElement;
+    expect(stepper).not.toHaveClass("w-full");
+    expect(stepper).toHaveClass("self-start");
   });
 
   it("shows nothing to the seller", async () => {
@@ -233,6 +258,83 @@ describe("CartPage", () => {
     );
   });
 
+  it("groups pre-order products under their round, with its dates", async () => {
+    const round = {
+      id: "c1",
+      title: "Hoa quả tuần 41",
+      orderDeadline: "2026-10-09T10:00:00.000Z",
+      deliveryDate: "2026-10-12",
+    };
+    serve({
+      cart: cartOf([
+        line({
+          listingId: OTHER,
+          title: "Cam sành",
+          mode: "preorder",
+          stockQuantity: null,
+          campaign: round,
+        }),
+        line(),
+        line({
+          listingId: THIRD,
+          title: "Bưởi da xanh",
+          mode: "preorder",
+          stockQuantity: null,
+          campaign: round,
+        }),
+        line({
+          listingId: FOURTH,
+          title: "Xôi gà",
+          mode: "preorder",
+          stockQuantity: null,
+          campaign: { ...round, id: "c2", title: "Đồ ăn sáng tuần 42" },
+        }),
+      ]),
+    });
+    wrap(<CartPage />);
+
+    const seller = await screen.findByRole("region", { name: "Chị Lan" });
+    const fruit = within(seller).getByRole("group", { name: "Hoa quả tuần 41" });
+    expect(
+      within(fruit).getByRole("link", { name: "Hoa quả tuần 41" }),
+    ).toHaveAttribute("href", "/campaigns/c1");
+    expect(
+      within(fruit).getByText(/^Đặt trước · chốt \d{2}:\d{2} .+ · giao 12\/10\/2026$/),
+    ).toBeInTheDocument();
+    expect(within(fruit).getByText("Cam sành")).toBeInTheDocument();
+    expect(within(fruit).getByText("Bưởi da xanh")).toBeInTheDocument();
+    expect(within(fruit).queryByText("Xôi gà")).not.toBeInTheDocument();
+    expect(within(fruit).queryByText("Bút bi Thiên Long")).not.toBeInTheDocument();
+
+    const breakfast = within(seller).getByRole("group", { name: "Đồ ăn sáng tuần 42" });
+    expect(within(breakfast).getByText("Xôi gà")).toBeInTheDocument();
+    // The dates are said once per round, not on every line.
+    expect(screen.getAllByText(/Đặt trước · chốt/)).toHaveLength(2);
+
+    // In-stock products stay directly under the seller, before the rounds.
+    const pen = within(seller).getByText("Bút bi Thiên Long");
+    expect(pen.closest('[role="group"]')).toBeNull();
+    expect(
+      pen.compareDocumentPosition(fruit) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    // Selecting and the total work across the groups as before.
+    expect(screen.getByText("Tổng 4 món đã chọn")).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: "Chọn tất cả hàng của Chị Lan" }),
+    );
+    expect(screen.getByText("Tổng 0 món đã chọn")).toBeInTheDocument();
+  });
+
+  it("has no round heading for a seller with in-stock products only", async () => {
+    serve({ cart: cartOf([line()]) });
+    wrap(<CartPage />);
+
+    const seller = await screen.findByRole("region", { name: "Chị Lan" });
+    expect(within(seller).queryByRole("group")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Đặt trước · chốt/)).not.toBeInTheDocument();
+  });
+
   it("changes a quantity and removes a line", async () => {
     serve({ cart: cartOf([line({ combos: [] })]) });
     wrap(<CartPage />);
@@ -261,7 +363,7 @@ describe("CartPage", () => {
     wrap(<CartPage />);
 
     expect(await screen.findByText("Chỉ còn 2 cái")).toBeInTheDocument();
-    expect(screen.getByText("Bài đăng đã đóng hoặc hết hạn chốt đơn")).toBeInTheDocument();
+    expect(screen.getByText("Đã ngừng bán hoặc hết hạn chốt đơn")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Mua hàng (0)" })).toBeDisabled();
   });
 

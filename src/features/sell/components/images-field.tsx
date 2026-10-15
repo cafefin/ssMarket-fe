@@ -14,6 +14,8 @@ interface ImagesFieldProps {
   onAdd: (files: File[]) => void;
   onRemoveExisting: (id: string) => void;
   onRemoveAdded: (index: number) => void;
+  /** The id of the file input; set it when a page shows several of these. */
+  inputId?: string;
 }
 
 export function ImagesField({
@@ -22,6 +24,7 @@ export function ImagesField({
   onAdd,
   onRemoveExisting,
   onRemoveAdded,
+  inputId = "listing-images",
 }: ImagesFieldProps) {
   const t = useTranslations("sell.images");
   const te = useTranslations("errors.codes");
@@ -120,13 +123,13 @@ export function ImagesField({
 
       <div>
         <label
-          htmlFor="listing-images"
+          htmlFor={inputId}
           className="mb-2 block text-sm font-medium"
         >
           {t("add")}
         </label>
         <input
-          id="listing-images"
+          id={inputId}
           type="file"
           multiple
           accept="image/jpeg,image/png,image/webp"

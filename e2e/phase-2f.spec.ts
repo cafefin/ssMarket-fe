@@ -13,7 +13,6 @@ test("a buyer fills a cart from two sellers on the list page and checks out once
 
   await postListing(pens, {
     title: penTitle,
-    mode: "in_stock",
     condition: "new",
     acceptQr: true,
     unit: "cái",
@@ -23,7 +22,6 @@ test("a buyer fills a cart from two sellers on the list page and checks out once
   });
   await postListing(mice, {
     title: mouseTitle,
-    mode: "in_stock",
     condition: "good",
     unit: "cái",
     price: "200.000",
@@ -87,7 +85,6 @@ test("a buyer narrows the list by price and condition", async ({ browser }) => {
   const word = unique("Bàn phím");
   await postListing(seller, {
     title: `${word} cũ`,
-    mode: "in_stock",
     condition: "fair",
     unit: "cái",
     price: "150.000",
@@ -95,7 +92,6 @@ test("a buyer narrows the list by price and condition", async ({ browser }) => {
   });
   await postListing(seller, {
     title: `${word} như mới`,
-    mode: "in_stock",
     condition: "like_new",
     unit: "cái",
     price: "1.500.000",
@@ -111,8 +107,13 @@ test("a buyer narrows the list by price and condition", async ({ browser }) => {
 
   await page.goto(`/?q=${encodeURIComponent(word)}`);
   await page.getByText("Giá", { exact: true }).click();
-  await page.getByRole("link", { name: "200.000 đ – 1.000.000 đ" }).click();
+  await page.getByRole("link", { name: "200k – 1tr" }).click();
   await expect(
     page.getByRole("heading", { name: `Không tìm thấy kết quả cho “${word}”` }),
   ).toBeVisible();
+
+  // Clearing the filters keeps the search and brings the products back.
+  await page.getByRole("link", { name: "Xóa bộ lọc" }).first().click();
+  await expect(page).toHaveURL(/\/\?q=[^&]+$/);
+  await expect(page.getByRole("link", { name: new RegExp(`${word} cũ`) })).toBeVisible();
 });
