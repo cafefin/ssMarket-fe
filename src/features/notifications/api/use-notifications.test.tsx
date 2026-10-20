@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NOTIFICATIONS_QUERY_KEY,
+  NOTIFICATION_LIST_QUERY_KEY,
   UNREAD_COUNT_QUERY_KEY,
   useMarkAllRead,
   useMarkRead,
@@ -48,6 +49,25 @@ describe("notification hooks", () => {
     const { wrapper } = setup();
     renderHook(() => useNotificationList(false), { wrapper });
     expect(api.GET).not.toHaveBeenCalled();
+  });
+
+  it("refetches the list every time the panel opens", async () => {
+    api.GET.mockResolvedValue({
+      data: { items: [], nextCursor: null },
+      response: new Response(),
+    });
+    const { client, wrapper } = setup();
+    const { result, rerender } = renderHook(
+      ({ open }) => useNotificationList(open),
+      { wrapper, initialProps: { open: true } },
+    );
+    await waitFor(() => expect(result.current.data?.pages).toHaveLength(1));
+    const options = client.getQueryCache().find({ queryKey: NOTIFICATION_LIST_QUERY_KEY })
+      ?.options as { staleTime?: number } | undefined;
+    expect(options?.staleTime).toBe(0);
+    rerender({ open: false });
+    rerender({ open: true });
+    await waitFor(() => expect(api.GET).toHaveBeenCalledTimes(2));
   });
 
   it("fetches the first page, then the next with the cursor", async () => {

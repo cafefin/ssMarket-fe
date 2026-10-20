@@ -43,6 +43,8 @@ export function useNotificationList(enabled: boolean) {
   return useInfiniteQuery({
     queryKey: NOTIFICATION_LIST_QUERY_KEY,
     enabled,
+    // The badge may count what a cached list lacks: refetch on every open.
+    staleTime: 0,
     initialPageParam: undefined as string | undefined,
     queryFn: async ({ pageParam }): Promise<NotificationPage> => {
       const { data, error, response } = await api.GET("/notifications", {
