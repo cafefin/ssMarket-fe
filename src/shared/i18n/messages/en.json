@@ -4,6 +4,7 @@
     "description": "An internal marketplace for employees."
   },
   "format": {
+    "justNow": "just now",
     "today": "today",
     "currency": "VND",
     "thousand": "K",
@@ -54,6 +55,10 @@
       "OUT_OF_STOCK": "Some items no longer have enough stock.",
       "LISTING_NOT_OPEN": "This product or pre-order round is no longer taking orders.",
       "ALREADY_ORDERED": "You already have an order in this pre-order round.",
+      "INVALID_CHAT_SETTINGS": "Some settings are not valid. Check the fields.",
+      "INVALID_CHAT_TEMPLATE": "The template is not valid: empty, over 1000 characters, or it uses a variable that is not available.",
+      "CHAT_WEBHOOK_NOT_SET": "No webhook yet. Add one before sending a test.",
+      "CHAT_SEND_FAILED": "Google Chat did not accept the message. Check the webhook.",
       "OWN_LISTING": "You cannot order your own products.",
       "PAYMENT_METHOD_NOT_ACCEPTED": "The seller no longer accepts this payment method.",
       "INVALID_QUANTITY": "The quantity is not valid. Please check it.",

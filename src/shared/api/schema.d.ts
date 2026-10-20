@@ -676,6 +676,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["NotificationsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["NotificationsController_unreadCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["NotificationsController_markAllRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["NotificationsController_markRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/chat-channel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminChatChannelController_get"];
+        put: operations["AdminChatChannelController_updateSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/chat-channel/templates/{eventType}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminChatChannelController_updateTemplate"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/chat-channel/templates/{eventType}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminChatChannelController_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/chat-channel/templates/{eventType}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminChatChannelController_test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/chat-channel/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminChatChannelController_deliveries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1402,6 +1546,117 @@ export interface components {
         };
         CheckoutResultDto: {
             orders: components["schemas"]["OrderDetailDto"][];
+        };
+        /** @enum {string} */
+        NotificationType: "order.placed" | "order.edited" | "order.payment_reported" | "order.payment_confirmed" | "order.payment_rejected" | "order.delivered" | "order.cancelled";
+        /** @enum {string} */
+        NotificationActor: "buyer" | "seller";
+        /** @enum {string} */
+        NotificationRole: "buyer" | "seller";
+        NotificationParamsDto: {
+            /** Format: uuid */
+            orderId: string;
+            orderCode: string;
+            /** Format: uuid */
+            buyerId: string;
+            buyerName: string;
+            /** Format: uuid */
+            sellerId: string;
+            sellerName: string;
+            /** @description The round's title, or the first product's title */
+            title: string;
+            /** @description Integer VND */
+            total: number;
+            actor: components["schemas"]["NotificationActor"];
+            reason: string | null;
+            role: components["schemas"]["NotificationRole"];
+        };
+        NotificationDto: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["NotificationType"];
+            params: components["schemas"]["NotificationParamsDto"];
+            /** Format: date-time */
+            readAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        NotificationPageDto: {
+            items: components["schemas"]["NotificationDto"][];
+            nextCursor: string | null;
+        };
+        UnreadCountDto: {
+            count: number;
+        };
+        /** @enum {string} */
+        ChatTemplateType: "campaign.opened" | "campaign.reopened" | "listing.published" | "chat.digest";
+        ChatTemplateDto: {
+            eventType: components["schemas"]["ChatTemplateType"];
+            enabled: boolean;
+            template: string;
+            /** @description Variables the template may use */
+            variables: string[];
+            defaultTemplate: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ChatChannelDto: {
+            enabled: boolean;
+            hasWebhook: boolean;
+            /** @description Last 4 characters */
+            webhookHint: string | null;
+            maxPerHour: number | null;
+            sellerCooldownMinutes: number;
+            /** Format: date-time */
+            updatedAt: string;
+            templates: components["schemas"]["ChatTemplateDto"][];
+        };
+        UpdateChatSettingsDto: {
+            enabled: boolean;
+            /** @description 1 to 60, null for no limit */
+            maxPerHour: number | null;
+            /** @description 0 to 1440 */
+            sellerCooldownMinutes: number;
+            /** @description Absent keeps the stored webhook, null removes it */
+            webhookUrl?: string | null;
+        };
+        UpdateChatTemplateDto: {
+            enabled: boolean;
+            template: string;
+        };
+        ChatTemplateBodyDto: {
+            template: string;
+        };
+        ChatPreviewDto: {
+            message: string;
+        };
+        ChatTestBodyDto: {
+            /** @description Absent uses the saved template */
+            template?: string;
+        };
+        /** @enum {string} */
+        ChatOutcome: "sent" | "rate_limited_global" | "rate_limited_seller" | "failed" | "test" | "digest";
+        /**
+         * @description Only for rate-limited rows: in a digest, or waiting for one
+         * @enum {string}
+         */
+        ChatDigestState: "included" | "pending";
+        ChatDeliveryDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            eventType: components["schemas"]["ChatTemplateType"];
+            sellerName: string | null;
+            outcome: components["schemas"]["ChatOutcome"];
+            message: string | null;
+            error: string | null;
+            /** @description Only for rate-limited rows: in a digest, or waiting for one */
+            digest: components["schemas"]["ChatDigestState"] | null;
+        };
+        ChatDeliveryPageDto: {
+            items: components["schemas"]["ChatDeliveryDto"][];
+            nextCursor: string | null;
         };
     };
     responses: never;
@@ -2618,6 +2873,332 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CheckoutResultDto"];
                 };
+            };
+        };
+    };
+    NotificationsController_list: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPageDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_unreadCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCountDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_markAllRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    NotificationsController_markRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not your notification */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminChatChannelController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatChannelDto"];
+                };
+            };
+            /** @description The caller is not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminChatChannelController_updateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateChatSettingsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatChannelDto"];
+                };
+            };
+            /** @description The caller is not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description INVALID_CHAT_SETTINGS */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminChatChannelController_updateTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventType: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateChatTemplateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatTemplateDto"];
+                };
+            };
+            /** @description The caller is not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unknown event type */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description INVALID_CHAT_TEMPLATE */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminChatChannelController_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventType: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatTemplateBodyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPreviewDto"];
+                };
+            };
+            /** @description The caller is not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unknown event type */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description INVALID_CHAT_TEMPLATE */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminChatChannelController_test: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventType: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatTestBodyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatPreviewDto"];
+                };
+            };
+            /** @description The caller is not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unknown event type */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description CHAT_WEBHOOK_NOT_SET */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description INVALID_CHAT_TEMPLATE */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description CHAT_SEND_FAILED */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminChatChannelController_deliveries: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatDeliveryPageDto"];
+                };
+            };
+            /** @description The caller is not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

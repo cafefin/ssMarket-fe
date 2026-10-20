@@ -4,6 +4,7 @@
     "description": "Sàn mua bán nội bộ dành cho nhân viên."
   },
   "format": {
+    "justNow": "vừa xong",
     "today": "hôm nay",
     "currency": "đ",
     "thousand": "k",
@@ -54,6 +55,10 @@
       "OUT_OF_STOCK": "Một số mặt hàng không còn đủ số lượng.",
       "LISTING_NOT_OPEN": "Sản phẩm hoặc đợt đặt trước này không còn nhận đơn.",
       "ALREADY_ORDERED": "Bạn đã có đơn trong đợt đặt trước này.",
+      "INVALID_CHAT_SETTINGS": "Cài đặt chưa hợp lệ. Kiểm tra lại các ô đã nhập.",
+      "INVALID_CHAT_TEMPLATE": "Mẫu tin chưa hợp lệ: trống, quá 1000 ký tự hoặc có biến không dùng được.",
+      "CHAT_WEBHOOK_NOT_SET": "Chưa có webhook. Thêm webhook trước khi gửi thử.",
+      "CHAT_SEND_FAILED": "Google Chat không nhận tin. Kiểm tra lại webhook.",
       "OWN_LISTING": "Bạn không thể đặt hàng của chính mình.",
       "PAYMENT_METHOD_NOT_ACCEPTED": "Người bán không còn nhận hình thức thanh toán này.",
       "INVALID_QUANTITY": "Số lượng chưa hợp lệ. Vui lòng kiểm tra lại.",
