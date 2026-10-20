@@ -296,6 +296,7 @@
       "myListings": "Bài đăng của tôi",
       "receivedOrders": "Đơn nhận được",
       "categories": "Quản lý danh mục",
+      "chatChannel": "Kênh Google Chat",
       "signOut": "Đăng xuất"
     },
     "language": {
@@ -471,6 +472,34 @@
     "perishable": {
       "yes": "Có",
       "no": "Không"
+    },
+    "chat": {
+      "title": "Kênh Google Chat",
+      "intro": "Đăng tin vào một space Google Chat chung khi có đợt đặt trước mới hoặc món mới. Thông báo về đơn hàng chỉ hiện trong ứng dụng.",
+      "settings": {
+        "title": "Cài đặt",
+        "enabled": "Bật kênh Google Chat",
+        "webhook": "Webhook Google Chat",
+        "webhookHint": "Dán URL webhook của space (bắt đầu bằng https://chat.googleapis.com/v1/spaces/).",
+        "webhookSet": "Đã có webhook, kết thúc bằng …{hint}",
+        "webhookNone": "Chưa có webhook.",
+        "replaceWebhook": "Thay webhook",
+        "removeWebhook": "Xóa webhook",
+        "keepWebhook": "Giữ webhook cũ",
+        "maxPerHour": "Số tin tối đa mỗi giờ",
+        "unlimited": "Không giới hạn",
+        "cooldown": "Giãn cách cho mỗi người bán (phút)",
+        "cooldownHint": "0 là không giãn cách.",
+        "limitHint": "Tin vượt giới hạn sẽ được gửi gộp trong bảng tin đầu giờ sau.",
+        "save": "Lưu cài đặt",
+        "saved": "Đã lưu cài đặt"
+      },
+      "validation": {
+        "maxPerHour": "Nhập số nguyên từ 1 đến 60, hoặc chọn Không giới hạn.",
+        "cooldown": "Nhập số nguyên từ 0 đến 1440.",
+        "webhook": "Webhook phải bắt đầu bằng https://chat.googleapis.com/v1/spaces/.",
+        "webhookRequired": "Cần có webhook để bật kênh."
+      }
     }
   },
   "sell": {

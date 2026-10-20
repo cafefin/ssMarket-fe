@@ -296,6 +296,7 @@
       "myListings": "My listings",
       "receivedOrders": "Orders received",
       "categories": "Manage categories",
+      "chatChannel": "Google Chat channel",
       "signOut": "Sign out"
     },
     "language": {
@@ -471,6 +472,34 @@
     "perishable": {
       "yes": "Yes",
       "no": "No"
+    },
+    "chat": {
+      "title": "Google Chat channel",
+      "intro": "Posts to one shared Google Chat space when a new pre-order round or a new product appears. Order notifications only show in the app.",
+      "settings": {
+        "title": "Settings",
+        "enabled": "Turn on the Google Chat channel",
+        "webhook": "Google Chat webhook",
+        "webhookHint": "Paste the space's webhook URL (starts with https://chat.googleapis.com/v1/spaces/).",
+        "webhookSet": "A webhook is set, ending in …{hint}",
+        "webhookNone": "No webhook yet.",
+        "replaceWebhook": "Replace webhook",
+        "removeWebhook": "Remove webhook",
+        "keepWebhook": "Keep the current webhook",
+        "maxPerHour": "Most messages per hour",
+        "unlimited": "No limit",
+        "cooldown": "Gap for each seller (minutes)",
+        "cooldownHint": "0 means no gap.",
+        "limitHint": "Messages over the limit are sent together in the digest at the start of the next hour.",
+        "save": "Save settings",
+        "saved": "Settings saved"
+      },
+      "validation": {
+        "maxPerHour": "Enter a whole number from 1 to 60, or choose No limit.",
+        "cooldown": "Enter a whole number from 0 to 1440.",
+        "webhook": "The webhook must start with https://chat.googleapis.com/v1/spaces/.",
+        "webhookRequired": "A webhook is needed to turn the channel on."
+      }
     }
   },
   "sell": {
