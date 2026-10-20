@@ -1,9 +1,14 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { QueryProvider } from "@/shared/api/query-provider";
 import { renderWithIntl } from "@/shared/i18n/test-utils";
-import type { ChatChannel } from "../api/use-chat-channel";
+import {
+  CHAT_CHANNEL_QUERY_KEY,
+  type ChatChannel,
+  useChatChannel,
+} from "../api/use-chat-channel";
 import { ChatChannelSettings } from "./chat-channel-settings";
 
 const { api, toast } = vi.hoisted(() => ({
@@ -138,6 +143,48 @@ describe("ChatChannelSettings", () => {
       screen.getByText("Nhập số nguyên từ 0 đến 1440."),
     ).toBeInTheDocument();
     expect(api.PUT).not.toHaveBeenCalled();
+  });
+
+  it("clears the hourly limit error when unlimited is chosen", async () => {
+    const user = setup();
+    const number = screen.getByLabelText("Số tin tối đa mỗi giờ");
+    await user.clear(number);
+    await user.type(number, "61");
+    await user.click(screen.getByRole("button", { name: "Lưu cài đặt" }));
+    const message = "Nhập số nguyên từ 1 đến 60, hoặc chọn Không giới hạn.";
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox", { name: "Không giới hạn" }));
+    await waitFor(() => expect(screen.queryByText(message)).toBeNull());
+  });
+
+  it("shows the saved webhook state at once, before any refetch", async () => {
+    api.GET.mockImplementation(() => new Promise(() => {}));
+    function Probe() {
+      const { data } = useChatChannel();
+      return data ? (
+        <ChatChannelSettings channel={data} />
+      ) : null;
+    }
+    const gate = new QueryClient();
+    gate.setQueryData(CHAT_CHANNEL_QUERY_KEY, channel);
+    api.PUT.mockResolvedValue({
+      data: { ...channel, hasWebhook: false, webhookHint: null },
+    });
+    renderWithIntl(
+      <QueryClientProvider client={gate}>
+        <Probe />
+      </QueryClientProvider>,
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("switch"));
+    await user.click(screen.getByRole("button", { name: "Xóa webhook" }));
+    await user.click(screen.getByRole("button", { name: "Lưu cài đặt" }));
+    await waitFor(() => expect(api.PUT).toHaveBeenCalled());
+    expect(gate.getQueryData(CHAT_CHANNEL_QUERY_KEY)).toMatchObject({
+      hasWebhook: false,
+    });
+    expect(await screen.findByLabelText("Webhook Google Chat")).toBeInTheDocument();
+    expect(screen.queryByText(/Đã có webhook/)).toBeNull();
   });
 
   it("refuses a webhook with the wrong prefix", async () => {

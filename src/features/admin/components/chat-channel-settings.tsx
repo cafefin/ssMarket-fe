@@ -46,6 +46,7 @@ export function ChatChannelSettings({ channel }: { channel: ChatChannel }) {
     handleSubmit,
     reset,
     setValue,
+    clearErrors,
     control,
     formState: { errors },
   } = useForm<ChatSettingsValues>({
@@ -160,7 +161,11 @@ export function ChatChannelSettings({ channel }: { channel: ChatChannel }) {
           <input
             type="checkbox"
             className="size-4 accent-primary"
-            {...register("unlimited")}
+            {...register("unlimited", {
+              onChange: (event) => {
+                if (event.target.checked) clearErrors("maxPerHour");
+              },
+            })}
           />
           {t("unlimited")}
         </label>

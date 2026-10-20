@@ -48,8 +48,11 @@ export function useUpdateChatSettings() {
       }
       return data;
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: CHAT_CHANNEL_QUERY_KEY }),
+    onSuccess: (saved) => {
+      // Show the saved state at once; the refetch then confirms it.
+      queryClient.setQueryData(CHAT_CHANNEL_QUERY_KEY, saved);
+      return queryClient.invalidateQueries({ queryKey: CHAT_CHANNEL_QUERY_KEY });
+    },
   });
 }
 
