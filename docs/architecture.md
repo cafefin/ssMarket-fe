@@ -42,7 +42,8 @@ src/
     ├── profile/              profile form, bank account
     ├── shell/                header, search, user menu, tab bar, nav items
     ├── sellers/              a seller's public page
-    ├── admin/                category management
+    ├── admin/                category management, Google Chat channel
+    ├── notifications/        the header bell and its list
     ├── orders/               ordering, editing, tracking, the seller's summaries
     └── sell/                 posting and managing my listings and rounds
 ```
@@ -75,6 +76,7 @@ Rules:
    | `orders` | `shared`, `listings`, `campaigns` |
    | `sell` | `shared`, `listings` |
    | `cart` | `shared`, `listings`, `orders` |
+   | `notifications` | `shared` |
 
 4. `app` may import everything, and it is the only place that joins two peer
    features. It also goes through each feature's `index.ts`.

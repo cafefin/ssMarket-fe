@@ -37,6 +37,7 @@ src/
 │       ├── checkout/             one checkout, one order per seller or per round
 │       ├── sellers/[id]/         a seller's public page
 │       ├── admin/categories/     category management (admins only)
+│       ├── admin/chat-channel/   Google Chat channel, templates, log (admins only)
 │       └── profile/
 ├── shared/               knows nothing about the business
 │   ├── ui/
@@ -50,7 +51,7 @@ src/
 │   ├── i18n/             locales, request config (cookie), messages/vi.json and en.json,
 │   │                     locale cookie, Translator type, test-utils (renderWithIntl)
 │   └── lib/              utils.ts, quantity-step.ts, format/ (money, dates, quantities,
-│                         initials, useFormat), theme/
+│                         initials, relative-time, useFormat), theme/
 └── features/
     ├── listings/         components/ (card, grid, filters, carousel, detail view, gallery),
     │                     api/ (listing and category hooks), lib/ (URL filters,
@@ -62,7 +63,10 @@ src/
     │                     language switch and sync), api/ (update locale),
     │                     lib/ (nav-items, use-switch-locale)
     ├── sellers/          components/ (seller page)
-    ├── admin/            components/ (category admin), api/
+    ├── admin/            components/ (category admin, chat channel: settings,
+    │                     template cards, delivery log), api/, lib/ (chat-template)
+    ├── notifications/    components/ (bell, list), api/ (unread count, list,
+    │                     mark read), lib/ (notification-text)
     ├── orders/           components/ (order page, editor, QR block, actions, lists,
     │                     SalesSummary, CampaignSummary, summary-shared), api/ (use-orders),
     │                     lib/ (order-math)
@@ -81,7 +85,8 @@ features import each other only through `index.ts`, following `FEATURE_DEPS`:
 only `campaigns`, `orders`, `sell`, `sellers`, `admin` and `cart` may import
 `listings`; `sellers` and `orders` also import `campaigns`, and `cart` also
 imports `orders`. `campaigns` and `cart` do not know each other, and `sell`
-may not import `campaigns`. `app/` is the one place that joins two features.
+may not import `campaigns`. `notifications` depends on nothing; `app/(app)/layout.tsx` joins it to the
+header. `app/` is the one place that joins two features.
 ESLint enforces this (`FEATURE_DEPS` in `eslint.config.mjs`). See
 `docs/architecture.md` for the rules, the atom and molecule definitions, and
 how to add a feature.
@@ -114,6 +119,8 @@ which holds the behaviour and has the tests.
 - The backend reuses the listing codes (`INVALID_LISTING_STATE`,
   `LISTING_NOT_OPEN`, `OWN_LISTING`) for pre-order rounds, so their messages
   must be true of a product and of a round: never "bài đăng" / "listing".
+- Chat channel codes (add to both files): `INVALID_CHAT_SETTINGS`,
+  `INVALID_CHAT_TEMPLATE`, `CHAT_WEBHOOK_NOT_SET`, `CHAT_SEND_FAILED`.
 
 ## Languages
 
@@ -360,6 +367,24 @@ already serves a 400px thumbnail and a 1600px full size.
   edit form then shows that category as "(đã ẩn)" so the select keeps its
   value; new listings never offer hidden categories.
 - Category names come from the API. Never hard-code a category list.
+- The chat channel page (`/admin/chat-channel`, user menu "Kênh Google Chat")
+  never shows the webhook URL, only the last characters as a hint. The
+  template rules (length, allowed variables) are mirrored in
+  `lib/chat-template.ts` for instant feedback; the server stays the
+  authority. The preview is requested 400 ms after typing stops.
+
+## Notifications
+
+- The backend sends a notification as `type` + `params`, never text.
+  `notificationText` (`features/notifications/lib`) maps a type to a
+  `notifications.text.*` message. For a new type add the key in **both**
+  message files and a case in its test. An unknown type shows the generic
+  sentence.
+- The link is always `/orders/<id>`.
+- The unread count polls every 60 s and on window focus (`useUnreadCount`
+  overrides the app's no-focus-refetch default). The list loads only while
+  the panel is open.
+- After marking read, invalidate `NOTIFICATIONS_QUERY_KEY`.
 
 ## Design system
 
@@ -435,6 +460,10 @@ already serves a 400px thumbnail and a 1600px full size.
 - `e2e/support/start-backend.sh` recreates the database `ssmarket_e2e`, uses
   Redis database 2 and ports 4100/3100, so a running `pnpm dev` and its data
   are not touched.
+- `start-backend.sh` also runs the backend worker (`dist/main.worker.js`) on the
+  RabbitMQ vhost `ssmarket_e2e` and stops it with the API. Anything the worker
+  does (notifications, chat messages) appears after about a second, so poll
+  (`expect.poll` with a reload) instead of asserting at once.
 - Tests sign in through the backend's development sign-in and create their
   own uniquely named people and listings (`e2e/support/people.ts`); they never
   depend on existing data or on each other.
