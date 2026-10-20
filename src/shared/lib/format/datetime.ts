@@ -25,6 +25,17 @@ export function formatDateTime(iso: string, timeZone?: string): string {
   return `${p.hour}:${p.minute} ${p.day}/${p.month}/${p.year}`;
 }
 
+/** An instant's calendar date "12/10/2026" in the given (default: browser) time zone. */
+export function formatLocalDate(iso: string, timeZone?: string): string {
+  const p = parts(new Date(iso), {
+    timeZone,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+  return `${p.day}/${p.month}/${p.year}`;
+}
+
 /** A calendar date "2026-10-12" as "12/10/2026". No time zone is involved. */
 export function formatDate(isoDate: string): string {
   const [year, month, day] = isoDate.slice(0, 10).split("-");

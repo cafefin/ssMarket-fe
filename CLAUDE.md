@@ -139,7 +139,7 @@ locale routing: URLs never carry a language.
   message lives in `src/shared/i18n/messages/{vi,en}.json`, grouped by
   namespace (`metadata`, `format`, `common`, `login`, `errors`, `orders`,
   `shell`, `listings`, `sellers`, `profile`, `admin`, `sell`, `cart`,
-  `checkout`, `units`, `campaigns`). Keys are English camelCase; numbers and
+  `checkout`, `units`, `campaigns`, `notifications`). Keys are English camelCase; numbers and
   names are ICU arguments, counts use `plural`.
   Add every key to both files; `messages.test.ts` checks keys and arguments.
 - `no-hardcoded-vietnamese.test.ts` fails on Vietnamese letters in any source

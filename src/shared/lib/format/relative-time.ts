@@ -1,4 +1,4 @@
-import { formatDateTime } from "./datetime";
+import { formatLocalDate } from "./datetime";
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -22,5 +22,5 @@ export function formatRelativeTime(
   if (elapsed < HOUR) return rtf.format(-Math.floor(elapsed / MINUTE), "minute");
   if (elapsed < DAY) return rtf.format(-Math.floor(elapsed / HOUR), "hour");
   if (elapsed < WEEK) return rtf.format(-Math.floor(elapsed / DAY), "day");
-  return formatDateTime(iso).slice(6);
+  return formatLocalDate(iso);
 }

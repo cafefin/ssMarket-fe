@@ -63,7 +63,9 @@ export function notificationText({
       ? p.actor === "buyer"
         ? "orderCancelledByBuyer"
         : "orderCancelledBySeller"
-      : KEYS[type];
+      : Object.hasOwn(KEYS, type)
+        ? KEYS[type]
+        : undefined;
   if (!key || !orderId || !values.orderCode) {
     return { key: "unknown", values, href: null };
   }

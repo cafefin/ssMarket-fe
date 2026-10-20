@@ -45,6 +45,11 @@ describe("formatRelativeTime", () => {
     );
   });
 
+  it("writes the date as day/month/year with zero padding", () => {
+    const iso = "2026-03-05T10:00:00Z";
+    expect(formatRelativeTime(iso, "vi", "vừa xong", NOW)).toBe("05/03/2026");
+  });
+
   it("shows a date after 7 days", () => {
     const iso = "2026-10-07T10:00:00Z";
     expect(formatRelativeTime(iso, "vi", "vừa xong", NOW)).toBe("07/10/2026");

@@ -54,6 +54,11 @@ describe("notificationText", () => {
     expect(of("campaign.opened")).toMatchObject({ key: "unknown", href: null });
   });
 
+  it("does not mistake an inherited property name for a type", () => {
+    expect(of("constructor")).toMatchObject({ key: "unknown", href: null });
+    expect(of("toString")).toMatchObject({ key: "unknown", href: null });
+  });
+
   it("falls back when the order is not named or fields have the wrong type", () => {
     expect(of("order.placed", { orderId: undefined })).toMatchObject({ key: "unknown", href: null });
     expect(of("order.placed", { orderCode: undefined })).toMatchObject({ key: "unknown", href: null });
