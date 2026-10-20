@@ -11,6 +11,10 @@ docker compose exec -T postgres psql -U ssmarket -d postgres -q \
   -c "DROP DATABASE IF EXISTS ssmarket_e2e WITH (FORCE)" \
   -c "CREATE DATABASE ssmarket_e2e OWNER ssmarket"
 docker compose exec -T redis redis-cli -n 2 FLUSHDB >/dev/null
+# A fresh RabbitMQ vhost, so a running `pnpm dev:worker` never sees these events.
+docker compose exec -T rabbitmq rabbitmqctl -q delete_vhost ssmarket_e2e >/dev/null 2>&1 || true
+docker compose exec -T rabbitmq rabbitmqctl -q add_vhost ssmarket_e2e
+docker compose exec -T rabbitmq rabbitmqctl -q set_permissions -p ssmarket_e2e ssmarket '.*' '.*' '.*'
 
 export NODE_ENV=development
 export DEV_LOGIN_ENABLED=true
@@ -18,6 +22,7 @@ export PORT=4100
 export WEB_URL=http://localhost:3100
 export DATABASE_URL=postgres://ssmarket:ssmarket@localhost:5433/ssmarket_e2e
 export REDIS_URL=redis://localhost:6380/2
+export RABBITMQ_URL=amqp://ssmarket:ssmarket@localhost:5673/ssmarket_e2e
 export UPLOAD_DIR="${TMPDIR:-/tmp}/ssmarket-e2e-uploads"
 export GOOGLE_CLIENT_ID=e2e-client-id
 export GOOGLE_CLIENT_SECRET=e2e-client-secret
@@ -30,4 +35,8 @@ export JWT_ACCESS_SECRET=e2e-secret-e2e-secret-e2e-secret-123456
 rm -rf "$UPLOAD_DIR"
 pnpm build
 pnpm typeorm migration:run
-exec node dist/main.js
+# The worker turns events into notifications; stop it with the API.
+node dist/main.worker.js &
+WORKER_PID=$!
+trap 'kill "$WORKER_PID" 2>/dev/null' EXIT INT TERM
+node dist/main.js
