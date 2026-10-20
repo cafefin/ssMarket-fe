@@ -834,5 +834,27 @@
       "edit": "Sửa đợt",
       "summary": "Tổng hợp"
     }
+  },
+  "notifications": {
+    "bell": "Thông báo",
+    "bellUnread": "Thông báo, {count} chưa đọc",
+    "title": "Thông báo",
+    "markAllRead": "Đánh dấu đã đọc tất cả",
+    "more": "Xem thêm",
+    "empty": "Chưa có thông báo nào.",
+    "loadError": "Không tải được thông báo.",
+    "retry": "Thử lại",
+    "unread": "Chưa đọc",
+    "text": {
+      "orderPlaced": "{buyerName} đặt đơn {orderCode} ({title})",
+      "orderEdited": "{buyerName} sửa đơn {orderCode} ({title}), tổng mới {total}",
+      "orderPaymentReported": "{buyerName} báo đã chuyển khoản đơn {orderCode}",
+      "orderPaymentConfirmed": "{sellerName} đã xác nhận thanh toán đơn {orderCode}",
+      "orderPaymentRejected": "{sellerName} chưa nhận được tiền đơn {orderCode}",
+      "orderDelivered": "{sellerName} đã giao đơn {orderCode}",
+      "orderCancelledByBuyer": "{buyerName} đã hủy đơn {orderCode} ({title})",
+      "orderCancelledBySeller": "{sellerName} đã hủy đơn {orderCode}: {reason}",
+      "unknown": "Bạn có thông báo mới"
+    }
   }
 }

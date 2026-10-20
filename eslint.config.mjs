@@ -14,6 +14,7 @@ const FEATURE_DEPS = {
   orders: ["listings", "campaigns"],
   sell: ["listings"],
   cart: ["listings", "orders"],
+  notifications: [],
 };
 const FEATURES = Object.keys(FEATURE_DEPS);
 

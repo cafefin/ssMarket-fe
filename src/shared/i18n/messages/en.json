@@ -834,5 +834,27 @@
       "edit": "Edit round",
       "summary": "Summary"
     }
+  },
+  "notifications": {
+    "bell": "Notifications",
+    "bellUnread": "Notifications, {count} unread",
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "more": "Show more",
+    "empty": "No notifications yet.",
+    "loadError": "Could not load notifications.",
+    "retry": "Try again",
+    "unread": "Unread",
+    "text": {
+      "orderPlaced": "{buyerName} placed order {orderCode} ({title})",
+      "orderEdited": "{buyerName} changed order {orderCode} ({title}), new total {total}",
+      "orderPaymentReported": "{buyerName} says they paid order {orderCode}",
+      "orderPaymentConfirmed": "{sellerName} confirmed payment for order {orderCode}",
+      "orderPaymentRejected": "{sellerName} has not received payment for order {orderCode}",
+      "orderDelivered": "{sellerName} delivered order {orderCode}",
+      "orderCancelledByBuyer": "{buyerName} cancelled order {orderCode} ({title})",
+      "orderCancelledBySeller": "{sellerName} cancelled order {orderCode}: {reason}",
+      "unknown": "You have a new notification"
+    }
   }
 }
