@@ -39,4 +39,9 @@ pnpm typeorm migration:run
 node dist/main.worker.js &
 WORKER_PID=$!
 trap 'kill "$WORKER_PID" 2>/dev/null' EXIT INT TERM
+sleep 1
+if ! kill -0 "$WORKER_PID" 2>/dev/null; then
+  echo "start-backend.sh: the worker (dist/main.worker.js) exited right after starting" >&2
+  exit 1
+fi
 node dist/main.js

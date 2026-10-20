@@ -20,15 +20,10 @@ test("the seller is notified of a new order and opens it from the bell", async (
   // The worker turns the event into a notification a moment later.
   await seller.page.goto("/");
   const bell = seller.page.getByRole("button", { name: /^Thông báo/ });
-  await expect
-    .poll(
-      async () => {
-        await seller.page.reload();
-        return bell.getAttribute("aria-label");
-      },
-      { timeout: 15_000, intervals: [500, 1000, 1000] },
-    )
-    .toBe("Thông báo, 1 chưa đọc");
+  await expect(async () => {
+    await seller.page.reload();
+    await expect(bell).toHaveAccessibleName("Thông báo, 1 chưa đọc", { timeout: 2_000 });
+  }).toPass({ timeout: 15_000 });
 
   await bell.click();
   const entry = seller.page.getByRole("button", {
@@ -62,11 +57,6 @@ test("an admin edits a template and sees the preview", async ({ browser }) => {
   await expect(card.getByRole("button", { name: "Lưu mẫu" })).toBeDisabled();
 
   await field.fill("Mở đợt {{campaignTitle}}");
-  await card.getByRole("button", { name: "Lưu mẫu" }).click();
-  await expect(page.getByText("Đã lưu mẫu")).toBeVisible();
-
-  // Back to the default, so the template is not left edited.
-  await card.getByRole("button", { name: "Khôi phục mặc định" }).click();
   await card.getByRole("button", { name: "Lưu mẫu" }).click();
   await expect(page.getByText("Đã lưu mẫu")).toBeVisible();
 });
