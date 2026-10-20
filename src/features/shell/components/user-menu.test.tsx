@@ -46,6 +46,23 @@ describe("UserMenu", () => {
     expect(router.push).toHaveBeenCalledWith("/admin/categories");
   });
 
+  it("offers the chat channel page to admins, after categories", async () => {
+    const user = await open("admin");
+    const items = await screen.findAllByRole("menuitem");
+    const names = items.map((i) => i.textContent);
+    expect(names.indexOf("Kênh Google Chat")).toBe(
+      names.indexOf("Quản lý danh mục") + 1,
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Kênh Google Chat" }));
+    expect(router.push).toHaveBeenCalledWith("/admin/chat-channel");
+  });
+
+  it("hides the chat channel page from other people", async () => {
+    await open("user");
+    expect(await screen.findByRole("menuitem", { name: "Hồ sơ" })).toBeVisible();
+    expect(screen.queryByRole("menuitem", { name: "Kênh Google Chat" })).toBeNull();
+  });
+
   it("hides category management from other people", async () => {
     await open("user");
     expect(await screen.findByRole("menuitem", { name: "Hồ sơ" })).toBeVisible();

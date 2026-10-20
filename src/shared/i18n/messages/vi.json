@@ -499,7 +499,54 @@
         "cooldown": "Nhập số nguyên từ 0 đến 1440.",
         "webhook": "Webhook phải bắt đầu bằng https://chat.googleapis.com/v1/spaces/.",
         "webhookRequired": "Cần có webhook để bật kênh."
-      }
+      },
+      "templates": {
+        "title": "Mẫu tin",
+        "intro": "Bấm một biến để chèn vào mẫu. Dùng *đậm*, _nghiêng_ và <url|chữ> như trong Google Chat.",
+        "field": "Mẫu tin",
+        "enabled": "Gửi loại tin này",
+        "digestEnabled": "Gửi bảng tin",
+        "variables": "Biến",
+        "preview": "Xem trước",
+        "previewEmpty": "Bản xem trước hiện ở đây.",
+        "counter": "{count}/{max}",
+        "save": "Lưu mẫu",
+        "saved": "Đã lưu mẫu",
+        "test": "Gửi thử",
+        "tested": "Đã gửi tin thử vào space",
+        "restore": "Khôi phục mặc định",
+        "unknownVariables": "Biến không dùng được cho loại tin này: {names}",
+        "required": "Mẫu tin không được để trống.",
+        "tooLong": "Tối đa {max} ký tự."
+      },
+      "types": {
+        "campaignOpened": "Đợt đặt trước mới mở",
+        "campaignReopened": "Đợt đặt trước mở lại",
+        "listingPublished": "Món có sẵn mới đăng",
+        "digest": "Bảng tin tổng hợp mỗi giờ"
+      },
+      "log": {
+        "title": "Nhật ký gửi tin",
+        "time": "Thời gian",
+        "type": "Loại",
+        "seller": "Người bán",
+        "outcome": "Kết quả",
+        "content": "Nội dung",
+        "empty": "Chưa có tin nào.",
+        "more": "Xem thêm",
+        "digestPending": "đang chờ bảng tin",
+        "digestIncluded": "đã vào bảng tin"
+      },
+      "outcome": {
+        "sent": "Đã gửi",
+        "rate_limited_global": "Vượt giới hạn giờ",
+        "rate_limited_seller": "Giãn cách người bán",
+        "failed": "Lỗi",
+        "test": "Gửi thử",
+        "digest": "Bảng tin"
+      },
+      "loadError": "Không tải được cài đặt kênh.",
+      "retry": "Thử lại"
     }
   },
   "sell": {

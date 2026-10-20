@@ -32,3 +32,11 @@ export function insertVariable(
     caret: start + token.length,
   };
 }
+
+/** Keys of `admin.chat.types` for each template type. */
+export const TEMPLATE_TITLE_KEYS: Record<string, string> = {
+  "campaign.opened": "campaignOpened",
+  "campaign.reopened": "campaignReopened",
+  "listing.published": "listingPublished",
+  "chat.digest": "digest",
+};

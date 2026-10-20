@@ -499,7 +499,54 @@
         "cooldown": "Enter a whole number from 0 to 1440.",
         "webhook": "The webhook must start with https://chat.googleapis.com/v1/spaces/.",
         "webhookRequired": "A webhook is needed to turn the channel on."
-      }
+      },
+      "templates": {
+        "title": "Message templates",
+        "intro": "Click a variable to insert it. Use *bold*, _italic_ and <url|text> as in Google Chat.",
+        "field": "Message template",
+        "enabled": "Send this kind of message",
+        "digestEnabled": "Send the digest",
+        "variables": "Variables",
+        "preview": "Preview",
+        "previewEmpty": "The preview shows here.",
+        "counter": "{count}/{max}",
+        "save": "Save template",
+        "saved": "Template saved",
+        "test": "Send test",
+        "tested": "Test message sent to the space",
+        "restore": "Restore default",
+        "unknownVariables": "Variables not available for this kind of message: {names}",
+        "required": "The template cannot be empty.",
+        "tooLong": "At most {max} characters."
+      },
+      "types": {
+        "campaignOpened": "New pre-order round opened",
+        "campaignReopened": "Pre-order round reopened",
+        "listingPublished": "New in-stock product",
+        "digest": "Hourly digest"
+      },
+      "log": {
+        "title": "Delivery log",
+        "time": "Time",
+        "type": "Type",
+        "seller": "Seller",
+        "outcome": "Result",
+        "content": "Content",
+        "empty": "No messages yet.",
+        "more": "Show more",
+        "digestPending": "waiting for the digest",
+        "digestIncluded": "in the digest"
+      },
+      "outcome": {
+        "sent": "Sent",
+        "rate_limited_global": "Over the hourly limit",
+        "rate_limited_seller": "Seller gap",
+        "failed": "Failed",
+        "test": "Test",
+        "digest": "Digest"
+      },
+      "loadError": "Could not load the channel settings.",
+      "retry": "Try again"
     }
   },
   "sell": {

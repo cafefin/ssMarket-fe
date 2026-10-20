@@ -70,6 +70,11 @@ export function UserMenu({ user }: { user: CurrentUser }) {
             <DropdownMenuItem onClick={() => router.push("/admin/categories")}>
               {t("categories")}
             </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => router.push("/admin/chat-channel")}
+            >
+              {t("chatChannel")}
+            </DropdownMenuItem>
           </>
         )}
         <DropdownMenuSeparator />
